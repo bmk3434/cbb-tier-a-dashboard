@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.DS_Store
+output/
+# The GitHub Actions cache stores cache/ between cloud runs; don't commit it.
+cache/

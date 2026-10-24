@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "last_updated_pt": "2026-10-24T11:53:21-07:00",
+  "status": "OK",
+  "plays": {},
+  "runs": [
+    {
+      "timestamp_pt": "2026-10-24T11:53:21-07:00",
+      "date": "2026-10-24",
+      "new_candidates": 0,
+      "newly_settled": 0
+    }
+  ],
+  "summary": {
+    "tracked_candidates": 0,
+    "entered_plays": 0,
+    "completed_plays": 0,
+    "wins": 0,
+    "losses": 0,
+    "pushes": 0,
+    "win_pct": null,
+    "profit_units": 0,
+    "roi": null,
+    "avg_clv_proxy": null,
+    "positive_clv_proxy_pct": null,
+    "today_candidates": 0,
+    "today_actionable": 0,
+    "today_review": 0
+  }
+}

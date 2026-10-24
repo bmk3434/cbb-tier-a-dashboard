@@ -1,0 +1,77 @@
+{
+  "model_name": "CBB Spread Model v4",
+  "status": "LOCKED \u2014 2025-26 EXCLUDED FROM TRAINING/TUNING",
+  "architecture": "Predict ATS margin residual in points, not binary cover outcome.",
+  "target": "Home_ATS_Margin = Actual_Home_Margin + Home_Spread",
+  "features_total": 47,
+  "base_features": [
+    "home_spread",
+    "abs_spread",
+    "market_total",
+    "kp_margin",
+    "kp_total",
+    "kp_wp",
+    "kp_edge_home",
+    "abs_kp_edge",
+    "adjEM_diff",
+    "market_vs_adjEM",
+    "same_conference",
+    "postseason",
+    "season_progress",
+    "home_adjOE",
+    "away_adjOE",
+    "home_adjDE",
+    "away_adjDE",
+    "home_adjTempo",
+    "away_adjTempo",
+    "adjOE_diff",
+    "adjDE_diff",
+    "tempo_diff",
+    "home_off_vs_away_def",
+    "away_off_vs_home_def",
+    "matchup_net",
+    "market_home_wp_novig",
+    "kp_market_wp_gap"
+  ],
+  "retained_component_families": [
+    "3-point shooting",
+    "Offensive rebounding",
+    "Last-5 forced turnovers",
+    "eFG%",
+    "Assist rate",
+    "Pace",
+    "Non-steal turnovers",
+    "Point distribution \u2014 3s"
+  ],
+  "dropped_v3_groups_for_residual_target": [
+    "Neutral / conference context",
+    "Last-5 pace"
+  ],
+  "ridge_alpha": 3000,
+  "alpha_selection": "Lowest pooled chronological OOF RMSE across 2023-24 and 2024-25 only.",
+  "probability_sigma": 10.994887591904199,
+  "probability_formula": "P(home covers) = NormalCDF(predicted_ATS_residual / probability_sigma)",
+  "sigma_source": "Standard deviation of chronological OOF residual errors on 2023-24 and 2024-25 only.",
+  "nonlinear_candidate": {
+    "model": "shallow HistGradientBoostingRegressor",
+    "oof_rmse": 11.00600860840594,
+    "selected": false
+  },
+  "development_oof": {
+    "rmse": 10.99426809801886,
+    "mae": 8.661135752920977,
+    "corr": 0.05846280912430061,
+    "auc": 0.5348499600154253,
+    "logloss": 0.6912373270250973,
+    "brier": 0.2490481148074932
+  },
+  "market_only_oof_rmse": 11.011749072542594,
+  "kenpom_edge_oof_rmse": 11.20183257348403,
+  "fixed_test_thresholds": [
+    0.5238095238095238,
+    0.54,
+    0.55,
+    0.56
+  ],
+  "holdout_policy": "Do not change features, alpha, sigma, architecture, or thresholds before running 2025-26."
+}
