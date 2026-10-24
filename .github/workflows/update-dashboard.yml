@@ -12,15 +12,10 @@ concurrency:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 jobs:
-  update-and-deploy:
+  update-dashboard-data:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -57,7 +52,7 @@ jobs:
           CBBD_API_KEY: ${{ secrets.CBBD_API_KEY }}
         run: python dashboard_sync.py "${{ steps.date.outputs.today }}"
 
-      - name: Commit persistent test state
+      - name: Commit persistent dashboard state
         run: |
           git config user.name "cbb-dashboard-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -66,15 +61,3 @@ jobs:
             git commit -m "Update CBB Tier A dashboard state"
             git push
           fi
-
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload dashboard site
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: site
-
-      - name: Deploy dashboard
-        id: deployment
-        uses: actions/deploy-pages@v4
