@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "last_updated_pt": "2026-10-24T13:19:32-07:00",
+  "last_updated_pt": "2026-10-24T13:23:13-07:00",
   "status": "OK",
   "plays": {},
   "runs": [
@@ -18,6 +18,14 @@
     },
     {
       "timestamp_pt": "2026-10-24T13:19:32-07:00",
+      "date": "2026-10-24",
+      "new_candidates": 0,
+      "newly_settled": 0,
+      "new_totals_candidates": 0,
+      "newly_settled_totals": 0
+    },
+    {
+      "timestamp_pt": "2026-10-24T13:23:13-07:00",
       "date": "2026-10-24",
       "new_candidates": 0,
       "newly_settled": 0,
@@ -56,5 +64,20 @@
     "positive_clv_proxy_pct": null,
     "today_candidates": 0,
     "today_actionable": 0
+  },
+  "combined_summary": {
+    "entered_plays": 0,
+    "completed_plays": 0,
+    "wins": 0,
+    "losses": 0,
+    "pushes": 0,
+    "win_pct": null,
+    "profit_units": 0,
+    "roi": null,
+    "avg_clv_proxy": null,
+    "positive_clv_proxy_pct": null,
+    "today_actionable": 0,
+    "ats_entered": 0,
+    "totals_entered": 0
   }
 }
