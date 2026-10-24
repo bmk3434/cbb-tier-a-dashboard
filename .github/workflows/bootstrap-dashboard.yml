@@ -17,7 +17,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat payload/part1.b64 payload/part2.b64 payload/part3.b64 payload/part4.b64 payload/part5.b64 | base64 --decode > /tmp/dashboard.tar.xz
+          cat payload/part1.b64 payload/part1b.b64 payload/part2.b64 payload/part3.b64 payload/part4.b64 payload/part5.b64 | base64 --decode > /tmp/dashboard.tar.xz
           mkdir -p /tmp/cbb-bootstrap
           tar -xJf /tmp/dashboard.tar.xz -C /tmp/cbb-bootstrap
           cp -a /tmp/cbb-bootstrap/CBB_TierA_Auto_Dashboard/. .
