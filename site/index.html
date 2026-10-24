@@ -4,81 +4,142 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="color-scheme" content="dark light" />
-<title>CBB Tier A Dashboard</title>
+<title>CBB Betting Model Dashboard</title>
 <style>
 :root{--bg:#0b1220;--card:#121c2e;--card2:#172338;--text:#e7edf7;--muted:#91a0b7;--blue:#68a5ff;--green:#48d597;--red:#ff7185;--yellow:#f4ca64;--line:#273650;--shadow:0 12px 35px rgba(0,0,0,.24)}
-*{box-sizing:border-box} body{margin:0;background:linear-gradient(180deg,#09111f,#0d1626 42%,#0a1220);color:var(--text);font:15px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
-.wrap{max-width:1180px;margin:0 auto;padding:28px 18px 60px}.top{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:22px}.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);font-weight:750}.title{font-size:34px;font-weight:820;margin:4px 0 7px;letter-spacing:-.03em}.sub{color:var(--muted);max-width:760px}.pill{border:1px solid var(--line);background:rgba(18,28,46,.8);padding:9px 12px;border-radius:999px;color:var(--muted);white-space:nowrap}.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:18px 0 24px}.card{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}.kpi{min-height:116px}.kpi .label{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.07em}.kpi .value{font-size:28px;font-weight:820;margin-top:12px}.kpi .hint{font-size:12px;color:var(--muted);margin-top:3px}.section{margin-top:24px}.section h2{font-size:20px;margin:0 0 12px}.section .desc{color:var(--muted);font-size:13px;margin:-7px 0 12px}.table-card{padding:0;overflow:hidden}.scroll{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:900px}.table th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#a9b6c9;background:#101a2b;position:sticky;top:0}.table th,.table td{padding:12px 13px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}.table tbody tr:hover{background:rgba(104,165,255,.05)}.team{font-weight:740}.green{color:var(--green)}.red{color:var(--red)}.yellow{color:var(--yellow)}.blue{color:var(--blue)}.badge{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:760;border:1px solid var(--line)}.badge.bet{color:#071a12;background:var(--green);border-color:transparent}.badge.review{color:#251c03;background:var(--yellow);border-color:transparent}.badge.win{color:#071a12;background:var(--green);border-color:transparent}.badge.loss{color:#2a0710;background:var(--red);border-color:transparent}.badge.push{color:#101827;background:#c0cad7;border-color:transparent}.empty{padding:28px;color:var(--muted);text-align:center}.note{margin-top:24px;color:var(--muted);font-size:12px;border-top:1px solid var(--line);padding-top:16px}.error{padding:18px;border:1px solid #613244;background:#2a1320;border-radius:14px;color:#ffc0ca}.split{display:grid;grid-template-columns:1.4fr 1fr;gap:12px}.rule-list{display:grid;gap:10px}.rule{display:flex;justify-content:space-between;gap:20px;padding:10px 0;border-bottom:1px solid var(--line)}.rule:last-child{border-bottom:0}.rule span:first-child{color:var(--muted)}
-@media(max-width:950px){.grid{grid-template-columns:repeat(3,1fr)}.split{grid-template-columns:1fr}.top{flex-direction:column}.pill{white-space:normal}}
-@media(max-width:560px){.grid{grid-template-columns:repeat(2,1fr)}.title{font-size:29px}.wrap{padding:20px 12px 44px}.kpi{min-height:105px}}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#09111f,#0d1626 42%,#0a1220);color:var(--text);font:15px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+.wrap{max-width:1220px;margin:0 auto;padding:28px 18px 60px}.top{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:22px}.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);font-weight:750}.title{font-size:34px;font-weight:820;margin:4px 0 7px;letter-spacing:-.03em}.sub{color:var(--muted);max-width:800px}.pill{border:1px solid var(--line);background:rgba(18,28,46,.8);padding:9px 12px;border-radius:999px;color:var(--muted);white-space:nowrap}.model-head{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-top:34px}.model-title{font-size:25px;font-weight:820;margin:0}.model-desc{color:var(--muted);font-size:13px;margin-top:4px;max-width:800px}.tag{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:6px 9px;border:1px solid var(--line);border-radius:999px;color:var(--blue)}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:14px 0 24px}.card{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}.kpi{min-height:112px}.kpi .label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.07em}.kpi .value{font-size:27px;font-weight:820;margin-top:12px}.kpi .hint{font-size:12px;color:var(--muted);margin-top:3px}.section{margin-top:24px}.section h3{font-size:19px;margin:0 0 12px}.desc{color:var(--muted);font-size:13px;margin:-7px 0 12px}.table-card{padding:0;overflow:hidden}.scroll{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:930px}.table th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#a9b6c9;background:#101a2b;position:sticky;top:0}.table th,.table td{padding:12px 13px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}.table tbody tr:hover{background:rgba(104,165,255,.05)}.team{font-weight:740}.green{color:var(--green)}.red{color:var(--red)}.yellow{color:var(--yellow)}.blue{color:var(--blue)}.badge{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:760;border:1px solid var(--line)}.badge.bet,.badge.win{color:#071a12;background:var(--green);border-color:transparent}.badge.review{color:#251c03;background:var(--yellow);border-color:transparent}.badge.loss{color:#2a0710;background:var(--red);border-color:transparent}.badge.push{color:#101827;background:#c0cad7;border-color:transparent}.empty{padding:28px;color:var(--muted);text-align:center}.note{margin-top:30px;color:var(--muted);font-size:12px;border-top:1px solid var(--line);padding-top:16px}.error{padding:18px;border:1px solid #613244;background:#2a1320;border-radius:14px;color:#ffc0ca}.split{display:grid;grid-template-columns:1.45fr 1fr;gap:12px}.rule-list{display:grid;gap:10px}.rule{display:flex;justify-content:space-between;gap:20px;padding:10px 0;border-bottom:1px solid var(--line)}.rule:last-child{border-bottom:0}.rule span:first-child{color:var(--muted)}.divider{height:1px;background:var(--line);margin:38px 0 0}
+@media(max-width:950px){.grid{grid-template-columns:repeat(3,1fr)}.split{grid-template-columns:1fr}.top,.model-head{flex-direction:column;align-items:flex-start}.pill{white-space:normal}}
+@media(max-width:560px){.grid{grid-template-columns:repeat(2,1fr)}.title{font-size:29px}.wrap{padding:20px 12px 44px}.kpi{min-height:102px}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="top">
-    <div><div class="eyebrow">2026–27 prospective test</div><div class="title">CBB Tier A Dashboard</div><div class="sub">Frozen v4 research rule: model ATS edge ≥ 1.75 points and model-selected underdog +4 or greater. Neutral candidates require verified team-specific line orientation.</div></div>
+    <div>
+      <div class="eyebrow">2026–27 prospective research</div>
+      <div class="title">CBB Betting Model Dashboard</div>
+      <div class="sub">Two independent frozen research models on one dashboard: ATS v4 for selective underdogs and Totals v1 for selective Over/Under edges. Each model keeps its own record and entry line.</div>
+    </div>
     <div class="pill" id="updated">Loading…</div>
   </div>
   <div id="error"></div>
-  <div class="grid" id="kpis"></div>
+
+  <div class="model-head">
+    <div><div class="model-title">ATS — Tier A</div><div class="model-desc">Frozen v4 rule: absolute ATS edge ≥ 1.75 points and the model-selected side is an underdog of +4.0 or greater. Neutral spread orientation must be verified.</div></div>
+    <div class="tag">Spread model v4</div>
+  </div>
+  <div class="grid" id="ats-kpis"></div>
 
   <div class="section">
-    <h2>Today’s candidates</h2>
-    <div class="desc">Actionable candidates are entered at the first scanner line after QC. Neutral candidates remain review-only until an override is verified.</div>
-    <div class="card table-card"><div class="scroll"><table class="table"><thead><tr><th>Status</th><th>Game</th><th>Model bet</th><th>Entry/current</th><th>Edge</th><th>Move</th><th>QC</th></tr></thead><tbody id="today"></tbody></table></div><div id="today-empty" class="empty" hidden>No Tier A candidates yet today.</div></div>
+    <h3>Today’s ATS candidates</h3>
+    <div class="desc">Actionable candidates are entered at the first qualified scanner line after QC.</div>
+    <div class="card table-card"><div class="scroll"><table class="table"><thead><tr><th>Status</th><th>Game</th><th>Model bet</th><th>Entry/current</th><th>Edge</th><th>Move</th><th>QC</th></tr></thead><tbody id="ats-today"></tbody></table></div><div id="ats-today-empty" class="empty" hidden>No Tier A ATS candidates yet today.</div></div>
   </div>
 
   <div class="section split">
     <div>
-      <h2>Forward-test history</h2>
+      <h3>ATS forward-test history</h3>
       <div class="desc">Research record uses the automated scanner entry line, not your personal wager line.</div>
-      <div class="card table-card"><div class="scroll"><table class="table"><thead><tr><th>Date</th><th>Bet</th><th>Entry</th><th>Close proxy</th><th>CLV</th><th>Result</th><th>P/L</th></tr></thead><tbody id="history"></tbody></table></div><div id="history-empty" class="empty" hidden>No tracked plays yet.</div></div>
+      <div class="card table-card"><div class="scroll"><table class="table"><thead><tr><th>Date</th><th>Bet</th><th>Entry</th><th>Close proxy</th><th>CLV</th><th>Result</th><th>P/L</th></tr></thead><tbody id="ats-history"></tbody></table></div><div id="ats-history-empty" class="empty" hidden>No tracked ATS plays yet.</div></div>
     </div>
     <div>
-      <h2>Frozen rules</h2>
+      <h3>ATS frozen rules</h3>
       <div class="card rule-list">
         <div class="rule"><span>V4 edge</span><strong>≥ 1.75 pts</strong></div>
         <div class="rule"><span>Selected side</span><strong>Underdog +4.0+</strong></div>
         <div class="rule"><span>Neutral site</span><strong>Verify orientation</strong></div>
         <div class="rule"><span>Staking</span><strong>Flat units</strong></div>
         <div class="rule"><span>Moneyline</span><strong>No auto add-on</strong></div>
-        <div class="rule"><span>Profile tag</span><strong>Away +4 to +6.5 only</strong></div>
+        <div class="rule"><span>Historical research</span><strong>50–40 combined</strong></div>
       </div>
     </div>
   </div>
-  <div class="note">“Closing line” on this dashboard is a proxy: the latest scheduled snapshot captured before tip. GitHub schedules can be delayed, so it should not be represented as an independently verified sportsbook close. The separate tracker workbook remains the place to record your exact wager and actual close.</div>
+
+  <div class="divider"></div>
+
+  <div class="model-head">
+    <div><div class="model-title">Totals — v1</div><div class="model-desc">Market-relative total model. Positive predicted residual = Over; negative = Under. A play qualifies when the absolute model edge is at least 2.00 points. No Over-only filter is part of the frozen rule.</div></div>
+    <div class="tag">Totals model v1</div>
+  </div>
+  <div class="grid" id="totals-kpis"></div>
+
+  <div class="section">
+    <h3>Today’s totals candidates</h3>
+    <div class="desc">Entry is the first scheduled scanner total after the frozen 2-point rule qualifies.</div>
+    <div class="card table-card"><div class="scroll"><table class="table"><thead><tr><th>Status</th><th>Game</th><th>Bet</th><th>Entry/current</th><th>Model total</th><th>Edge</th><th>QC</th></tr></thead><tbody id="totals-today"></tbody></table></div><div id="totals-today-empty" class="empty" hidden>No Totals v1 candidates yet today.</div></div>
+  </div>
+
+  <div class="section split">
+    <div>
+      <h3>Totals forward-test history</h3>
+      <div class="desc">Totals CLV proxy is signed in the favorable direction: higher is better for an Over entry, lower is better for an Under entry.</div>
+      <div class="card table-card"><div class="scroll"><table class="table"><thead><tr><th>Date</th><th>Bet</th><th>Entry</th><th>Close proxy</th><th>CLV</th><th>Result</th><th>P/L</th></tr></thead><tbody id="totals-history"></tbody></table></div><div id="totals-history-empty" class="empty" hidden>No tracked totals plays yet.</div></div>
+    </div>
+    <div>
+      <h3>Totals frozen rules</h3>
+      <div class="card rule-list">
+        <div class="rule"><span>Absolute edge</span><strong>≥ 2.00 pts</strong></div>
+        <div class="rule"><span>Side</span><strong>Sign chooses O/U</strong></div>
+        <div class="rule"><span>Side restriction</span><strong>None</strong></div>
+        <div class="rule"><span>Staking</span><strong>Flat units</strong></div>
+        <div class="rule"><span>Dev OOF</span><strong>191–151 (55.85%)</strong></div>
+        <div class="rule"><span>2025–26 holdout</span><strong>65–51 (56.03%)</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">All records are prospective research tests, not guarantees. “Close” is a proxy: the latest scheduled snapshot captured before tip, not an independently certified sportsbook closing line. ATS and Totals are scored and tracked independently.</div>
 </div>
 <script>
 const f=(x,d=2)=>x==null||Number.isNaN(Number(x))?'—':Number(x).toFixed(d);
 const pct=x=>x==null?'—':(100*Number(x)).toFixed(2)+'%';
-const signed=x=>x==null?'—':(Number(x)>=0?'+':'')+Number(x).toFixed(1);
+const signed=(x,d=1)=>x==null?'—':(Number(x)>=0?'+':'')+Number(x).toFixed(d);
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-function resultBadge(r){if(!r)return '<span class="badge">OPEN</span>'; let c=r==='W'?'win':r==='L'?'loss':'push';return `<span class="badge ${c}">${r}</span>`}
-function statusBadge(p){return p.entry_line!=null?'<span class="badge bet">ACTIONABLE</span>':'<span class="badge review">REVIEW</span>'}
+function resultBadge(r){if(!r)return '<span class="badge">OPEN</span>';let c=r==='W'?'win':r==='L'?'loss':'push';return `<span class="badge ${c}">${r}</span>`}
+function atsStatus(p){return p.entry_line!=null?'<span class="badge bet">ACTIONABLE</span>':'<span class="badge review">REVIEW</span>'}
+function totalStatus(p){return p.entry_total!=null?'<span class="badge bet">ACTIONABLE</span>':'<span class="badge review">REVIEW</span>'}
+function cards(el,m,kind){
+ const arr=kind==='ATS'
+ ?[['Today actionable',m.today_actionable??0,'first qualified lines'],['Today review',m.today_review??0,'neutral/QC'],['Record',`${m.wins??0}-${m.losses??0}${m.pushes?'-'+m.pushes:''}`,'completed'],['Win rate',pct(m.win_pct),'ATS'],['ROI',pct(m.roi),'scanner-entry test'],['Avg CLV',m.avg_clv_proxy==null?'—':signed(m.avg_clv_proxy),'snapshot proxy']]
+ :[['Today plays',m.today_actionable??0,'qualified totals'],['Tracked',m.tracked_candidates??0,'prospective candidates'],['Record',`${m.wins??0}-${m.losses??0}${m.pushes?'-'+m.pushes:''}`,'completed'],['Win rate',pct(m.win_pct),'O/U'],['ROI',pct(m.roi),'scanner-entry test'],['Avg CLV',m.avg_clv_proxy==null?'—':signed(m.avg_clv_proxy),'snapshot proxy']];
+ document.getElementById(el).innerHTML=arr.map(c=>`<div class="card kpi"><div class="label">${c[0]}</div><div class="value">${c[1]}</div><div class="hint">${c[2]}</div></div>`).join('');
+}
 async function boot(){
  try{
-  const res=await fetch('data/state.json',{cache:'no-store'}); if(!res.ok)throw new Error('State file unavailable'); const s=await res.json();
+  const res=await fetch('data/state.json',{cache:'no-store'});if(!res.ok)throw new Error('State file unavailable');const s=await res.json();
   document.getElementById('updated').textContent=s.last_updated_pt?`Updated ${s.last_updated_pt.replace('T',' ')}`:'Not run yet';
-  const m=s.summary||{}; const cards=[
-    ['Today actionable',m.today_actionable??0,'first qualified lines'],['Today review',m.today_review??0,'neutral/QC'],['Record',`${m.wins??0}-${m.losses??0}${m.pushes?'-'+m.pushes:''}`,'completed'],['Win rate',pct(m.win_pct),'ATS'],['ROI',pct(m.roi),'scanner-entry test'],['Avg CLV',m.avg_clv_proxy==null?'—':signed(m.avg_clv_proxy),'snapshot proxy']
-  ];
-  document.getElementById('kpis').innerHTML=cards.map(c=>`<div class="card kpi"><div class="label">${c[0]}</div><div class="value">${c[1]}</div><div class="hint">${c[2]}</div></div>`).join('');
-  const plays=Object.values(s.plays||{}).sort((a,b)=>(b.game_date||'').localeCompare(a.game_date||'')||(b.first_seen_pt||'').localeCompare(a.first_seen_pt||''));
-  const today=(new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()));
-  const todays=plays.filter(p=>p.game_date===today);
-  const tb=document.getElementById('today');
-  if(!todays.length){document.getElementById('today-empty').hidden=false;tb.innerHTML=''} else {
-    tb.innerHTML=todays.map(p=>{
-      const entry=p.entry_line!=null?signed(p.entry_line):'—'; const latest=p.latest_line!=null?signed(p.latest_line):'—';
-      const move=p.entry_line!=null&&p.latest_line!=null?p.entry_line-p.latest_line:null;
-      return `<tr><td>${statusBadge(p)}</td><td><span class="team">${esc(p.away_team)} @ ${esc(p.home_team)}</span>${p.neutral_site?' <span class="yellow">(N)</span>':''}</td><td class="team">${esc(p.bet_team)}</td><td>${entry} / ${latest}</td><td>${f(p.entry_edge??p.first_edge,2)}</td><td class="${move>0?'green':move<0?'red':''}">${move==null?'—':signed(move)}</td><td>${esc(p.qc_status||'')}</td></tr>`}).join('');
+  cards('ats-kpis',s.summary||{},'ATS');cards('totals-kpis',s.totals_summary||{},'TOTALS');
+
+  const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+
+  const ats=Object.values(s.plays||{}).sort((a,b)=>(b.game_date||'').localeCompare(a.game_date||'')||(b.first_seen_pt||'').localeCompare(a.first_seen_pt||''));
+  const atsToday=ats.filter(p=>p.game_date===today);const atb=document.getElementById('ats-today');
+  if(!atsToday.length){document.getElementById('ats-today-empty').hidden=false;atb.innerHTML=''}else{
+   document.getElementById('ats-today-empty').hidden=true;
+   atb.innerHTML=atsToday.map(p=>{const entry=p.entry_line!=null?signed(p.entry_line):'—',latest=p.latest_line!=null?signed(p.latest_line):'—';const move=p.entry_line!=null&&p.latest_line!=null?p.entry_line-p.latest_line:null;return `<tr><td>${atsStatus(p)}</td><td><span class="team">${esc(p.away_team)} @ ${esc(p.home_team)}</span>${p.neutral_site?' <span class="yellow">(N)</span>':''}</td><td class="team">${esc(p.bet_team)}</td><td>${entry} / ${latest}</td><td>${f(p.entry_edge??p.first_edge,2)}</td><td class="${move>0?'green':move<0?'red':''}">${move==null?'—':signed(move)}</td><td>${esc(p.qc_status||'')}</td></tr>`}).join('');
   }
-  const completed=plays.filter(p=>p.entry_line!=null).slice(0,100); const hb=document.getElementById('history');
-  if(!completed.length){document.getElementById('history-empty').hidden=false;hb.innerHTML=''} else {
-    hb.innerHTML=completed.map(p=>`<tr><td>${esc(p.game_date)}</td><td><span class="team">${esc(p.bet_team)}</span><div style="color:var(--muted);font-size:12px">${esc(p.away_team)} @ ${esc(p.home_team)}</div></td><td>${signed(p.entry_line)}</td><td>${signed(p.closing_proxy_line)}</td><td class="${(p.clv_proxy_points??0)>0?'green':(p.clv_proxy_points??0)<0?'red':''}">${p.clv_proxy_points==null?'—':signed(p.clv_proxy_points)}</td><td>${resultBadge(p.result)}</td><td class="${(p.profit_units??0)>0?'green':(p.profit_units??0)<0?'red':''}">${p.profit_units==null?'—':f(p.profit_units,2)+'u'}</td></tr>`).join('');
+  const atsHist=ats.filter(p=>p.entry_line!=null).slice(0,100),ahb=document.getElementById('ats-history');
+  if(!atsHist.length){document.getElementById('ats-history-empty').hidden=false;ahb.innerHTML=''}else{
+   document.getElementById('ats-history-empty').hidden=true;
+   ahb.innerHTML=atsHist.map(p=>`<tr><td>${esc(p.game_date)}</td><td><span class="team">${esc(p.bet_team)}</span><div style="color:var(--muted);font-size:12px">${esc(p.away_team)} @ ${esc(p.home_team)}</div></td><td>${signed(p.entry_line)}</td><td>${signed(p.closing_proxy_line)}</td><td class="${(p.clv_proxy_points??0)>0?'green':(p.clv_proxy_points??0)<0?'red':''}">${p.clv_proxy_points==null?'—':signed(p.clv_proxy_points)}</td><td>${resultBadge(p.result)}</td><td class="${(p.profit_units??0)>0?'green':(p.profit_units??0)<0?'red':''}">${p.profit_units==null?'—':f(p.profit_units,2)+'u'}</td></tr>`).join('');
+  }
+
+  const totals=Object.values(s.totals_plays||{}).sort((a,b)=>(b.game_date||'').localeCompare(a.game_date||'')||(b.first_seen_pt||'').localeCompare(a.first_seen_pt||''));
+  const totalsToday=totals.filter(p=>p.game_date===today),ttb=document.getElementById('totals-today');
+  if(!totalsToday.length){document.getElementById('totals-today-empty').hidden=false;ttb.innerHTML=''}else{
+   document.getElementById('totals-today-empty').hidden=true;
+   ttb.innerHTML=totalsToday.map(p=>`<tr><td>${totalStatus(p)}</td><td><span class="team">${esc(p.away_team)} @ ${esc(p.home_team)}</span>${p.neutral_site?' <span class="yellow">(N)</span>':''}</td><td class="team">${esc(p.bet_side)}</td><td>${f(p.entry_total,1)} / ${f(p.latest_total,1)}</td><td>${f(p.entry_model_total??p.first_model_total,1)}</td><td>${f(p.entry_edge??p.first_edge,2)}</td><td>${esc(p.qc_status||'')}</td></tr>`).join('');
+  }
+  const totalHist=totals.filter(p=>p.entry_total!=null).slice(0,100),thb=document.getElementById('totals-history');
+  if(!totalHist.length){document.getElementById('totals-history-empty').hidden=false;thb.innerHTML=''}else{
+   document.getElementById('totals-history-empty').hidden=true;
+   thb.innerHTML=totalHist.map(p=>`<tr><td>${esc(p.game_date)}</td><td><span class="team">${esc(p.bet_side)} ${f(p.entry_total,1)}</span><div style="color:var(--muted);font-size:12px">${esc(p.away_team)} @ ${esc(p.home_team)}</div></td><td>${f(p.entry_total,1)}</td><td>${f(p.closing_proxy_total,1)}</td><td class="${(p.clv_proxy_points??0)>0?'green':(p.clv_proxy_points??0)<0?'red':''}">${p.clv_proxy_points==null?'—':signed(p.clv_proxy_points)}</td><td>${resultBadge(p.result)}</td><td class="${(p.profit_units??0)>0?'green':(p.profit_units??0)<0?'red':''}">${p.profit_units==null?'—':f(p.profit_units,2)+'u'}</td></tr>`).join('');
   }
  }catch(e){document.getElementById('error').innerHTML=`<div class="error">Dashboard could not load: ${esc(e.message)}</div>`}
 }
-boot(); setInterval(boot,300000);
+boot();setInterval(boot,300000);
 </script>
-</body></html>
+</body>
+</html>
