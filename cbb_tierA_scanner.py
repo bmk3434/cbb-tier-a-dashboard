@@ -23,7 +23,9 @@ The model is the frozen cbb_spread_model_v4.joblib stored beside this script.
 from __future__ import annotations
 
 import argparse
+import base64
 import csv
+import io
 import json
 import math
 import os
@@ -52,6 +54,8 @@ KENPOM_BASE = "https://kenpom.com/api.php"
 
 ROOT = Path(__file__).resolve().parent
 MODEL_PATH = ROOT / "cbb_spread_model_v4.joblib"
+TOTAL_MODEL_B64_PATH = ROOT / "cbb_totals_model_v1.b64"
+TOTAL_SPEC_PATH = ROOT / "cbb_totals_model_v1_spec.json"
 ALIASES_PATH = ROOT / "team_name_aliases.json"
 OVERRIDES_PATH = ROOT / "neutral_overrides.csv"
 CACHE_DIR = ROOT / "cache"
@@ -238,8 +242,12 @@ def fetch_teamstats_history(target_date: date, key: str, refresh: bool = False) 
 
 RAW_KEYS = [
     "games", "poss", "opp_poss", "pts", "opp_pts", "fgm", "fga", "opp_fgm", "opp_fga",
-    "three_m", "three_a", "opp_three_m", "opp_three_a", "orb", "drb", "opp_orb", "opp_drb",
-    "tov", "opp_tov", "ast", "opp_ast", "stl", "opp_stl"
+    "two_m", "two_a", "opp_two_m", "opp_two_a",
+    "three_m", "three_a", "opp_three_m", "opp_three_a",
+    "ftm", "fta", "opp_ftm", "opp_fta",
+    "orb", "drb", "opp_orb", "opp_drb",
+    "tov", "opp_tov", "ast", "opp_ast", "stl", "opp_stl", "blk", "opp_blk",
+    "paint", "opp_paint", "fastbreak", "opp_fastbreak", "offto", "opp_offto"
 ]
 
 
@@ -260,10 +268,18 @@ def raw_from_teamstat(row: Dict[str, Any]) -> Dict[str, float]:
         "fga": get_nested(t, "fieldGoals", "attempted"),
         "opp_fgm": get_nested(o, "fieldGoals", "made"),
         "opp_fga": get_nested(o, "fieldGoals", "attempted"),
+        "two_m": get_nested(t, "twoPointFieldGoals", "made"),
+        "two_a": get_nested(t, "twoPointFieldGoals", "attempted"),
+        "opp_two_m": get_nested(o, "twoPointFieldGoals", "made"),
+        "opp_two_a": get_nested(o, "twoPointFieldGoals", "attempted"),
         "three_m": get_nested(t, "threePointFieldGoals", "made"),
         "three_a": get_nested(t, "threePointFieldGoals", "attempted"),
         "opp_three_m": get_nested(o, "threePointFieldGoals", "made"),
         "opp_three_a": get_nested(o, "threePointFieldGoals", "attempted"),
+        "ftm": get_nested(t, "freeThrows", "made"),
+        "fta": get_nested(t, "freeThrows", "attempted"),
+        "opp_ftm": get_nested(o, "freeThrows", "made"),
+        "opp_fta": get_nested(o, "freeThrows", "attempted"),
         "orb": get_nested(t, "rebounds", "offensive"),
         "drb": get_nested(t, "rebounds", "defensive"),
         "opp_orb": get_nested(o, "rebounds", "offensive"),
@@ -274,8 +290,15 @@ def raw_from_teamstat(row: Dict[str, Any]) -> Dict[str, float]:
         "opp_ast": get_nested(o, "assists"),
         "stl": get_nested(t, "steals"),
         "opp_stl": get_nested(o, "steals"),
+        "blk": get_nested(t, "blocks"),
+        "opp_blk": get_nested(o, "blocks"),
+        "paint": get_nested(t, "points", "inPaint"),
+        "opp_paint": get_nested(o, "points", "inPaint"),
+        "fastbreak": get_nested(t, "points", "fastBreak"),
+        "opp_fastbreak": get_nested(o, "points", "fastBreak"),
+        "offto": get_nested(t, "points", "offTurnovers"),
+        "opp_offto": get_nested(o, "points", "offTurnovers"),
     }
-
 
 def add_raw(a: Dict[str, float], b: Dict[str, float]) -> Dict[str, float]:
     return {k: a.get(k, 0.0) + b.get(k, 0.0) for k in RAW_KEYS}
@@ -283,24 +306,52 @@ def add_raw(a: Dict[str, float], b: Dict[str, float]) -> Dict[str, float]:
 
 def metrics_from_raw(s: Dict[str, float]) -> Dict[str, float]:
     games = s["games"]
-    return {
+    out = {
         "games": games,
         "pace": s["poss"] / games if games else math.nan,
+        "off_rating": pct(s["pts"], s["poss"]),
+        "def_rating": pct(s["opp_pts"], s["opp_poss"]),
         "efg": pct(s["fgm"] + 0.5 * s["three_m"], s["fga"]),
         "opp_efg": pct(s["opp_fgm"] + 0.5 * s["opp_three_m"], s["opp_fga"]),
+        "to_pct": pct(s["tov"], s["poss"]),
         "opp_to_pct": pct(s["opp_tov"], s["opp_poss"]),
-        "three_pct": pct(s["three_m"], s["three_a"]),
-        "opp_three_pct": pct(s["opp_three_m"], s["opp_three_a"]),
         "orb_pct": pct(s["orb"], s["orb"] + s["opp_drb"]),
         "opp_orb_pct": pct(s["opp_orb"], s["opp_orb"] + s["drb"]),
+        "ftr": pct(s["fta"], s["fga"]),
+        "opp_ftr": pct(s["opp_fta"], s["opp_fga"]),
+        "two_pct": pct(s["two_m"], s["two_a"]),
+        "opp_two_pct": pct(s["opp_two_m"], s["opp_two_a"]),
+        "three_pct": pct(s["three_m"], s["three_a"]),
+        "opp_three_pct": pct(s["opp_three_m"], s["opp_three_a"]),
+        "ft_pct": pct(s["ftm"], s["fta"]),
+        "opp_ft_pct": pct(s["opp_ftm"], s["opp_fta"]),
+        "three_pa_rate": pct(s["three_a"], s["fga"]),
+        "opp_three_pa_rate": pct(s["opp_three_a"], s["opp_fga"]),
         "assist_rate": pct(s["ast"], s["fgm"]),
         "opp_assist_rate": pct(s["opp_ast"], s["opp_fgm"]),
+        "steal_rate": pct(s["stl"], s["opp_poss"]),
+        "opp_steal_rate": pct(s["opp_stl"], s["poss"]),
+        "block_rate": pct(s["blk"], s["opp_two_a"]),
+        "opp_block_rate": pct(s["opp_blk"], s["two_a"]),
         "nonsteal_to_pct": pct(max(0.0, s["tov"] - s["opp_stl"]), s["poss"]),
         "forced_nonsteal_to_pct": pct(max(0.0, s["opp_tov"] - s["stl"]), s["opp_poss"]),
+        "ptdist_2": pct(2.0 * s["two_m"], s["pts"]),
         "ptdist_3": pct(3.0 * s["three_m"], s["pts"]),
+        "ptdist_ft": pct(s["ftm"], s["pts"]),
+        "opp_ptdist_2": pct(2.0 * s["opp_two_m"], s["opp_pts"]),
         "opp_ptdist_3": pct(3.0 * s["opp_three_m"], s["opp_pts"]),
+        "opp_ptdist_ft": pct(s["opp_ftm"], s["opp_pts"]),
+        "paint_share": pct(s["paint"], s["pts"]),
+        "fastbreak_share": pct(s["fastbreak"], s["pts"]),
+        "offto_share": pct(s["offto"], s["pts"]),
+        "opp_paint_share": pct(s["opp_paint"], s["opp_pts"]),
+        "opp_fastbreak_share": pct(s["opp_fastbreak"], s["opp_pts"]),
+        "opp_offto_share": pct(s["opp_offto"], s["opp_pts"]),
+        "true_shooting": pct(s["pts"], 2.0 * (s["fga"] + 0.44 * s["fta"])),
+        "opp_true_shooting": pct(s["opp_pts"], 2.0 * (s["opp_fga"] + 0.44 * s["opp_fta"])),
     }
-
+    out["net_rating"] = out["off_rating"] - out["def_rating"] if not math.isnan(out["off_rating"]) and not math.isnan(out["def_rating"]) else math.nan
+    return out
 
 def build_snapshots(team_rows: List[Dict[str, Any]]) -> Dict[str, Dict[str, Dict[str, float]]]:
     grouped: Dict[str, List[Tuple[str, Dict[str, float]]]] = defaultdict(list)
@@ -328,11 +379,18 @@ def build_snapshots(team_rows: List[Dict[str, Any]]) -> Dict[str, Dict[str, Dict
 
 def empty_snapshot() -> Dict[str, Dict[str, float]]:
     keys = [
-        "games", "pace", "efg", "opp_efg", "opp_to_pct", "three_pct", "opp_three_pct",
-        "orb_pct", "opp_orb_pct", "assist_rate", "opp_assist_rate", "nonsteal_to_pct",
-        "forced_nonsteal_to_pct", "ptdist_3", "opp_ptdist_3"
+        "games", "pace", "off_rating", "def_rating", "net_rating", "efg", "opp_efg",
+        "to_pct", "opp_to_pct", "orb_pct", "opp_orb_pct", "ftr", "opp_ftr",
+        "two_pct", "opp_two_pct", "three_pct", "opp_three_pct", "ft_pct", "opp_ft_pct",
+        "three_pa_rate", "opp_three_pa_rate", "assist_rate", "opp_assist_rate",
+        "steal_rate", "opp_steal_rate", "block_rate", "opp_block_rate",
+        "nonsteal_to_pct", "forced_nonsteal_to_pct", "ptdist_2", "ptdist_3", "ptdist_ft",
+        "opp_ptdist_2", "opp_ptdist_3", "opp_ptdist_ft", "paint_share", "fastbreak_share",
+        "offto_share", "opp_paint_share", "opp_fastbreak_share", "opp_offto_share",
+        "true_shooting", "opp_true_shooting"
     ]
     nanmetrics = {k: math.nan for k in keys}
+    nanmetrics["games"] = 0.0
     return {"season": dict(nanmetrics), "last5": dict(nanmetrics)}
 
 
@@ -471,6 +529,86 @@ def derive_features(
     return f
 
 
+def load_totals_model() -> Tuple[Any, List[str]]:
+    if not TOTAL_MODEL_B64_PATH.exists() or not TOTAL_SPEC_PATH.exists():
+        raise RuntimeError("Totals model payload/spec is missing.")
+    raw = base64.b64decode(TOTAL_MODEL_B64_PATH.read_text(encoding="utf-8").strip())
+    model = joblib.load(io.BytesIO(raw))
+    spec = json.loads(TOTAL_SPEC_PATH.read_text(encoding="utf-8"))
+    features = list(spec.get("features") or [])
+    if len(features) != 78:
+        raise RuntimeError(f"Unexpected totals feature count: {len(features)}")
+    return model, features
+
+
+def derive_total_features(
+    game: Dict[str, Any],
+    line: Dict[str, Any],
+    ats_features: Dict[str, float],
+    home_snap: Dict[str, Dict[str, float]],
+    away_snap: Dict[str, Dict[str, float]],
+    target_date: date,
+) -> Dict[str, float]:
+    mt = safe_float(line.get("overUnder"))
+    hs = safe_float(line.get("spread"))
+    kp_total = ats_features["kp_total"]
+    kp_margin = ats_features["kp_margin"]
+    kp_wp = ats_features["kp_wp"]
+    h_oe = ats_features["home_adjOE"]; a_oe = ats_features["away_adjOE"]
+    h_de = ats_features["home_adjDE"]; a_de = ats_features["away_adjDE"]
+    h_t = ats_features["home_adjTempo"]; a_t = ats_features["away_adjTempo"]
+
+    f: Dict[str, float] = {
+        "market_total": mt,
+        "kp_total": kp_total,
+        "kp_total_gap": kp_total - mt,
+        "abs_home_spread": abs(hs),
+        "kp_pred_margin_abs": abs(kp_margin),
+        "kp_home_wp_center": kp_wp - 50.0,
+        "kp_home_adjoe": h_oe,
+        "kp_away_adjoe": a_oe,
+        "kp_home_adjde": h_de,
+        "kp_away_adjde": a_de,
+        "kp_home_adjtempo": h_t,
+        "kp_away_adjtempo": a_t,
+        "kp_off_sum": h_oe + a_oe,
+        "kp_def_sum": h_de + a_de,
+        "kp_tempo_mean": (h_t + a_t) / 2.0,
+        "kp_tempo_absdiff": abs(h_t - a_t),
+        "kp_matchup_eff_sum": (h_oe - a_de) + (a_oe - h_de),
+        "season_progress": float(max(0, (target_date - SEASON_START).days)),
+        "same_conference": ats_features["same_conference"],
+        "neutral_site": 1.0 if bool(game.get("neutralSite")) else 0.0,
+    }
+
+    core_metrics = [
+        "pace", "off_rating", "def_rating", "efg", "to_pct", "orb_pct", "ftr",
+        "two_pct", "three_pct", "ft_pct", "three_pa_rate", "assist_rate",
+        "nonsteal_to_pct", "ptdist_3", "true_shooting"
+    ]
+    matchup_pairs = [
+        ("efg", "opp_efg"), ("three_pct", "opp_three_pct"), ("two_pct", "opp_two_pct"),
+        ("to_pct", "opp_to_pct"), ("orb_pct", "opp_orb_pct"), ("ftr", "opp_ftr"),
+        ("three_pa_rate", "opp_three_pa_rate"), ("assist_rate", "opp_assist_rate"),
+        ("nonsteal_to_pct", "forced_nonsteal_to_pct"), ("ptdist_3", "opp_ptdist_3"),
+        ("true_shooting", "opp_true_shooting")
+    ]
+    for prefix, snap_key in [("std", "season"), ("l5", "last5")]:
+        h = home_snap[snap_key]
+        a = away_snap[snap_key]
+        hg = h.get("games", math.nan); ag = a.get("games", math.nan)
+        f[f"{prefix}_min_games"] = min(hg, ag)
+        f[f"{prefix}_games_sum"] = hg + ag
+        f[f"{prefix}_match_eff_sum"] = (h["off_rating"] - a["def_rating"]) + (a["off_rating"] - h["def_rating"])
+        for metric in core_metrics:
+            f[f"{prefix}_{metric}_mean"] = (h[metric] + a[metric]) / 2.0
+        for metric, opp_metric in matchup_pairs:
+            home_exp = (h[metric] + a[opp_metric]) / 2.0
+            away_exp = (a[metric] + h[opp_metric]) / 2.0
+            f[f"{prefix}_match_{metric}_sum"] = home_exp + away_exp
+    return f
+
+
 def apply_neutral_override(game: Dict[str, Any], line: Dict[str, Any], overrides: Dict[str, Dict[str, str]]) -> Tuple[Dict[str, Any], str, str]:
     """Return possibly modified line, QC status, source."""
     neutral = bool(game.get("neutralSite"))
@@ -517,8 +655,9 @@ def append_snapshots(rows: List[Dict[str, Any]]) -> None:
     path = OUTPUT_DIR / "line_snapshots.csv"
     fields = [
         "Run_Timestamp_PT", "Game_Date", "Game_ID", "Away_Team", "Home_Team", "Neutral_Site",
-        "Provider", "Home_Spread", "Model_Bet", "Bet_Spread", "V4_Edge", "V4_Confidence",
-        "Tier", "Profile_Tag", "Actionable", "QC_Status"
+        "Provider", "Home_Spread", "Market_Total", "Model_Bet", "Bet_Spread", "V4_Edge", "V4_Confidence",
+        "Tier", "Profile_Tag", "Actionable", "QC_Status", "Totals_Bet", "Totals_Model_Total",
+        "Totals_Predicted_Edge", "Totals_Edge", "Totals_Qualified", "Totals_Actionable", "Totals_QC_Status"
     ]
     exists = path.exists()
     with open(path, "a", newline="", encoding="utf-8") as f:
@@ -562,6 +701,9 @@ def main() -> int:
     if not MODEL_PATH.exists():
         print(f"ERROR: missing model file: {MODEL_PATH}")
         return 2
+    if not TOTAL_MODEL_B64_PATH.exists() or not TOTAL_SPEC_PATH.exists():
+        print("ERROR: missing frozen totals model payload/spec.")
+        return 2
 
     create_override_template_if_missing()
     aliases = load_aliases()
@@ -570,12 +712,14 @@ def main() -> int:
     model = bundle["regressor"]
     features: List[str] = bundle["features"]
     sigma = float(bundle["probability_sigma"])
+    totals_model, totals_features = load_totals_model()
 
     print("=" * 70)
     print("2026-27 CBB TIER A DAILY SCANNER")
     print("=" * 70)
     print("Date:", target_date.isoformat())
-    print("Frozen rule: V4 ATS edge >= 1.75 AND model side underdog +4 or more")
+    print("Frozen ATS rule: V4 edge >= 1.75 AND model side underdog +4 or more")
+    print("Frozen totals rule: absolute predicted total edge >= 2.00 points")
     print("Profile tag: AWAY_4_TO_6_5 is descriptive only; it is not a higher-confidence tier.")
     print()
 
@@ -609,6 +753,7 @@ def main() -> int:
 
     scored: List[Dict[str, Any]] = []
     candidates: List[Dict[str, Any]] = []
+    totals_candidates: List[Dict[str, Any]] = []
     audit: List[str] = []
     counts = defaultdict(int)
 
@@ -673,6 +818,25 @@ def main() -> int:
         if tier_a and not actionable:
             tier = "A-PROVISIONAL"
 
+        market_total = safe_float(selected.get("overUnder"))
+        totals_pred_edge = math.nan
+        totals_model_total = math.nan
+        totals_side = ""
+        totals_edge = math.nan
+        totals_qualified = False
+        totals_actionable = False
+        totals_qc_status = "NO_MARKET_TOTAL"
+        if not math.isnan(market_total):
+            tfv = derive_total_features(game, selected, fv, hsnap, asnap, target_date)
+            TX = np.array([[tfv.get(feat, math.nan) for feat in totals_features]], dtype=float)
+            totals_pred_edge = float(totals_model.predict(TX)[0])
+            totals_model_total = market_total + totals_pred_edge
+            totals_side = "Over" if totals_pred_edge > 0 else ("Under" if totals_pred_edge < 0 else "Pass")
+            totals_edge = abs(totals_pred_edge)
+            totals_qualified = totals_edge >= 2.0
+            totals_actionable = totals_qualified and provider_status == "FROZEN_PRIORITY"
+            totals_qc_status = "OK_TOTAL" if provider_status == "FROZEN_PRIORITY" else "REVIEW_PROVIDER"
+
         result = {
             "Run_Timestamp_PT": datetime.now(LOCAL_TZ).isoformat(timespec="seconds"),
             "Game_Date": target_date.isoformat(),
@@ -704,6 +868,14 @@ def main() -> int:
             "KP_Orientation": orientation,
             "KP_Home_WP": fv["kp_wp"],
             "KP_Pred_Home_Margin": fv["kp_margin"],
+            "KP_Pred_Total": fv["kp_total"],
+            "Totals_Bet": totals_side,
+            "Totals_Model_Total": totals_model_total,
+            "Totals_Predicted_Edge": totals_pred_edge,
+            "Totals_Edge": totals_edge,
+            "Totals_Qualified": totals_qualified,
+            "Totals_Actionable": totals_actionable,
+            "Totals_QC_Status": totals_qc_status,
         }
         scored.append(result)
         counts["scored"] += 1
@@ -714,9 +886,15 @@ def main() -> int:
                 counts["actionable"] += 1
             if bool(game.get("neutralSite")) and not actionable:
                 counts["neutral_review"] += 1
+        if totals_qualified:
+            totals_candidates.append(result)
+            counts["totals_qualified"] += 1
+            if totals_actionable:
+                counts["totals_actionable"] += 1
 
     scored.sort(key=lambda r: (-float(r["V4_Edge"]), str(r["Start_UTC"])))
     candidates.sort(key=lambda r: (not bool(r["Actionable"]), -float(r["V4_Edge"]), str(r["Start_UTC"])))
+    totals_candidates.sort(key=lambda r: (not bool(r["Totals_Actionable"]), -float(r["Totals_Edge"]), str(r["Start_UTC"])))
 
     fields = [
         "Run_Timestamp_PT", "Game_Date", "Game_ID", "Start_UTC", "Away_Team", "Home_Team",
@@ -724,14 +902,18 @@ def main() -> int:
         "Home_Moneyline", "Away_Moneyline", "Model_Bet", "Bet_Side", "Bet_Spread",
         "V4_Predicted_ATS_Edge", "V4_Edge", "V4_Home_Cover_Prob", "V4_Confidence",
         "Tier", "Profile_Tag", "Actionable", "QC_Status", "QC_Source", "Home_Prior_Games", "Away_Prior_Games",
-        "KP_Orientation", "KP_Home_WP", "KP_Pred_Home_Margin"
+        "KP_Orientation", "KP_Home_WP", "KP_Pred_Home_Margin", "KP_Pred_Total",
+        "Totals_Bet", "Totals_Model_Total", "Totals_Predicted_Edge", "Totals_Edge",
+        "Totals_Qualified", "Totals_Actionable", "Totals_QC_Status"
     ]
 
     all_path = OUTPUT_DIR / f"all_scored_{target_date.isoformat()}.csv"
     cand_path = OUTPUT_DIR / f"tierA_candidates_{target_date.isoformat()}.csv"
+    totals_path = OUTPUT_DIR / f"totals_candidates_{target_date.isoformat()}.csv"
     audit_path = OUTPUT_DIR / f"audit_{target_date.isoformat()}.txt"
     write_csv(all_path, scored, fields)
     write_csv(cand_path, candidates, fields)
+    write_csv(totals_path, totals_candidates, fields)
 
     if not args.no_snapshots:
         append_snapshots(scored)
@@ -740,7 +922,7 @@ def main() -> int:
         f.write("2026-27 TIER A SCANNER AUDIT\n")
         f.write("=" * 40 + "\n")
         f.write(f"Date: {target_date.isoformat()}\n")
-        for key in ["line_games", "non_d1_proxy", "no_spread", "fanmatch_unmatched", "archive_unmatched", "scored", "tier_a", "actionable", "neutral_review"]:
+        for key in ["line_games", "non_d1_proxy", "no_spread", "fanmatch_unmatched", "archive_unmatched", "scored", "tier_a", "actionable", "neutral_review", "totals_qualified", "totals_actionable"]:
             f.write(f"{key}: {counts[key]}\n")
         if audit:
             f.write("\nDETAILS\n")
@@ -756,6 +938,8 @@ def main() -> int:
     print(f"Tier A candidates:         {counts['tier_a']}")
     print(f"Actionable Tier A:         {counts['actionable']}")
     print(f"Neutral review required:   {counts['neutral_review']}")
+    print(f"Totals qualified:          {counts['totals_qualified']}")
+    print(f"Totals actionable:         {counts['totals_actionable']}")
     print()
 
     if candidates:
@@ -772,8 +956,23 @@ def main() -> int:
         print("No Tier A candidates today.")
 
     print()
+    if totals_candidates:
+        print("TOTALS V1 CANDIDATES")
+        print("-" * 70)
+        for r in totals_candidates:
+            status = "BET" if r["Totals_Actionable"] else "REVIEW"
+            print(
+                f"[{status:6}] {r['Totals_Bet']:<5} {float(r['Market_Total']):5.1f} | "
+                f"model {float(r['Totals_Model_Total']):5.1f} | edge {float(r['Totals_Edge']):4.2f} | "
+                f"{r['Away_Team']} @ {r['Home_Team']} | {r['Totals_QC_Status']}"
+            )
+    else:
+        print("No Totals v1 candidates today.")
+
+    print()
     print("Files written:")
     print(" ", cand_path)
+    print(" ", totals_path)
     print(" ", all_path)
     print(" ", audit_path)
     if not args.no_snapshots:
