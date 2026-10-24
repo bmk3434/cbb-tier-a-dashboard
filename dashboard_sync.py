@@ -490,6 +490,45 @@ def summarize_totals(state: Dict[str, Any]) -> Dict[str, Any]:
         "today_actionable": sum(p.get("entry_total") is not None for p in today_plays),
     }
 
+
+def summarize_combined(state: Dict[str, Any]) -> Dict[str, Any]:
+    ats_entered = [p for p in state["plays"].values() if p.get("entry_line") is not None]
+    totals_entered = [p for p in state["totals_plays"].values() if p.get("entry_total") is not None]
+    entered = ats_entered + totals_entered
+    done = [p for p in entered if p.get("result") in {"W", "L", "P"}]
+
+    w = sum(p.get("result") == "W" for p in done)
+    l = sum(p.get("result") == "L" for p in done)
+    pushes = sum(p.get("result") == "P" for p in done)
+    profit = sum(float(p.get("profit_units") or 0) for p in done)
+    roi = profit / len(done) if done else None
+    win_pct = w / (w + l) if w + l else None
+
+    clvs = [safe_float(p.get("clv_proxy_points")) for p in entered]
+    clvs = [x for x in clvs if x is not None]
+    avg_clv = sum(clvs) / len(clvs) if clvs else None
+    pos_clv = sum(x > 0 for x in clvs) / len(clvs) if clvs else None
+
+    today = now_pt().date().isoformat()
+    ats_today = [p for p in ats_entered if p.get("game_date") == today]
+    totals_today = [p for p in totals_entered if p.get("game_date") == today]
+
+    return {
+        "entered_plays": len(entered),
+        "completed_plays": len(done),
+        "wins": w,
+        "losses": l,
+        "pushes": pushes,
+        "win_pct": win_pct,
+        "profit_units": round(profit, 4),
+        "roi": roi,
+        "avg_clv_proxy": avg_clv,
+        "positive_clv_proxy_pct": pos_clv,
+        "today_actionable": len(ats_today) + len(totals_today),
+        "ats_entered": len(ats_entered),
+        "totals_entered": len(totals_entered),
+    }
+
 def main() -> int:
     target = now_pt().date().isoformat()
     if len(sys.argv) > 1 and sys.argv[1]:
@@ -524,6 +563,7 @@ def main() -> int:
     state["status"] = "OK"
     state["summary"] = summarize(state)
     state["totals_summary"] = summarize_totals(state)
+    state["combined_summary"] = summarize_combined(state)
     state["runs"].append({
         "timestamp_pt": stamp,
         "date": target,
@@ -538,7 +578,7 @@ def main() -> int:
     STATE_PATH.write_text(text + "\n", encoding="utf-8")
     SITE_STATE_PATH.write_text(text + "\n", encoding="utf-8")
     print(f"Dashboard sync: ATS {created} new / {settled} settled; Totals {totals_created} new / {totals_settled} settled.")
-    print(f"ATS tracked: {state['summary']['tracked_candidates']} | Totals tracked: {state['totals_summary']['tracked_candidates']}")
+    print(f"ATS tracked: {state['summary']['tracked_candidates']} | Totals tracked: {state['totals_summary']['tracked_candidates']} | Combined entered: {state['combined_summary']['entered_plays']}")
     return 0
 
 
