@@ -23,8 +23,13 @@ jobs:
           tar -xJf /tmp/dashboard.tar.xz -C /tmp/cbb-bootstrap
           cp -a /tmp/cbb-bootstrap/CBB_TierA_Auto_Dashboard/. .
           cp README_SETUP.md README.md
+
+          # The temporary Actions token can write normal repository files,
+          # but GitHub blocks it from creating/updating workflow files.
+          # Keep this bootstrap workflow in place and let ChatGPT add the
+          # scheduled workflow separately through the connected GitHub app.
+          rm -f .github/workflows/update-dashboard.yml
           rm -rf payload
-          rm -f .github/workflows/bootstrap-dashboard.yml
 
       - name: Commit automated dashboard
         shell: bash
