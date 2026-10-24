@@ -26,6 +26,17 @@
   </div>
   <div id="error"></div>
 
+  <div class="model-head" style="margin-top:18px">
+    <div>
+      <div class="model-title">Combined Performance</div>
+      <div class="model-desc">Overall prospective results across both frozen models: ATS Tier A + Totals v1. Each qualified ATS or totals wager counts as one independent play.</div>
+    </div>
+    <div class="tag">ATS + Totals</div>
+  </div>
+  <div class="grid" id="combined-kpis"></div>
+
+  <div class="divider"></div>
+
   <div class="model-head">
     <div><div class="model-title">ATS — Tier A</div><div class="model-desc">Frozen v4 rule: absolute ATS edge ≥ 1.75 points and the model-selected side is an underdog of +4.0 or greater. Neutral spread orientation must be verified.</div></div>
     <div class="tag">Spread model v4</div>
@@ -101,16 +112,21 @@ function resultBadge(r){if(!r)return '<span class="badge">OPEN</span>';let c=r==
 function atsStatus(p){return p.entry_line!=null?'<span class="badge bet">ACTIONABLE</span>':'<span class="badge review">REVIEW</span>'}
 function totalStatus(p){return p.entry_total!=null?'<span class="badge bet">ACTIONABLE</span>':'<span class="badge review">REVIEW</span>'}
 function cards(el,m,kind){
- const arr=kind==='ATS'
- ?[['Today actionable',m.today_actionable??0,'first qualified lines'],['Today review',m.today_review??0,'neutral/QC'],['Record',`${m.wins??0}-${m.losses??0}${m.pushes?'-'+m.pushes:''}`,'completed'],['Win rate',pct(m.win_pct),'ATS'],['ROI',pct(m.roi),'scanner-entry test'],['Avg CLV',m.avg_clv_proxy==null?'—':signed(m.avg_clv_proxy),'snapshot proxy']]
- :[['Today plays',m.today_actionable??0,'qualified totals'],['Tracked',m.tracked_candidates??0,'prospective candidates'],['Record',`${m.wins??0}-${m.losses??0}${m.pushes?'-'+m.pushes:''}`,'completed'],['Win rate',pct(m.win_pct),'O/U'],['ROI',pct(m.roi),'scanner-entry test'],['Avg CLV',m.avg_clv_proxy==null?'—':signed(m.avg_clv_proxy),'snapshot proxy']];
+ let arr;
+ if(kind==='COMBINED'){
+  arr=[['Total plays',m.entered_plays??0,'ATS + totals entries'],['Record',`${m.wins??0}-${m.losses??0}${m.pushes?'-'+m.pushes:''}`,'completed'],['Win rate',pct(m.win_pct),'combined'],['Profit',m.profit_units==null?'—':signed(m.profit_units,2)+'u','flat-unit result'],['ROI',pct(m.roi),'combined'],['Avg CLV',m.avg_clv_proxy==null?'—':signed(m.avg_clv_proxy),'snapshot proxy']];
+ }else if(kind==='ATS'){
+  arr=[['Today actionable',m.today_actionable??0,'first qualified lines'],['Today review',m.today_review??0,'neutral/QC'],['Record',`${m.wins??0}-${m.losses??0}${m.pushes?'-'+m.pushes:''}`,'completed'],['Win rate',pct(m.win_pct),'ATS'],['ROI',pct(m.roi),'scanner-entry test'],['Avg CLV',m.avg_clv_proxy==null?'—':signed(m.avg_clv_proxy),'snapshot proxy']];
+ }else{
+  arr=[['Today plays',m.today_actionable??0,'qualified totals'],['Tracked',m.tracked_candidates??0,'prospective candidates'],['Record',`${m.wins??0}-${m.losses??0}${m.pushes?'-'+m.pushes:''}`,'completed'],['Win rate',pct(m.win_pct),'O/U'],['ROI',pct(m.roi),'scanner-entry test'],['Avg CLV',m.avg_clv_proxy==null?'—':signed(m.avg_clv_proxy),'snapshot proxy']];
+ }
  document.getElementById(el).innerHTML=arr.map(c=>`<div class="card kpi"><div class="label">${c[0]}</div><div class="value">${c[1]}</div><div class="hint">${c[2]}</div></div>`).join('');
 }
 async function boot(){
  try{
   const res=await fetch('data/state.json',{cache:'no-store'});if(!res.ok)throw new Error('State file unavailable');const s=await res.json();
   document.getElementById('updated').textContent=s.last_updated_pt?`Updated ${s.last_updated_pt.replace('T',' ')}`:'Not run yet';
-  cards('ats-kpis',s.summary||{},'ATS');cards('totals-kpis',s.totals_summary||{},'TOTALS');
+  cards('combined-kpis',s.combined_summary||{},'COMBINED');cards('ats-kpis',s.summary||{},'ATS');cards('totals-kpis',s.totals_summary||{},'TOTALS');
 
   const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 
