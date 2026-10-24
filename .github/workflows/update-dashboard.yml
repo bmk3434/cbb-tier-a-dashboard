@@ -2,6 +2,15 @@ name: Update CBB Tier A dashboard
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'cbb_tierA_scanner.py'
+      - 'dashboard_sync.py'
+      - 'cbb_totals_model_v1.b64'
+      - 'cbb_totals_model_v1_spec.json'
+      - 'site/**'
+      - '.github/workflows/update-dashboard.yml'
   schedule:
     - cron: '17 7,12,15,17 * * *'
       timezone: 'America/Los_Angeles'
@@ -34,6 +43,20 @@ jobs:
 
       - name: Install Python dependencies
         run: python -m pip install -r requirements.txt
+
+      - name: Preflight model and code integrity
+        run: |
+          python -m py_compile cbb_tierA_scanner.py dashboard_sync.py
+          python - <<'PY'
+          import base64, io, json, joblib
+          from pathlib import Path
+          raw = base64.b64decode(Path("cbb_totals_model_v1.b64").read_text().strip(), validate=True)
+          model = joblib.load(io.BytesIO(raw))
+          spec = json.loads(Path("cbb_totals_model_v1_spec.json").read_text())
+          assert len(spec["features"]) == 78
+          assert hasattr(model, "predict")
+          print("Totals v1 preflight OK:", len(raw), "bytes,", len(spec["features"]), "features")
+          PY
 
       - name: Restore CBBD team-history cache
         uses: actions/cache@v6
