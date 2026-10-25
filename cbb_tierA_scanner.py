@@ -779,7 +779,7 @@ def main() -> int:
     print("Frozen ATS rule: V4 edge >= 1.75 AND model side underdog +4 or more")
     print("Frozen totals v1 rule: absolute predicted total edge >= 2.00 points")
     print("Totals v2: shadow-only challenger; 2.00-point shadow threshold; NEVER actionable")
-    print("Totals v3: OVER-only shadow challenger; 2.00-point positive edge threshold; NEVER actionable")
+    print("Totals v3: experimental Over-thesis shadow; 2.00-point absolute-edge threshold; NEVER actionable")
     print("Profile tag: AWAY_4_TO_6_5 is descriptive only; it is not a higher-confidence tier.")
     print()
 
@@ -923,11 +923,11 @@ def main() -> int:
 
             totals_v3_pred_edge = predict_totals_v3(tfv, totals_v3_spec)
             totals_v3_model_total = market_total + totals_v3_pred_edge
-            totals_v3_side = "Over" if totals_v3_pred_edge > 0 else "Pass"
-            totals_v3_edge = totals_v3_pred_edge
-            totals_v3_qualified = totals_v3_pred_edge >= 2.0
+            totals_v3_side = "Over" if totals_v3_pred_edge > 0 else ("Under" if totals_v3_pred_edge < 0 else "Pass")
+            totals_v3_edge = abs(totals_v3_pred_edge)
+            totals_v3_qualified = totals_v3_edge >= 2.0
             totals_v3_trackable = totals_v3_qualified and provider_status == "FROZEN_PRIORITY"
-            totals_v3_qc_status = "SHADOW_OK" if provider_status == "FROZEN_PRIORITY" else "SHADOW_REVIEW_PROVIDER"
+            totals_v3_qc_status = "EXPERIMENTAL_SHADOW_OK" if provider_status == "FROZEN_PRIORITY" else "EXPERIMENTAL_SHADOW_REVIEW_PROVIDER"
 
         result = {
             "Run_Timestamp_PT": datetime.now(LOCAL_TZ).isoformat(timespec="seconds"),
@@ -1068,7 +1068,7 @@ def main() -> int:
     print(f"Totals v1 actionable:      {counts['totals_actionable']}")
     print(f"Totals v2 shadow:          {counts['totals_v2_shadow']}")
     print(f"Totals v2 trackable:       {counts['totals_v2_trackable']}")
-    print(f"Totals v3 Over shadow:     {counts['totals_v3_shadow']}")
+    print(f"Totals v3 shadow:          {counts['totals_v3_shadow']}")
     print(f"Totals v3 trackable:       {counts['totals_v3_trackable']}")
     print()
 
@@ -1115,7 +1115,7 @@ def main() -> int:
 
     print()
     if totals_v3_candidates:
-        print("TOTALS V3 OVER SHADOW CANDIDATES — NO BETS")
+        print("TOTALS V3 EXPERIMENTAL SHADOW — NO BETS")
         print("-" * 70)
         for r in totals_v3_candidates:
             status = "SHADOW" if r["Totals_V3_Trackable_Shadow"] else "REVIEW"
@@ -1125,7 +1125,7 @@ def main() -> int:
                 f"{r['Away_Team']} @ {r['Home_Team']} | {r['Totals_V3_QC_Status']}"
             )
     else:
-        print("No Totals v3 Over shadow candidates today.")
+        print("No Totals v3 experimental shadow candidates today.")
 
     print()
     print("Files written:")
