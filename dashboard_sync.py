@@ -908,7 +908,7 @@ def summarize_totals_v3(state: Dict[str, Any]) -> Dict[str, Any]:
     today_plays = [p for p in plays if p.get("game_date") == today]
     return {
         "shadow_only": True,
-        "over_only": True,
+        "experimental_over_thesis": True,
         "tracked_candidates": len(plays),
         "entered_plays": len(entered),
         "completed_plays": len(done),
