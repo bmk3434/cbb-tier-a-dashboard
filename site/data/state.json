@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "last_updated_pt": "2026-10-24T17:41:35-07:00",
+  "last_updated_pt": "2026-10-24T17:58:00-07:00",
   "status": "OK",
   "plays": {},
   "runs": [
@@ -42,6 +42,15 @@
     },
     {
       "timestamp_pt": "2026-10-24T17:41:35-07:00",
+      "date": "2026-10-24",
+      "new_candidates": 0,
+      "newly_settled": 0,
+      "new_totals_candidates": 0,
+      "newly_settled_totals": 0,
+      "new_regulation_audits": 0
+    },
+    {
+      "timestamp_pt": "2026-10-24T17:58:00-07:00",
       "date": "2026-10-24",
       "new_candidates": 0,
       "newly_settled": 0,
