@@ -66,16 +66,15 @@ jobs:
           print("Totals v1 preflight OK:", len(raw), "bytes,", len(spec["features"]), "features")
           print("Totals v2 shadow preflight OK:", len(v2["features"]), "features, alpha", v2["ridge_alpha"])
           v3 = json.loads(Path("cbb_totals_model_v3_challenger.json").read_text())
-          assert v3["status"] == "shadow-only prospective over challenger"
+          assert v3["status"].startswith("experimental shadow-only challenger")
           assert len(v3["features"]) == 78
           for key in ["imputer_statistics", "scaler_mean", "scaler_scale", "feature_multipliers", "ridge_coef"]:
               assert len(v3[key]) == 78
-          assert float(v3["ridge_alpha"]) == 60000
-          eff = [abs(float(c) * float(m)) for c, m in zip(v3["ridge_coef"], v3["feature_multipliers"])]
-          order = sorted(range(len(eff)), key=lambda i: eff[i], reverse=True)[:4]
-          expected = ["std_match_three_pa_rate_sum", "std_ft_pct_mean", "std_match_to_pct_sum", "kp_tempo_mean"]
-          assert [v3["features"][i] for i in order] == expected
-          print("Totals v3 Over shadow preflight OK:", len(v3["features"]), "features, alpha", v3["ridge_alpha"], "top4", expected)
+          assert float(v3["ridge_alpha"]) == 30000
+          assert v3["priority_order"] == ["3PA rate", "FT%", "turnover rate", "tempo"]
+          fam = v3["family_effective_abs_coefficient_sum"]
+          assert fam["3PA_rate"] > fam["FT_pct"] > fam["turnover_rate"] > fam["tempo"]
+          print("Totals v3 experimental shadow preflight OK:", len(v3["features"]), "features, alpha", v3["ridge_alpha"], "priority", v3["priority_order"])
           PY
 
       - name: Restore CBBD team-history cache

@@ -437,9 +437,9 @@ def create_or_update_totals_v3_candidates(state: Dict[str, Any], target_date: st
                 "away_team": r.get("Away_Team") or "",
                 "home_team": r.get("Home_Team") or "",
                 "neutral_site": as_bool(r.get("Neutral_Site")),
-                "bet_side": "Over",
+                "bet_side": r.get("Totals_V3_Bet") or "",
                 "shadow_only": True,
-                "over_only": True,
+                "experimental_over_thesis": True,
                 "first_seen_pt": r.get("Run_Timestamp_PT") or now_pt().isoformat(timespec="seconds"),
                 "first_scanner_total": total_line,
                 "first_model_total": safe_float(r.get("Totals_V3_Model_Total")),
@@ -475,6 +475,7 @@ def create_or_update_totals_v3_candidates(state: Dict[str, Any], target_date: st
         play["qc_status"] = r.get("Totals_V3_QC_Status") or play.get("qc_status") or ""
         if trackable and play.get("entry_total") is None:
             play["first_actionable_pt"] = r.get("Run_Timestamp_PT") or now_pt().isoformat(timespec="seconds")
+            play["bet_side"] = r.get("Totals_V3_Bet") or play.get("bet_side") or ""
             play["entry_total"] = total_line
             play["entry_edge"] = safe_float(r.get("Totals_V3_Edge"))
             play["entry_model_total"] = safe_float(r.get("Totals_V3_Model_Total"))
