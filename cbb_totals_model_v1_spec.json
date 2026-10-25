@@ -1,54 +1,257 @@
 {
   "model_name": "CBB Totals Model v1",
-  "status": "frozen prospective research model",
+  "status": "frozen prospective research model — locked after robustness audits",
   "created_date": "2026-10-24",
-  "development_seasons": ["2023-24", "2024-25"],
+  "development_seasons": [
+    "2023-24",
+    "2024-25"
+  ],
   "holdout_season": "2025-26",
   "target": "Actual_Total - Market_Total",
   "prediction_interpretation": "Pred_Edge > 0 = Over lean; Pred_Edge < 0 = Under lean; Model_Total = Market_Total + Pred_Edge",
   "estimator": "Ridge regression",
   "alpha": 10000,
-  "preprocessing": ["median imputation", "standard scaling"],
+  "preprocessing": [
+    "median imputation",
+    "standard scaling"
+  ],
   "feature_count": 78,
   "features": [
-    "market_total","kp_total","kp_total_gap","abs_home_spread","kp_pred_margin_abs","kp_home_wp_center",
-    "kp_home_adjoe","kp_away_adjoe","kp_home_adjde","kp_away_adjde","kp_home_adjtempo","kp_away_adjtempo",
-    "kp_off_sum","kp_def_sum","kp_tempo_mean","kp_tempo_absdiff","kp_matchup_eff_sum","season_progress",
-    "same_conference","neutral_site","std_min_games","std_games_sum","std_match_eff_sum","std_pace_mean",
-    "std_off_rating_mean","std_def_rating_mean","std_efg_mean","std_to_pct_mean","std_orb_pct_mean",
-    "std_ftr_mean","std_two_pct_mean","std_three_pct_mean","std_ft_pct_mean","std_three_pa_rate_mean",
-    "std_assist_rate_mean","std_nonsteal_to_pct_mean","std_ptdist_3_mean","std_true_shooting_mean",
-    "std_match_efg_sum","std_match_three_pct_sum","std_match_two_pct_sum","std_match_to_pct_sum",
-    "std_match_orb_pct_sum","std_match_ftr_sum","std_match_three_pa_rate_sum","std_match_assist_rate_sum",
-    "std_match_nonsteal_to_pct_sum","std_match_ptdist_3_sum","std_match_true_shooting_sum","l5_min_games",
-    "l5_games_sum","l5_match_eff_sum","l5_pace_mean","l5_off_rating_mean","l5_def_rating_mean","l5_efg_mean",
-    "l5_to_pct_mean","l5_orb_pct_mean","l5_ftr_mean","l5_two_pct_mean","l5_three_pct_mean","l5_ft_pct_mean",
-    "l5_three_pa_rate_mean","l5_assist_rate_mean","l5_nonsteal_to_pct_mean","l5_ptdist_3_mean",
-    "l5_true_shooting_mean","l5_match_efg_sum","l5_match_three_pct_sum","l5_match_two_pct_sum",
-    "l5_match_to_pct_sum","l5_match_orb_pct_sum","l5_match_ftr_sum","l5_match_three_pa_rate_sum",
-    "l5_match_assist_rate_sum","l5_match_nonsteal_to_pct_sum","l5_match_ptdist_3_sum","l5_match_true_shooting_sum"
+    "market_total",
+    "kp_total",
+    "kp_total_gap",
+    "abs_home_spread",
+    "kp_pred_margin_abs",
+    "kp_home_wp_center",
+    "kp_home_adjoe",
+    "kp_away_adjoe",
+    "kp_home_adjde",
+    "kp_away_adjde",
+    "kp_home_adjtempo",
+    "kp_away_adjtempo",
+    "kp_off_sum",
+    "kp_def_sum",
+    "kp_tempo_mean",
+    "kp_tempo_absdiff",
+    "kp_matchup_eff_sum",
+    "season_progress",
+    "same_conference",
+    "neutral_site",
+    "std_min_games",
+    "std_games_sum",
+    "std_match_eff_sum",
+    "std_pace_mean",
+    "std_off_rating_mean",
+    "std_def_rating_mean",
+    "std_efg_mean",
+    "std_to_pct_mean",
+    "std_orb_pct_mean",
+    "std_ftr_mean",
+    "std_two_pct_mean",
+    "std_three_pct_mean",
+    "std_ft_pct_mean",
+    "std_three_pa_rate_mean",
+    "std_assist_rate_mean",
+    "std_nonsteal_to_pct_mean",
+    "std_ptdist_3_mean",
+    "std_true_shooting_mean",
+    "std_match_efg_sum",
+    "std_match_three_pct_sum",
+    "std_match_two_pct_sum",
+    "std_match_to_pct_sum",
+    "std_match_orb_pct_sum",
+    "std_match_ftr_sum",
+    "std_match_three_pa_rate_sum",
+    "std_match_assist_rate_sum",
+    "std_match_nonsteal_to_pct_sum",
+    "std_match_ptdist_3_sum",
+    "std_match_true_shooting_sum",
+    "l5_min_games",
+    "l5_games_sum",
+    "l5_match_eff_sum",
+    "l5_pace_mean",
+    "l5_off_rating_mean",
+    "l5_def_rating_mean",
+    "l5_efg_mean",
+    "l5_to_pct_mean",
+    "l5_orb_pct_mean",
+    "l5_ftr_mean",
+    "l5_two_pct_mean",
+    "l5_three_pct_mean",
+    "l5_ft_pct_mean",
+    "l5_three_pa_rate_mean",
+    "l5_assist_rate_mean",
+    "l5_nonsteal_to_pct_mean",
+    "l5_ptdist_3_mean",
+    "l5_true_shooting_mean",
+    "l5_match_efg_sum",
+    "l5_match_three_pct_sum",
+    "l5_match_two_pct_sum",
+    "l5_match_to_pct_sum",
+    "l5_match_orb_pct_sum",
+    "l5_match_ftr_sum",
+    "l5_match_three_pa_rate_sum",
+    "l5_match_assist_rate_sum",
+    "l5_match_nonsteal_to_pct_sum",
+    "l5_match_ptdist_3_sum",
+    "l5_match_true_shooting_sum"
   ],
   "qualification_rule": "abs(Pred_Edge) >= 2.0 points",
   "pricing_assumption": "-110, flat 1.0 unit risked per qualified play",
   "market_line_caveat": "CBBD archived market total; not independently certified as a true timestamped close",
   "development_oof": {
-    "n_scored": 9544, "market_rmse": 16.36137120562992, "model_rmse": 16.350239122407952,
-    "qualified_bets": 342, "wins": 191, "losses": 151, "pushes": 0,
-    "win_pct": 0.5584795321637427, "roi": 0.0661881977671451
+    "n_scored": 9544,
+    "market_rmse": 16.36137120562992,
+    "model_rmse": 16.350239122407952,
+    "qualified_bets": 342,
+    "wins": 191,
+    "losses": 151,
+    "pushes": 0,
+    "win_pct": 0.5584795321637427,
+    "roi": 0.0661881977671451
   },
   "holdout_2025_26": {
-    "n_scored": 5745, "market_rmse": 16.90813503794167, "model_rmse": 16.886346124116137,
-    "qualified_bets": 116, "wins": 65, "losses": 51, "pushes": 0,
-    "win_pct": 0.5603448275862069, "roi": 0.0697492163009404
+    "n_scored": 5745,
+    "market_rmse": 16.90813503794167,
+    "model_rmse": 16.886346124116137,
+    "qualified_bets": 116,
+    "wins": 65,
+    "losses": 51,
+    "pushes": 0,
+    "win_pct": 0.5603448275862069,
+    "roi": 0.0697492163009404
   },
   "combined_qualified": {
-    "bets": 458, "wins": 256, "losses": 202, "pushes": 0,
-    "win_pct": 0.5589519650655022, "roi": 0.0670901151250496
+    "bets": 458,
+    "wins": 256,
+    "losses": 202,
+    "pushes": 0,
+    "win_pct": 0.5589519650655022,
+    "roi": 0.0670901151250496
   },
   "notes": [
     "Qualification threshold was frozen from development OOF before scoring the candidate model on 2025-26 holdout.",
     "No Over-only or Under-only restriction is part of the frozen rule.",
     "2025-26 holdout qualified plays were 108 Over and 8 Under; side split is descriptive only and must not be used to retrofit the rule.",
     "The frozen ATS v4 model is separate and unchanged."
+  ],
+  "audit_date": "2026-10-24",
+  "rule_changed_after_audits": false,
+  "overtime_audit": {
+    "qualified_bets": 458,
+    "overtime_games": 24,
+    "overtime_game_pct": 0.05240174672489083,
+    "official": {
+      "wins": 256,
+      "losses": 202,
+      "pushes": 0,
+      "win_pct": 0.5589519650655022,
+      "roi": 0.0670901151250496
+    },
+    "games_ending_in_regulation_only": {
+      "bets": 434,
+      "wins": 237,
+      "losses": 197,
+      "pushes": 0,
+      "win_pct": 0.5460829493087558,
+      "roi": 0.04252267449636353
+    },
+    "all_games_regraded_at_end_of_regulation": {
+      "bets": 458,
+      "wins": 242,
+      "losses": 216,
+      "pushes": 0,
+      "win_pct": 0.5283842794759825,
+      "roi": 0.0087336244541485
+    },
+    "ot_assisted_wins": 14,
+    "holdout_no_ot_games": {
+      "bets": 107,
+      "wins": 58,
+      "losses": 49,
+      "pushes": 0,
+      "win_pct": 0.5420560747663551,
+      "roi": 0.0348349615976087
+    }
+  },
+  "line_sensitivity_same_458_plays": {
+    "0.0_points_worse": {
+      "wins": 256,
+      "losses": 202,
+      "pushes": 0,
+      "win_pct": 0.5589519650655022,
+      "roi": 0.0670901151250496
+    },
+    "0.5_points_worse": {
+      "wins": 241,
+      "losses": 202,
+      "pushes": 15,
+      "win_pct_ex_pushes": 0.5440180586907449,
+      "roi": 0.03731699051247787
+    },
+    "1.0_points_worse": {
+      "wins": 241,
+      "losses": 217,
+      "pushes": 0,
+      "win_pct": 0.5262008733624454,
+      "roi": 0.004565105200397144
+    },
+    "1.5_points_worse": {
+      "wins": 217,
+      "losses": 217,
+      "pushes": 24,
+      "win_pct_ex_pushes": 0.5,
+      "roi": -0.043072052401746726
+    }
+  },
+  "threshold_stability_combined": {
+    "edge_gte_1.50": {
+      "bets": 1597,
+      "wins": 837,
+      "losses": 760,
+      "win_pct": 0.5241077019411396,
+      "roi": 0.000569249160357469
+    },
+    "edge_gte_1.75": {
+      "bets": 860,
+      "wins": 456,
+      "losses": 404,
+      "win_pct": 0.5302325581395348,
+      "roi": 0.012262156448202912
+    },
+    "edge_gte_2.00_frozen": {
+      "bets": 458,
+      "wins": 256,
+      "losses": 202,
+      "win_pct": 0.5589519650655022,
+      "roi": 0.0670901151250496
+    },
+    "edge_gte_2.25": {
+      "bets": 252,
+      "wins": 133,
+      "losses": 119,
+      "win_pct": 0.5277777777777778,
+      "roi": 0.007575757575757566
+    },
+    "edge_gte_2.50": {
+      "bets": 142,
+      "wins": 72,
+      "losses": 70,
+      "win_pct": 0.5070422535211268,
+      "roi": -0.03201024327784892
+    },
+    "edge_gte_3.00": {
+      "bets": 56,
+      "wins": 31,
+      "losses": 25,
+      "win_pct": 0.5535714285714286,
+      "roi": 0.05681818181818178
+    }
+  },
+  "robustness_interpretation": [
+    "The frozen 2.00-point threshold remains unchanged because it was selected before the 2025-26 holdout was opened.",
+    "Threshold performance is not monotonic; larger predicted edges do not consistently produce better historical results. This lowers confidence and is a reason not to increase stakes at larger edges.",
+    "The same frozen play set remains profitable with a 0.5-point adverse line adjustment, is only marginally profitable at 1.0 point worse, and is negative at 1.5 points worse. Line quality matters.",
+    "Overtime materially improved the historical headline results. Prospective reporting therefore tracks both official settlement and a 40-minute regulation re-grade, plus OT-assisted wins."
   ]
 }

@@ -77,6 +77,12 @@
   <div class="grid" id="totals-kpis"></div>
 
   <div class="section">
+    <h3>Regulation vs overtime tracking</h3>
+    <div class="desc">The official sportsbook result includes overtime. The regulation record re-grades every completed totals play using the score at the end of 40 minutes so we can see whether OT is rescuing our Overs.</div>
+    <div class="grid" id="totals-reg-kpis"></div>
+  </div>
+
+  <div class="section">
     <h3>Today’s totals candidates</h3>
     <div class="desc">Entry is the first scheduled scanner total after the frozen 2-point rule qualifies.</div>
     <div class="card table-card"><div class="scroll"><table class="table"><thead><tr><th>Status</th><th>Game</th><th>Bet</th><th>Entry/current</th><th>Model total</th><th>Edge</th><th>QC</th></tr></thead><tbody id="totals-today"></tbody></table></div><div id="totals-today-empty" class="empty" hidden>No Totals v1 candidates yet today.</div></div>
@@ -86,7 +92,7 @@
     <div>
       <h3>Totals forward-test history</h3>
       <div class="desc">Totals CLV proxy is signed in the favorable direction: higher is better for an Over entry, lower is better for an Under entry.</div>
-      <div class="card table-card"><div class="scroll"><table class="table"><thead><tr><th>Date</th><th>Bet</th><th>Entry</th><th>Close proxy</th><th>CLV</th><th>Result</th><th>P/L</th></tr></thead><tbody id="totals-history"></tbody></table></div><div id="totals-history-empty" class="empty" hidden>No tracked totals plays yet.</div></div>
+      <div class="card table-card"><div class="scroll"><table class="table"><thead><tr><th>Date</th><th>Bet</th><th>Entry</th><th>Close proxy</th><th>CLV</th><th>Official</th><th>Regulation</th><th>OT</th><th>P/L</th></tr></thead><tbody id="totals-history"></tbody></table></div><div id="totals-history-empty" class="empty" hidden>No tracked totals plays yet.</div></div>
     </div>
     <div>
       <h3>Totals frozen rules</h3>
@@ -97,6 +103,32 @@
         <div class="rule"><span>Staking</span><strong>Flat units</strong></div>
         <div class="rule"><span>Dev OOF</span><strong>191–151 (55.85%)</strong></div>
         <div class="rule"><span>2025–26 holdout</span><strong>65–51 (56.03%)</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section split">
+    <div>
+      <h3>Historical overtime audit</h3>
+      <div class="card rule-list">
+        <div class="rule"><span>Official result</span><strong>256–202 · 55.90% · +6.71% ROI</strong></div>
+        <div class="rule"><span>Games ending in regulation</span><strong>237–197 · 54.61% · +4.25%</strong></div>
+        <div class="rule"><span>Re-grade all at 40 minutes</span><strong>242–216 · 52.84% · +0.87%</strong></div>
+        <div class="rule"><span>Qualified games reaching OT</span><strong>24 / 458 · 5.24%</strong></div>
+        <div class="rule"><span>Wins rescued by OT</span><strong>14</strong></div>
+        <div class="rule"><span>2025–26 no-OT games</span><strong>58–49 · 54.21% · +3.48%</strong></div>
+      </div>
+    </div>
+    <div>
+      <h3>Robustness audits</h3>
+      <div class="card rule-list">
+        <div class="rule"><span>0.5 pt worse line</span><strong>54.40% · +3.73% ROI</strong></div>
+        <div class="rule"><span>1.0 pt worse line</span><strong>52.62% · +0.46% ROI</strong></div>
+        <div class="rule"><span>1.5 pt worse line</span><strong>50.00% · −4.31% ROI</strong></div>
+        <div class="rule"><span>Edge ≥ 1.75</span><strong>53.02% · +1.23% ROI</strong></div>
+        <div class="rule"><span>Frozen edge ≥ 2.00</span><strong>55.90% · +6.71% ROI</strong></div>
+        <div class="rule"><span>Edge ≥ 2.50</span><strong>50.70% · −3.20% ROI</strong></div>
+        <div class="rule"><span>Interpretation</span><strong>Threshold stability is mixed</strong></div>
       </div>
     </div>
   </div>
@@ -122,11 +154,23 @@ function cards(el,m,kind){
  }
  document.getElementById(el).innerHTML=arr.map(c=>`<div class="card kpi"><div class="label">${c[0]}</div><div class="value">${c[1]}</div><div class="hint">${c[2]}</div></div>`).join('');
 }
+function totalsRegCards(m){
+ const regRecord=`${m.regulation_wins??0}-${m.regulation_losses??0}${m.regulation_pushes?'-'+m.regulation_pushes:''}`;
+ const arr=[
+  ['Official record',`${m.wins??0}-${m.losses??0}${m.pushes?'-'+m.pushes:''}`,'includes overtime'],
+  ['Regulation record',regRecord,'score after 40 minutes'],
+  ['OT games',m.overtime_games??0,'prospective totals plays'],
+  ['OT-assisted wins',m.ot_assisted_wins??0,'official W, not W at 40m'],
+  ['Official ROI',pct(m.roi),'includes overtime'],
+  ['Regulation ROI',pct(m.regulation_roi),'40-minute re-grade']
+ ];
+ document.getElementById('totals-reg-kpis').innerHTML=arr.map(c=>`<div class="card kpi"><div class="label">${c[0]}</div><div class="value">${c[1]}</div><div class="hint">${c[2]}</div></div>`).join('');
+}
 async function boot(){
  try{
   const res=await fetch('data/state.json',{cache:'no-store'});if(!res.ok)throw new Error('State file unavailable');const s=await res.json();
   document.getElementById('updated').textContent=s.last_updated_pt?`Updated ${s.last_updated_pt.replace('T',' ')}`:'Not run yet';
-  cards('combined-kpis',s.combined_summary||{},'COMBINED');cards('ats-kpis',s.summary||{},'ATS');cards('totals-kpis',s.totals_summary||{},'TOTALS');
+  cards('combined-kpis',s.combined_summary||{},'COMBINED');cards('ats-kpis',s.summary||{},'ATS');cards('totals-kpis',s.totals_summary||{},'TOTALS');totalsRegCards(s.totals_summary||{});
 
   const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 
@@ -151,7 +195,7 @@ async function boot(){
   const totalHist=totals.filter(p=>p.entry_total!=null).slice(0,100),thb=document.getElementById('totals-history');
   if(!totalHist.length){document.getElementById('totals-history-empty').hidden=false;thb.innerHTML=''}else{
    document.getElementById('totals-history-empty').hidden=true;
-   thb.innerHTML=totalHist.map(p=>`<tr><td>${esc(p.game_date)}</td><td><span class="team">${esc(p.bet_side)} ${f(p.entry_total,1)}</span><div style="color:var(--muted);font-size:12px">${esc(p.away_team)} @ ${esc(p.home_team)}</div></td><td>${f(p.entry_total,1)}</td><td>${f(p.closing_proxy_total,1)}</td><td class="${(p.clv_proxy_points??0)>0?'green':(p.clv_proxy_points??0)<0?'red':''}">${p.clv_proxy_points==null?'—':signed(p.clv_proxy_points)}</td><td>${resultBadge(p.result)}</td><td class="${(p.profit_units??0)>0?'green':(p.profit_units??0)<0?'red':''}">${p.profit_units==null?'—':f(p.profit_units,2)+'u'}</td></tr>`).join('');
+   thb.innerHTML=totalHist.map(p=>{const ot=p.went_overtime===true?(p.ot_assisted_win?'<span class="badge review">OT ASSISTED</span>':'<span class="badge">OT</span>'):'—';return `<tr><td>${esc(p.game_date)}</td><td><span class="team">${esc(p.bet_side)} ${f(p.entry_total,1)}</span><div style="color:var(--muted);font-size:12px">${esc(p.away_team)} @ ${esc(p.home_team)}</div></td><td>${f(p.entry_total,1)}</td><td>${f(p.closing_proxy_total,1)}</td><td class="${(p.clv_proxy_points??0)>0?'green':(p.clv_proxy_points??0)<0?'red':''}">${p.clv_proxy_points==null?'—':signed(p.clv_proxy_points)}</td><td>${resultBadge(p.result)}</td><td>${resultBadge(p.regulation_result)}</td><td>${ot}</td><td class="${(p.profit_units??0)>0?'green':(p.profit_units??0)<0?'red':''}">${p.profit_units==null?'—':f(p.profit_units,2)+'u'}</td></tr>`}).join('');
   }
  }catch(e){document.getElementById('error').innerHTML=`<div class="error">Dashboard could not load: ${esc(e.message)}</div>`}
 }

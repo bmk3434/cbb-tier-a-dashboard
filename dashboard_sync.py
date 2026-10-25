@@ -243,6 +243,14 @@ def create_or_update_totals_candidates(state: Dict[str, Any], target_date: str) 
                 "away_score": None,
                 "actual_total": None,
                 "total_margin_selected_side": None,
+                "regulation_home_score": None,
+                "regulation_away_score": None,
+                "regulation_total": None,
+                "regulation_result": None,
+                "regulation_profit_units": None,
+                "went_overtime": None,
+                "ot_assisted_win": None,
+                "regulation_audited_at_pt": None,
                 "settled_at_pt": None,
                 "closing_proxy_total": None,
                 "clv_proxy_points": None,
@@ -347,6 +355,80 @@ def date_bounds(d: date) -> tuple[str, str]:
     end = start + timedelta(days=1) - timedelta(seconds=1)
     return (start.astimezone(timezone.utc).isoformat().replace("+00:00", "Z"),
             end.astimezone(timezone.utc).isoformat().replace("+00:00", "Z"))
+
+
+def regulation_score_from_plays(game_id: str, key: str) -> Optional[tuple[int, int, bool]]:
+    """Return end-of-regulation home/away score and OT flag from CBBD play-by-play."""
+    try:
+        plays = http_json(CBBD_BASE + f"/plays/game/{game_id}", {}, key)
+    except Exception as exc:
+        print(f"WARNING: regulation audit unavailable for game {game_id}: {exc}")
+        return None
+    if not isinstance(plays, list) or not plays:
+        return None
+
+    usable = []
+    max_period = 0
+    for p in plays:
+        try:
+            period = int(p.get("period"))
+            max_period = max(max_period, period)
+        except Exception:
+            continue
+        if period != 2:
+            continue
+        hs = p.get("homeScore")
+        aas = p.get("awayScore")
+        if hs is None or aas is None:
+            continue
+        try:
+            sec = int(p.get("secondsRemaining"))
+            hs_i = int(hs)
+            aas_i = int(aas)
+            pid = int(p.get("id") or 0)
+        except Exception:
+            continue
+        usable.append((sec, hs_i + aas_i, pid, hs_i, aas_i))
+
+    if not usable:
+        return None
+
+    # Closest recorded play to the end of period 2. If several share the same
+    # clock, keep the one with the most advanced score / play id.
+    min_sec = min(x[0] for x in usable)
+    final_period_rows = [x for x in usable if x[0] == min_sec]
+    _, _, _, reg_home, reg_away = max(final_period_rows, key=lambda x: (x[1], x[2]))
+    return reg_home, reg_away, max_period > 2
+
+
+def backfill_totals_regulation_audit(state: Dict[str, Any], key: str) -> int:
+    audited = 0
+    for play in state["totals_plays"].values():
+        if play.get("entry_total") is None or play.get("result") not in {"W", "L", "P"}:
+            continue
+        if play.get("regulation_result") in {"W", "L", "P"}:
+            continue
+
+        reg = regulation_score_from_plays(str(play.get("game_id")), key)
+        if reg is None:
+            continue
+        rh, ra, went_ot = reg
+        entry = float(play["entry_total"])
+        reg_total = rh + ra
+        raw_margin = reg_total - entry
+        selected_margin = raw_margin if play.get("bet_side") == "Over" else -raw_margin
+        reg_result = "W" if selected_margin > 0 else ("L" if selected_margin < 0 else "P")
+
+        play["regulation_home_score"] = rh
+        play["regulation_away_score"] = ra
+        play["regulation_total"] = reg_total
+        play["regulation_result"] = reg_result
+        play["regulation_profit_units"] = round(100/110, 6) if reg_result == "W" else (-1.0 if reg_result == "L" else 0.0)
+        play["went_overtime"] = bool(went_ot)
+        play["ot_assisted_win"] = bool(went_ot and play.get("result") == "W" and reg_result != "W")
+        play["regulation_audited_at_pt"] = now_pt().isoformat(timespec="seconds")
+        audited += 1
+    return audited
 
 
 def settle_unresolved(state: Dict[str, Any], key: str) -> tuple[int, int]:
@@ -468,6 +550,17 @@ def summarize_totals(state: Dict[str, Any]) -> Dict[str, Any]:
     profit = sum(float(p.get("profit_units") or 0) for p in done)
     roi = profit / len(done) if done else None
     win_pct = w / (w + l) if w + l else None
+
+    reg_done = [p for p in entered if p.get("regulation_result") in {"W", "L", "P"}]
+    rw = sum(p.get("regulation_result") == "W" for p in reg_done)
+    rl = sum(p.get("regulation_result") == "L" for p in reg_done)
+    rp = sum(p.get("regulation_result") == "P" for p in reg_done)
+    reg_profit = sum(float(p.get("regulation_profit_units") or 0) for p in reg_done)
+    reg_roi = reg_profit / len(reg_done) if reg_done else None
+    reg_win_pct = rw / (rw + rl) if rw + rl else None
+    ot_games = sum(bool(p.get("went_overtime")) for p in reg_done)
+    ot_assisted = sum(bool(p.get("ot_assisted_win")) for p in reg_done)
+
     clvs = [safe_float(p.get("clv_proxy_points")) for p in entered]
     clvs = [x for x in clvs if x is not None]
     avg_clv = sum(clvs) / len(clvs) if clvs else None
@@ -484,6 +577,15 @@ def summarize_totals(state: Dict[str, Any]) -> Dict[str, Any]:
         "win_pct": win_pct,
         "profit_units": round(profit, 4),
         "roi": roi,
+        "regulation_audited_plays": len(reg_done),
+        "regulation_wins": rw,
+        "regulation_losses": rl,
+        "regulation_pushes": rp,
+        "regulation_win_pct": reg_win_pct,
+        "regulation_profit_units": round(reg_profit, 4),
+        "regulation_roi": reg_roi,
+        "overtime_games": ot_games,
+        "ot_assisted_wins": ot_assisted,
         "avg_clv_proxy": avg_clv,
         "positive_clv_proxy_pct": pos_clv,
         "today_candidates": len(today_plays),
@@ -547,9 +649,11 @@ def main() -> int:
 
     settled = 0
     totals_settled = 0
+    regulation_audited = 0
     key = os.environ.get("CBBD_API_KEY", "").strip()
     if key:
         settled, totals_settled = settle_unresolved(state, key)
+        regulation_audited = backfill_totals_regulation_audit(state, key)
     else:
         print("WARNING: CBBD_API_KEY not set; result settlement skipped.")
 
@@ -571,13 +675,14 @@ def main() -> int:
         "newly_settled": settled,
         "new_totals_candidates": totals_created,
         "newly_settled_totals": totals_settled,
+        "new_regulation_audits": regulation_audited,
     })
     state["runs"] = state["runs"][-250:]
 
     text = json.dumps(state, indent=2, sort_keys=False)
     STATE_PATH.write_text(text + "\n", encoding="utf-8")
     SITE_STATE_PATH.write_text(text + "\n", encoding="utf-8")
-    print(f"Dashboard sync: ATS {created} new / {settled} settled; Totals {totals_created} new / {totals_settled} settled.")
+    print(f"Dashboard sync: ATS {created} new / {settled} settled; Totals {totals_created} new / {totals_settled} settled; regulation audits {regulation_audited}.")
     print(f"ATS tracked: {state['summary']['tracked_candidates']} | Totals tracked: {state['totals_summary']['tracked_candidates']} | Combined entered: {state['combined_summary']['entered_plays']}")
     return 0
 
