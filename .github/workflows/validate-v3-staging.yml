@@ -1,0 +1,33 @@
+name: Validate Totals v3 staging
+
+on:
+  push:
+    branches:
+      - totals-v3-over-thesis
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Compile Python
+        run: python -m py_compile cbb_tierA_scanner.py dashboard_sync.py
+      - name: Validate v3 spec
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          v3 = json.loads(Path("cbb_totals_model_v3_challenger.json").read_text())
+          assert v3["status"].startswith("experimental shadow-only challenger")
+          assert len(v3["features"]) == 78
+          for key in ["imputer_statistics", "scaler_mean", "scaler_scale", "feature_multipliers", "ridge_coef"]:
+              assert len(v3[key]) == 78
+          assert float(v3["ridge_alpha"]) == 30000
+          assert v3["priority_order"] == ["3PA rate", "FT%", "turnover rate", "tempo"]
+          fam = v3["family_effective_abs_coefficient_sum"]
+          assert fam["3PA_rate"] > fam["FT_pct"] > fam["turnover_rate"] > fam["tempo"]
+          print("V3 staging validation OK", fam)
+          PY
