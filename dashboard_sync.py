@@ -60,12 +60,13 @@ def load_state() -> Dict[str, Any]:
                 obj.setdefault("plays", {})
                 obj.setdefault("totals_plays", {})
                 obj.setdefault("totals_v2_plays", {})
+                obj.setdefault("totals_v3_plays", {})
                 obj.setdefault("runs", [])
-                obj["version"] = max(int(obj.get("version", 1)), 3)
+                obj["version"] = max(int(obj.get("version", 1)), 4)
                 return obj
         except Exception:
             pass
-    return {"version": 3, "last_updated_pt": None, "status": "New", "plays": {}, "totals_plays": {}, "totals_v2_plays": {}, "runs": []}
+    return {"version": 4, "last_updated_pt": None, "status": "New", "plays": {}, "totals_plays": {}, "totals_v2_plays": {}, "totals_v3_plays": {}, "runs": []}
 
 
 def read_csv(path: Path) -> List[Dict[str, str]]:
@@ -388,6 +389,111 @@ def merge_current_totals_v2_snapshots(state: Dict[str, Any]) -> None:
         if r:
             append_totals_v2_snapshot(play, r)
 
+
+def append_totals_v3_snapshot(play: Dict[str, Any], row: Dict[str, Any]) -> None:
+    ts = row.get("Run_Timestamp_PT") or now_pt().isoformat(timespec="seconds")
+    snaps = play.setdefault("snapshots", [])
+    if any(s.get("timestamp_pt") == ts for s in snaps):
+        return
+    total = safe_float(row.get("Market_Total"))
+    if total is None:
+        return
+    snap = {
+        "timestamp_pt": ts,
+        "market_total": total,
+        "provider": row.get("Provider") or "",
+        "model_bet_now": row.get("Totals_V3_Bet") or "",
+        "model_total_now": safe_float(row.get("Totals_V3_Model_Total")),
+        "edge_now": safe_float(row.get("Totals_V3_Edge")),
+        "qualified_now": as_bool(row.get("Totals_V3_Qualified_Shadow")),
+        "trackable_now": as_bool(row.get("Totals_V3_Trackable_Shadow")),
+        "qc_status_now": row.get("Totals_V3_QC_Status") or "",
+    }
+    snaps.append(snap)
+    snaps.sort(key=lambda x: x["timestamp_pt"])
+    play["latest_total"] = total
+    play["latest_model_total"] = snap["model_total_now"]
+    play["latest_edge"] = snap["edge_now"]
+    play["latest_provider"] = snap["provider"]
+    play["latest_snapshot_pt"] = ts
+
+
+def create_or_update_totals_v3_candidates(state: Dict[str, Any], target_date: str) -> int:
+    cand_path = OUTPUT / f"totals_v3_shadow_candidates_{target_date}.csv"
+    candidates = read_csv(cand_path)
+    plays = state["totals_v3_plays"]
+    created = 0
+    for r in candidates:
+        gid = str(r.get("Game_ID") or "").strip()
+        if not gid:
+            continue
+        trackable = as_bool(r.get("Totals_V3_Trackable_Shadow"))
+        total_line = safe_float(r.get("Market_Total"))
+        if gid not in plays:
+            play = {
+                "game_id": gid,
+                "game_date": r.get("Game_Date") or target_date,
+                "start_utc": r.get("Start_UTC") or "",
+                "away_team": r.get("Away_Team") or "",
+                "home_team": r.get("Home_Team") or "",
+                "neutral_site": as_bool(r.get("Neutral_Site")),
+                "bet_side": "Over",
+                "shadow_only": True,
+                "over_only": True,
+                "first_seen_pt": r.get("Run_Timestamp_PT") or now_pt().isoformat(timespec="seconds"),
+                "first_scanner_total": total_line,
+                "first_model_total": safe_float(r.get("Totals_V3_Model_Total")),
+                "first_edge": safe_float(r.get("Totals_V3_Edge")),
+                "qc_status": r.get("Totals_V3_QC_Status") or "",
+                "first_actionable_pt": (r.get("Run_Timestamp_PT") or now_pt().isoformat(timespec="seconds")) if trackable else None,
+                "entry_total": total_line if trackable else None,
+                "entry_edge": safe_float(r.get("Totals_V3_Edge")) if trackable else None,
+                "entry_model_total": safe_float(r.get("Totals_V3_Model_Total")) if trackable else None,
+                "entry_provider": r.get("Provider") if trackable else None,
+                "result": None,
+                "profit_units": None,
+                "home_score": None,
+                "away_score": None,
+                "actual_total": None,
+                "total_margin_selected_side": None,
+                "regulation_home_score": None,
+                "regulation_away_score": None,
+                "regulation_total": None,
+                "regulation_result": None,
+                "regulation_profit_units": None,
+                "went_overtime": None,
+                "ot_assisted_win": None,
+                "regulation_audited_at_pt": None,
+                "settled_at_pt": None,
+                "closing_proxy_total": None,
+                "clv_proxy_points": None,
+                "snapshots": [],
+            }
+            plays[gid] = play
+            created += 1
+        play = plays[gid]
+        play["qc_status"] = r.get("Totals_V3_QC_Status") or play.get("qc_status") or ""
+        if trackable and play.get("entry_total") is None:
+            play["first_actionable_pt"] = r.get("Run_Timestamp_PT") or now_pt().isoformat(timespec="seconds")
+            play["entry_total"] = total_line
+            play["entry_edge"] = safe_float(r.get("Totals_V3_Edge"))
+            play["entry_model_total"] = safe_float(r.get("Totals_V3_Model_Total"))
+            play["entry_provider"] = r.get("Provider") or ""
+        append_totals_v3_snapshot(play, r)
+    return created
+
+
+def merge_current_totals_v3_snapshots(state: Dict[str, Any]) -> None:
+    path = OUTPUT / "line_snapshots.csv"
+    rows = read_csv(path)
+    if not rows:
+        return
+    by_id = {str(r.get("Game_ID") or ""): r for r in rows}
+    for gid, play in state["totals_v3_plays"].items():
+        r = by_id.get(gid)
+        if r:
+            append_totals_v3_snapshot(play, r)
+
 def parse_iso(s: str) -> Optional[datetime]:
     if not s:
         return None
@@ -509,7 +615,7 @@ def regulation_score_from_plays(game_id: str, key: str) -> Optional[tuple[int, i
 
 def backfill_totals_regulation_audit(state: Dict[str, Any], key: str) -> int:
     audited = 0
-    for collection in ("totals_plays", "totals_v2_plays"):
+    for collection in ("totals_plays", "totals_v2_plays", "totals_v3_plays"):
         for play in state[collection].values():
             if play.get("entry_total") is None or play.get("result") not in {"W", "L", "P"}:
                 continue
@@ -538,7 +644,7 @@ def backfill_totals_regulation_audit(state: Dict[str, Any], key: str) -> int:
     return audited
 
 
-def settle_unresolved(state: Dict[str, Any], key: str) -> tuple[int, int, int]:
+def settle_unresolved(state: Dict[str, Any], key: str) -> tuple[int, int, int, int]:
     unresolved_by_date: Dict[str, List[tuple[str, Dict[str, Any]]]] = {}
     today = now_pt().date()
 
@@ -572,9 +678,20 @@ def settle_unresolved(state: Dict[str, Any], key: str) -> tuple[int, int, int]:
         if gd <= today:
             unresolved_by_date.setdefault(play["game_date"], []).append(("total_v2", play))
 
+    for play in state["totals_v3_plays"].values():
+        if play.get("result") or play.get("entry_total") is None:
+            continue
+        try:
+            gd = date.fromisoformat(play["game_date"])
+        except Exception:
+            continue
+        if gd <= today:
+            unresolved_by_date.setdefault(play["game_date"], []).append(("total_v3", play))
+
     settled_ats = 0
     settled_totals = 0
     settled_totals_v2 = 0
+    settled_totals_v3 = 0
     for ds, items in sorted(unresolved_by_date.items()):
         gd = date.fromisoformat(ds)
         start, end = date_bounds(gd)
@@ -622,9 +739,11 @@ def settle_unresolved(state: Dict[str, Any], key: str) -> tuple[int, int, int]:
                 play["profit_units"] = round(100/110, 6) if result == "W" else (-1.0 if result == "L" else 0.0)
                 if kind == "total_v2":
                     settled_totals_v2 += 1
+                elif kind == "total_v3":
+                    settled_totals_v3 += 1
                 else:
                     settled_totals += 1
-    return settled_ats, settled_totals, settled_totals_v2
+    return settled_ats, settled_totals, settled_totals_v2, settled_totals_v3
 
 def summarize(state: Dict[str, Any]) -> Dict[str, Any]:
     plays = list(state["plays"].values())
@@ -762,6 +881,55 @@ def summarize_totals_v2(state: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
+def summarize_totals_v3(state: Dict[str, Any]) -> Dict[str, Any]:
+    plays = list(state["totals_v3_plays"].values())
+    entered = [p for p in plays if p.get("entry_total") is not None]
+    done = [p for p in entered if p.get("result") in {"W", "L", "P"}]
+    w = sum(p.get("result") == "W" for p in done)
+    l = sum(p.get("result") == "L" for p in done)
+    pushes = sum(p.get("result") == "P" for p in done)
+    profit = sum(float(p.get("profit_units") or 0) for p in done)
+    roi = profit / len(done) if done else None
+    win_pct = w / (w + l) if w + l else None
+
+    reg_done = [p for p in entered if p.get("regulation_result") in {"W", "L", "P"}]
+    rw = sum(p.get("regulation_result") == "W" for p in reg_done)
+    rl = sum(p.get("regulation_result") == "L" for p in reg_done)
+    rp = sum(p.get("regulation_result") == "P" for p in reg_done)
+    reg_profit = sum(float(p.get("regulation_profit_units") or 0) for p in reg_done)
+    reg_roi = reg_profit / len(reg_done) if reg_done else None
+    reg_win_pct = rw / (rw + rl) if rw + rl else None
+
+    clvs = [safe_float(p.get("clv_proxy_points")) for p in entered]
+    clvs = [x for x in clvs if x is not None]
+    avg_clv = sum(clvs) / len(clvs) if clvs else None
+    today = now_pt().date().isoformat()
+    today_plays = [p for p in plays if p.get("game_date") == today]
+    return {
+        "shadow_only": True,
+        "over_only": True,
+        "tracked_candidates": len(plays),
+        "entered_plays": len(entered),
+        "completed_plays": len(done),
+        "wins": w,
+        "losses": l,
+        "pushes": pushes,
+        "win_pct": win_pct,
+        "profit_units": round(profit, 4),
+        "roi": roi,
+        "regulation_wins": rw,
+        "regulation_losses": rl,
+        "regulation_pushes": rp,
+        "regulation_win_pct": reg_win_pct,
+        "regulation_roi": reg_roi,
+        "overtime_games": sum(bool(p.get("went_overtime")) for p in reg_done),
+        "ot_assisted_wins": sum(bool(p.get("ot_assisted_win")) for p in reg_done),
+        "avg_clv_proxy": avg_clv,
+        "today_candidates": len(today_plays),
+        "today_trackable": sum(p.get("entry_total") is not None for p in today_plays),
+    }
+
+
 def summarize_combined(state: Dict[str, Any]) -> Dict[str, Any]:
     ats_entered = [p for p in state["plays"].values() if p.get("entry_line") is not None]
     totals_entered = [p for p in state["totals_plays"].values() if p.get("entry_total") is not None]
@@ -809,9 +977,11 @@ def main() -> int:
     created = create_or_update_candidates(state, target)
     totals_created = create_or_update_totals_candidates(state, target)
     totals_v2_created = create_or_update_totals_v2_candidates(state, target)
+    totals_v3_created = create_or_update_totals_v3_candidates(state, target)
     merge_current_snapshots(state)
     merge_current_totals_snapshots(state)
     merge_current_totals_v2_snapshots(state)
+    merge_current_totals_v3_snapshots(state)
 
     for p in state["plays"].values():
         update_closing_proxy(p)
@@ -819,14 +989,17 @@ def main() -> int:
         update_totals_closing_proxy(p)
     for p in state["totals_v2_plays"].values():
         update_totals_closing_proxy(p)
+    for p in state["totals_v3_plays"].values():
+        update_totals_closing_proxy(p)
 
     settled = 0
     totals_settled = 0
     totals_v2_settled = 0
+    totals_v3_settled = 0
     regulation_audited = 0
     key = os.environ.get("CBBD_API_KEY", "").strip()
     if key:
-        settled, totals_settled, totals_v2_settled = settle_unresolved(state, key)
+        settled, totals_settled, totals_v2_settled, totals_v3_settled = settle_unresolved(state, key)
         regulation_audited = backfill_totals_regulation_audit(state, key)
     else:
         print("WARNING: CBBD_API_KEY not set; result settlement skipped.")
@@ -837,6 +1010,8 @@ def main() -> int:
         update_totals_closing_proxy(p)
     for p in state["totals_v2_plays"].values():
         update_totals_closing_proxy(p)
+    for p in state["totals_v3_plays"].values():
+        update_totals_closing_proxy(p)
 
     stamp = now_pt().isoformat(timespec="seconds")
     state["last_updated_pt"] = stamp
@@ -844,6 +1019,7 @@ def main() -> int:
     state["summary"] = summarize(state)
     state["totals_summary"] = summarize_totals(state)
     state["totals_v2_summary"] = summarize_totals_v2(state)
+    state["totals_v3_summary"] = summarize_totals_v3(state)
     state["combined_summary"] = summarize_combined(state)
     state["runs"].append({
         "timestamp_pt": stamp,
@@ -854,6 +1030,8 @@ def main() -> int:
         "newly_settled_totals": totals_settled,
         "new_totals_v2_shadow_candidates": totals_v2_created,
         "newly_settled_totals_v2_shadow": totals_v2_settled,
+        "new_totals_v3_shadow_candidates": totals_v3_created,
+        "newly_settled_totals_v3_shadow": totals_v3_settled,
         "new_regulation_audits": regulation_audited,
     })
     state["runs"] = state["runs"][-250:]
@@ -861,8 +1039,8 @@ def main() -> int:
     text = json.dumps(state, indent=2, sort_keys=False)
     STATE_PATH.write_text(text + "\n", encoding="utf-8")
     SITE_STATE_PATH.write_text(text + "\n", encoding="utf-8")
-    print(f"Dashboard sync: ATS {created} new / {settled} settled; Totals v1 {totals_created} new / {totals_settled} settled; Totals v2 shadow {totals_v2_created} new / {totals_v2_settled} settled; regulation audits {regulation_audited}.")
-    print(f"ATS tracked: {state['summary']['tracked_candidates']} | Totals v1 tracked: {state['totals_summary']['tracked_candidates']} | Totals v2 shadow tracked: {state['totals_v2_summary']['tracked_candidates']} | Combined entered: {state['combined_summary']['entered_plays']}")
+    print(f"Dashboard sync: ATS {created} new / {settled} settled; Totals v1 {totals_created} new / {totals_settled} settled; Totals v2 shadow {totals_v2_created} new / {totals_v2_settled} settled; Totals v3 shadow {totals_v3_created} new / {totals_v3_settled} settled; regulation audits {regulation_audited}.")
+    print(f"ATS tracked: {state['summary']['tracked_candidates']} | Totals v1 tracked: {state['totals_summary']['tracked_candidates']} | Totals v2 shadow tracked: {state['totals_v2_summary']['tracked_candidates']} | Totals v3 shadow tracked: {state['totals_v3_summary']['tracked_candidates']} | Combined entered: {state['combined_summary']['entered_plays']}")
     return 0
 
 

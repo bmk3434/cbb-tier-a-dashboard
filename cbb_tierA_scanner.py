@@ -57,6 +57,7 @@ MODEL_PATH = ROOT / "cbb_spread_model_v4.joblib"
 TOTAL_MODEL_B64_PATH = ROOT / "cbb_totals_model_v1.b64"
 TOTAL_SPEC_PATH = ROOT / "cbb_totals_model_v1_spec.json"
 TOTAL_V2_SPEC_PATH = ROOT / "cbb_totals_model_v2_challenger.json"
+TOTAL_V3_SPEC_PATH = ROOT / "cbb_totals_model_v3_challenger.json"
 ALIASES_PATH = ROOT / "team_name_aliases.json"
 OVERRIDES_PATH = ROOT / "neutral_overrides.csv"
 CACHE_DIR = ROOT / "cache"
@@ -553,6 +554,17 @@ def load_totals_v2_spec() -> Dict[str, Any]:
     return spec
 
 
+def load_totals_v3_spec() -> Dict[str, Any]:
+    if not TOTAL_V3_SPEC_PATH.exists():
+        raise RuntimeError("Totals v3 challenger spec is missing.")
+    spec = json.loads(TOTAL_V3_SPEC_PATH.read_text(encoding="utf-8"))
+    features = list(spec.get("features") or [])
+    arrays = ["imputer_statistics", "scaler_mean", "scaler_scale", "feature_multipliers", "ridge_coef"]
+    if len(features) != 78 or any(len(spec.get(k) or []) != 78 for k in arrays):
+        raise RuntimeError("Unexpected Totals v3 challenger parameter dimensions.")
+    return spec
+
+
 def predict_totals_v2(tfv: Dict[str, float], spec: Dict[str, Any]) -> float:
     features = spec["features"]
     med = spec["imputer_statistics"]
@@ -569,6 +581,10 @@ def predict_totals_v2(tfv: Dict[str, float], spec: Dict[str, Any]) -> float:
         z = 0.0 if den == 0 else (x - float(mean[i])) / den
         total += float(coef[i]) * z * float(mult[i])
     return total
+
+
+def predict_totals_v3(tfv: Dict[str, float], spec: Dict[str, Any]) -> float:
+    return predict_totals_v2(tfv, spec)
 
 
 def derive_total_features(
@@ -689,7 +705,9 @@ def append_snapshots(rows: List[Dict[str, Any]]) -> None:
         "Tier", "Profile_Tag", "Actionable", "QC_Status", "Totals_Bet", "Totals_Model_Total",
         "Totals_Predicted_Edge", "Totals_Edge", "Totals_Qualified", "Totals_Actionable", "Totals_QC_Status",
         "Totals_V2_Bet", "Totals_V2_Model_Total", "Totals_V2_Predicted_Edge", "Totals_V2_Edge",
-        "Totals_V2_Qualified_Shadow", "Totals_V2_Trackable_Shadow", "Totals_V2_QC_Status"
+        "Totals_V2_Qualified_Shadow", "Totals_V2_Trackable_Shadow", "Totals_V2_QC_Status",
+        "Totals_V3_Bet", "Totals_V3_Model_Total", "Totals_V3_Predicted_Edge", "Totals_V3_Edge",
+        "Totals_V3_Qualified_Shadow", "Totals_V3_Trackable_Shadow", "Totals_V3_QC_Status"
     ]
     exists = path.exists()
     with open(path, "a", newline="", encoding="utf-8") as f:
@@ -739,6 +757,9 @@ def main() -> int:
     if not TOTAL_V2_SPEC_PATH.exists():
         print("ERROR: missing Totals v2 challenger spec.")
         return 2
+    if not TOTAL_V3_SPEC_PATH.exists():
+        print("ERROR: missing Totals v3 challenger spec.")
+        return 2
 
     create_override_template_if_missing()
     aliases = load_aliases()
@@ -749,6 +770,7 @@ def main() -> int:
     sigma = float(bundle["probability_sigma"])
     totals_model, totals_features = load_totals_model()
     totals_v2_spec = load_totals_v2_spec()
+    totals_v3_spec = load_totals_v3_spec()
 
     print("=" * 70)
     print("2026-27 CBB TIER A DAILY SCANNER")
@@ -757,6 +779,7 @@ def main() -> int:
     print("Frozen ATS rule: V4 edge >= 1.75 AND model side underdog +4 or more")
     print("Frozen totals v1 rule: absolute predicted total edge >= 2.00 points")
     print("Totals v2: shadow-only challenger; 2.00-point shadow threshold; NEVER actionable")
+    print("Totals v3: OVER-only shadow challenger; 2.00-point positive edge threshold; NEVER actionable")
     print("Profile tag: AWAY_4_TO_6_5 is descriptive only; it is not a higher-confidence tier.")
     print()
 
@@ -792,6 +815,7 @@ def main() -> int:
     candidates: List[Dict[str, Any]] = []
     totals_candidates: List[Dict[str, Any]] = []
     totals_v2_candidates: List[Dict[str, Any]] = []
+    totals_v3_candidates: List[Dict[str, Any]] = []
     audit: List[str] = []
     counts = defaultdict(int)
 
@@ -871,6 +895,13 @@ def main() -> int:
         totals_v2_qualified = False
         totals_v2_trackable = False
         totals_v2_qc_status = "NO_MARKET_TOTAL"
+        totals_v3_pred_edge = math.nan
+        totals_v3_model_total = math.nan
+        totals_v3_side = ""
+        totals_v3_edge = math.nan
+        totals_v3_qualified = False
+        totals_v3_trackable = False
+        totals_v3_qc_status = "NO_MARKET_TOTAL"
         if not math.isnan(market_total):
             tfv = derive_total_features(game, selected, fv, hsnap, asnap, target_date)
             TX = np.array([[tfv.get(feat, math.nan) for feat in totals_features]], dtype=float)
@@ -889,6 +920,14 @@ def main() -> int:
             totals_v2_qualified = totals_v2_edge >= 2.0
             totals_v2_trackable = totals_v2_qualified and provider_status == "FROZEN_PRIORITY"
             totals_v2_qc_status = "SHADOW_OK" if provider_status == "FROZEN_PRIORITY" else "SHADOW_REVIEW_PROVIDER"
+
+            totals_v3_pred_edge = predict_totals_v3(tfv, totals_v3_spec)
+            totals_v3_model_total = market_total + totals_v3_pred_edge
+            totals_v3_side = "Over" if totals_v3_pred_edge > 0 else "Pass"
+            totals_v3_edge = totals_v3_pred_edge
+            totals_v3_qualified = totals_v3_pred_edge >= 2.0
+            totals_v3_trackable = totals_v3_qualified and provider_status == "FROZEN_PRIORITY"
+            totals_v3_qc_status = "SHADOW_OK" if provider_status == "FROZEN_PRIORITY" else "SHADOW_REVIEW_PROVIDER"
 
         result = {
             "Run_Timestamp_PT": datetime.now(LOCAL_TZ).isoformat(timespec="seconds"),
@@ -936,6 +975,13 @@ def main() -> int:
             "Totals_V2_Qualified_Shadow": totals_v2_qualified,
             "Totals_V2_Trackable_Shadow": totals_v2_trackable,
             "Totals_V2_QC_Status": totals_v2_qc_status,
+            "Totals_V3_Bet": totals_v3_side,
+            "Totals_V3_Model_Total": totals_v3_model_total,
+            "Totals_V3_Predicted_Edge": totals_v3_pred_edge,
+            "Totals_V3_Edge": totals_v3_edge,
+            "Totals_V3_Qualified_Shadow": totals_v3_qualified,
+            "Totals_V3_Trackable_Shadow": totals_v3_trackable,
+            "Totals_V3_QC_Status": totals_v3_qc_status,
         }
         scored.append(result)
         counts["scored"] += 1
@@ -956,11 +1002,17 @@ def main() -> int:
             counts["totals_v2_shadow"] += 1
             if totals_v2_trackable:
                 counts["totals_v2_trackable"] += 1
+        if totals_v3_qualified:
+            totals_v3_candidates.append(result)
+            counts["totals_v3_shadow"] += 1
+            if totals_v3_trackable:
+                counts["totals_v3_trackable"] += 1
 
     scored.sort(key=lambda r: (-float(r["V4_Edge"]), str(r["Start_UTC"])))
     candidates.sort(key=lambda r: (not bool(r["Actionable"]), -float(r["V4_Edge"]), str(r["Start_UTC"])))
     totals_candidates.sort(key=lambda r: (not bool(r["Totals_Actionable"]), -float(r["Totals_Edge"]), str(r["Start_UTC"])))
     totals_v2_candidates.sort(key=lambda r: (not bool(r["Totals_V2_Trackable_Shadow"]), -float(r["Totals_V2_Edge"]), str(r["Start_UTC"])))
+    totals_v3_candidates.sort(key=lambda r: (not bool(r["Totals_V3_Trackable_Shadow"]), -float(r["Totals_V3_Edge"]), str(r["Start_UTC"])))
 
     fields = [
         "Run_Timestamp_PT", "Game_Date", "Game_ID", "Start_UTC", "Away_Team", "Home_Team",
@@ -972,18 +1024,22 @@ def main() -> int:
         "Totals_Bet", "Totals_Model_Total", "Totals_Predicted_Edge", "Totals_Edge",
         "Totals_Qualified", "Totals_Actionable", "Totals_QC_Status",
         "Totals_V2_Bet", "Totals_V2_Model_Total", "Totals_V2_Predicted_Edge", "Totals_V2_Edge",
-        "Totals_V2_Qualified_Shadow", "Totals_V2_Trackable_Shadow", "Totals_V2_QC_Status"
+        "Totals_V2_Qualified_Shadow", "Totals_V2_Trackable_Shadow", "Totals_V2_QC_Status",
+        "Totals_V3_Bet", "Totals_V3_Model_Total", "Totals_V3_Predicted_Edge", "Totals_V3_Edge",
+        "Totals_V3_Qualified_Shadow", "Totals_V3_Trackable_Shadow", "Totals_V3_QC_Status"
     ]
 
     all_path = OUTPUT_DIR / f"all_scored_{target_date.isoformat()}.csv"
     cand_path = OUTPUT_DIR / f"tierA_candidates_{target_date.isoformat()}.csv"
     totals_path = OUTPUT_DIR / f"totals_candidates_{target_date.isoformat()}.csv"
     totals_v2_path = OUTPUT_DIR / f"totals_v2_shadow_candidates_{target_date.isoformat()}.csv"
+    totals_v3_path = OUTPUT_DIR / f"totals_v3_shadow_candidates_{target_date.isoformat()}.csv"
     audit_path = OUTPUT_DIR / f"audit_{target_date.isoformat()}.txt"
     write_csv(all_path, scored, fields)
     write_csv(cand_path, candidates, fields)
     write_csv(totals_path, totals_candidates, fields)
     write_csv(totals_v2_path, totals_v2_candidates, fields)
+    write_csv(totals_v3_path, totals_v3_candidates, fields)
 
     if not args.no_snapshots:
         append_snapshots(scored)
@@ -992,7 +1048,7 @@ def main() -> int:
         f.write("2026-27 TIER A SCANNER AUDIT\n")
         f.write("=" * 40 + "\n")
         f.write(f"Date: {target_date.isoformat()}\n")
-        for key in ["line_games", "non_d1_proxy", "no_spread", "fanmatch_unmatched", "archive_unmatched", "scored", "tier_a", "actionable", "neutral_review", "totals_qualified", "totals_actionable", "totals_v2_shadow", "totals_v2_trackable"]:
+        for key in ["line_games", "non_d1_proxy", "no_spread", "fanmatch_unmatched", "archive_unmatched", "scored", "tier_a", "actionable", "neutral_review", "totals_qualified", "totals_actionable", "totals_v2_shadow", "totals_v2_trackable", "totals_v3_shadow", "totals_v3_trackable"]:
             f.write(f"{key}: {counts[key]}\n")
         if audit:
             f.write("\nDETAILS\n")
@@ -1012,6 +1068,8 @@ def main() -> int:
     print(f"Totals v1 actionable:      {counts['totals_actionable']}")
     print(f"Totals v2 shadow:          {counts['totals_v2_shadow']}")
     print(f"Totals v2 trackable:       {counts['totals_v2_trackable']}")
+    print(f"Totals v3 Over shadow:     {counts['totals_v3_shadow']}")
+    print(f"Totals v3 trackable:       {counts['totals_v3_trackable']}")
     print()
 
     if candidates:
@@ -1056,10 +1114,25 @@ def main() -> int:
         print("No Totals v2 shadow candidates today.")
 
     print()
+    if totals_v3_candidates:
+        print("TOTALS V3 OVER SHADOW CANDIDATES — NO BETS")
+        print("-" * 70)
+        for r in totals_v3_candidates:
+            status = "SHADOW" if r["Totals_V3_Trackable_Shadow"] else "REVIEW"
+            print(
+                f"[{status:6}] OVER {float(r['Market_Total']):5.1f} | "
+                f"model {float(r['Totals_V3_Model_Total']):5.1f} | edge {float(r['Totals_V3_Edge']):4.2f} | "
+                f"{r['Away_Team']} @ {r['Home_Team']} | {r['Totals_V3_QC_Status']}"
+            )
+    else:
+        print("No Totals v3 Over shadow candidates today.")
+
+    print()
     print("Files written:")
     print(" ", cand_path)
     print(" ", totals_path)
     print(" ", totals_v2_path)
+    print(" ", totals_v3_path)
     print(" ", all_path)
     print(" ", audit_path)
     if not args.no_snapshots:

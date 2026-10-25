@@ -193,6 +193,67 @@
     </div>
   </div>
 
+  <div class="divider"></div>
+
+  <div class="model-head">
+    <div>
+      <div class="model-title">Totals — v3 Over Challenger</div>
+      <div class="model-desc">Hypothesis-driven, Over-only shadow model. Its four largest standardized influences are deliberately ranked 3PA rate #1, FT% #2, turnover rate #3, and tempo #4. It cannot create a wager and does not count in Combined Performance.</div>
+    </div>
+    <div class="tag">OVER · SHADOW ONLY</div>
+  </div>
+  <div class="grid" id="totals-v3-kpis"></div>
+
+  <div class="section">
+    <h3>Today’s v3 Over shadow candidates</h3>
+    <div class="desc">Tracked when v3 predicts at least +2.0 points above the market total. These are observations only, not betting recommendations.</div>
+    <div class="card table-card"><div class="scroll"><table class="table"><thead><tr><th>Status</th><th>Game</th><th>Shadow bet</th><th>Entry/current</th><th>V3 model total</th><th>Edge</th><th>QC</th></tr></thead><tbody id="totals-v3-today"></tbody></table></div><div id="totals-v3-today-empty" class="empty" hidden>No Totals v3 Over shadow candidates yet today.</div></div>
+  </div>
+
+  <div class="section split">
+    <div>
+      <h3>V3 prospective shadow history</h3>
+      <div class="desc">Official, regulation-only, OT-assisted and CLV results are recorded exactly like the other totals models, but remain diagnostic only.</div>
+      <div class="card table-card"><div class="scroll"><table class="table"><thead><tr><th>Date</th><th>Over</th><th>Entry</th><th>Close proxy</th><th>CLV</th><th>Official</th><th>Regulation</th><th>OT</th><th>Shadow P/L</th></tr></thead><tbody id="totals-v3-history"></tbody></table></div><div id="totals-v3-history-empty" class="empty" hidden>No tracked v3 shadow plays yet.</div></div>
+    </div>
+    <div>
+      <h3>V3 forced priority ranking</h3>
+      <div class="card rule-list">
+        <div class="rule"><span>#1 Matchup 3PA rate</span><strong>+0.193</strong></div>
+        <div class="rule"><span>#2 Season FT%</span><strong>+0.163</strong></div>
+        <div class="rule"><span>#3 Matchup TO%</span><strong>−0.162</strong></div>
+        <div class="rule"><span>#4 KenPom mean tempo</span><strong>+0.083</strong></div>
+        <div class="rule"><span>Next-largest variable</span><strong>0.061</strong></div>
+        <div class="rule"><span>Ridge alpha</span><strong>60,000</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section split">
+    <div>
+      <h3>Development check</h3>
+      <div class="card rule-list">
+        <div class="rule"><span>Combined CV RMSE</span><strong>v2 16.3227 · v3 16.3320</strong></div>
+        <div class="rule"><span>2023–24 RMSE</span><strong>16.4529 · 16.4757</strong></div>
+        <div class="rule"><span>2024–25 RMSE</span><strong>16.1947 · 16.1905</strong></div>
+        <div class="rule"><span>V3 Over ≥2.0</span><strong>102–102 · 50.00%</strong></div>
+        <div class="rule"><span>V3 Over ≥3.0</span><strong>23–17 · 57.50%</strong></div>
+        <div class="rule"><span>3pt result</span><strong>Descriptive only — no threshold change</strong></div>
+      </div>
+    </div>
+    <div>
+      <h3>V3 evidence policy</h3>
+      <div class="card rule-list">
+        <div class="rule"><span>Live status</span><strong>Shadow only</strong></div>
+        <div class="rule"><span>Direction</span><strong>Over only</strong></div>
+        <div class="rule"><span>Tracking threshold</span><strong>+2.00 pts</strong></div>
+        <div class="rule"><span>Counts in combined stats</span><strong>No</strong></div>
+        <div class="rule"><span>Creates betting plays</span><strong>No</strong></div>
+        <div class="rule"><span>Promotion basis</span><strong>Prospective 2026–27 evidence</strong></div>
+      </div>
+    </div>
+  </div>
+
   <div class="note">All records are prospective research tests, not guarantees. “Close” is a proxy: the latest scheduled snapshot captured before tip, not an independently certified sportsbook closing line. ATS and Totals are scored and tracked independently.</div>
 </div>
 <script>
@@ -237,11 +298,22 @@ function totalsV2Cards(m){
  ];
  document.getElementById('totals-v2-kpis').innerHTML=arr.map(c=>`<div class="card kpi"><div class="label">${c[0]}</div><div class="value">${c[1]}</div><div class="hint">${c[2]}</div></div>`).join('');
 }
+function totalsV3Cards(m){
+ const arr=[
+  ['Today Over shadows',m.today_trackable??0,'+2pt or greater'],
+  ['Tracked',m.entered_plays??0,'shadow entries'],
+  ['Record',`${m.wins??0}-${m.losses??0}${m.pushes?'-'+m.pushes:''}`,'shadow only'],
+  ['Win rate',pct(m.win_pct),'Over only'],
+  ['Shadow ROI',pct(m.roi),'diagnostic only'],
+  ['Avg CLV',m.avg_clv_proxy==null?'—':signed(m.avg_clv_proxy),'snapshot proxy']
+ ];
+ document.getElementById('totals-v3-kpis').innerHTML=arr.map(c=>`<div class="card kpi"><div class="label">${c[0]}</div><div class="value">${c[1]}</div><div class="hint">${c[2]}</div></div>`).join('');
+}
 async function boot(){
  try{
   const res=await fetch('data/state.json',{cache:'no-store'});if(!res.ok)throw new Error('State file unavailable');const s=await res.json();
   document.getElementById('updated').textContent=s.last_updated_pt?`Updated ${s.last_updated_pt.replace('T',' ')}`:'Not run yet';
-  cards('combined-kpis',s.combined_summary||{},'COMBINED');cards('ats-kpis',s.summary||{},'ATS');cards('totals-kpis',s.totals_summary||{},'TOTALS');totalsRegCards(s.totals_summary||{});totalsV2Cards(s.totals_v2_summary||{});
+  cards('combined-kpis',s.combined_summary||{},'COMBINED');cards('ats-kpis',s.summary||{},'ATS');cards('totals-kpis',s.totals_summary||{},'TOTALS');totalsRegCards(s.totals_summary||{});totalsV2Cards(s.totals_v2_summary||{});totalsV3Cards(s.totals_v3_summary||{});
 
   const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 
@@ -279,6 +351,18 @@ async function boot(){
   if(!v2Hist.length){document.getElementById('totals-v2-history-empty').hidden=false;v2hb.innerHTML=''}else{
    document.getElementById('totals-v2-history-empty').hidden=true;
    v2hb.innerHTML=v2Hist.map(p=>{const ot=p.went_overtime===true?(p.ot_assisted_win?'<span class="badge review">OT ASSISTED</span>':'<span class="badge">OT</span>'):'—';return `<tr><td>${esc(p.game_date)}</td><td><span class="team">${esc(p.bet_side)} ${f(p.entry_total,1)}</span><div style="color:var(--muted);font-size:12px">${esc(p.away_team)} @ ${esc(p.home_team)}</div></td><td>${f(p.entry_total,1)}</td><td>${f(p.closing_proxy_total,1)}</td><td class="${(p.clv_proxy_points??0)>0?'green':(p.clv_proxy_points??0)<0?'red':''}">${p.clv_proxy_points==null?'—':signed(p.clv_proxy_points)}</td><td>${resultBadge(p.result)}</td><td>${resultBadge(p.regulation_result)}</td><td>${ot}</td><td class="${(p.profit_units??0)>0?'green':(p.profit_units??0)<0?'red':''}">${p.profit_units==null?'—':f(p.profit_units,2)+'u'}</td></tr>`}).join('');
+  }
+
+  const v3=Object.values(s.totals_v3_plays||{}).sort((a,b)=>(b.game_date||'').localeCompare(a.game_date||'')||(b.first_seen_pt||'').localeCompare(a.first_seen_pt||''));
+  const v3Today=v3.filter(p=>p.game_date===today),v3tb=document.getElementById('totals-v3-today');
+  if(!v3Today.length){document.getElementById('totals-v3-today-empty').hidden=false;v3tb.innerHTML=''}else{
+   document.getElementById('totals-v3-today-empty').hidden=true;
+   v3tb.innerHTML=v3Today.map(p=>`<tr><td><span class="badge ${p.entry_total!=null?'':'review'}">${p.entry_total!=null?'SHADOW':'REVIEW'}</span></td><td><span class="team">${esc(p.away_team)} @ ${esc(p.home_team)}</span>${p.neutral_site?' <span class="yellow">(N)</span>':''}</td><td class="team">Over</td><td>${f(p.entry_total,1)} / ${f(p.latest_total,1)}</td><td>${f(p.entry_model_total??p.first_model_total,1)}</td><td>${f(p.entry_edge??p.first_edge,2)}</td><td>${esc(p.qc_status||'')}</td></tr>`).join('');
+  }
+  const v3HistRows=v3.filter(p=>p.entry_total!=null).slice(0,100),v3hb=document.getElementById('totals-v3-history');
+  if(!v3HistRows.length){document.getElementById('totals-v3-history-empty').hidden=false;v3hb.innerHTML=''}else{
+   document.getElementById('totals-v3-history-empty').hidden=true;
+   v3hb.innerHTML=v3HistRows.map(p=>{const ot=p.went_overtime===true?(p.ot_assisted_win?'<span class="badge review">OT ASSISTED</span>':'<span class="badge">OT</span>'):'—';return `<tr><td>${esc(p.game_date)}</td><td><span class="team">Over ${f(p.entry_total,1)}</span><div style="color:var(--muted);font-size:12px">${esc(p.away_team)} @ ${esc(p.home_team)}</div></td><td>${f(p.entry_total,1)}</td><td>${f(p.closing_proxy_total,1)}</td><td class="${(p.clv_proxy_points??0)>0?'green':(p.clv_proxy_points??0)<0?'red':''}">${p.clv_proxy_points==null?'—':signed(p.clv_proxy_points)}</td><td>${resultBadge(p.result)}</td><td>${resultBadge(p.regulation_result)}</td><td>${ot}</td><td class="${(p.profit_units??0)>0?'green':(p.profit_units??0)<0?'red':''}">${p.profit_units==null?'—':f(p.profit_units,2)+'u'}</td></tr>`}).join('');
   }
  }catch(e){document.getElementById('error').innerHTML=`<div class="error">Dashboard could not load: ${esc(e.message)}</div>`}
 }
