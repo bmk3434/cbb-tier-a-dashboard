@@ -9,6 +9,7 @@ on:
       - 'dashboard_sync.py'
       - 'cbb_totals_model_v1.b64'
       - 'cbb_totals_model_v1_spec.json'
+      - 'cbb_totals_model_v2_challenger.json'
       - 'site/**'
       - '.github/workflows/update-dashboard.yml'
   schedule:
@@ -55,7 +56,14 @@ jobs:
           spec = json.loads(Path("cbb_totals_model_v1_spec.json").read_text())
           assert len(spec["features"]) == 78
           assert hasattr(model, "predict")
+          v2 = json.loads(Path("cbb_totals_model_v2_challenger.json").read_text())
+          assert v2["status"] == "shadow-only prospective challenger"
+          assert len(v2["features"]) == 78
+          for key in ["imputer_statistics", "scaler_mean", "scaler_scale", "feature_multipliers", "ridge_coef"]:
+              assert len(v2[key]) == 78
+          assert float(v2["ridge_alpha"]) == 30000
           print("Totals v1 preflight OK:", len(raw), "bytes,", len(spec["features"]), "features")
+          print("Totals v2 shadow preflight OK:", len(v2["features"]), "features, alpha", v2["ridge_alpha"])
           PY
 
       - name: Restore CBBD team-history cache

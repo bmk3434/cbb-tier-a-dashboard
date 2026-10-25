@@ -133,6 +133,66 @@
     </div>
   </div>
 
+  <div class="divider"></div>
+
+  <div class="model-head">
+    <div>
+      <div class="model-title">Totals — v2 Challenger</div>
+      <div class="model-desc">Shadow-only challenger. It scores the same market totals as v1 but cannot create an actionable bet and is excluded from Combined Performance. We are testing whether different shrinkage by feature family improves prospective forecast quality.</div>
+    </div>
+    <div class="tag">SHADOW ONLY</div>
+  </div>
+  <div class="grid" id="totals-v2-kpis"></div>
+
+  <div class="section">
+    <h3>Today’s v2 shadow candidates</h3>
+    <div class="desc">A 2.0-point edge is used only as a common tracking threshold. These are observations, not wagers.</div>
+    <div class="card table-card"><div class="scroll"><table class="table"><thead><tr><th>Status</th><th>Game</th><th>Shadow side</th><th>Entry/current</th><th>V2 model total</th><th>Edge</th><th>QC</th></tr></thead><tbody id="totals-v2-today"></tbody></table></div><div id="totals-v2-today-empty" class="empty" hidden>No Totals v2 shadow candidates yet today.</div></div>
+  </div>
+
+  <div class="section split">
+    <div>
+      <h3>V2 prospective shadow history</h3>
+      <div class="desc">Tracked exactly like v1—official result, regulation result, overtime and CLV—but never included in our real-model combined record.</div>
+      <div class="card table-card"><div class="scroll"><table class="table"><thead><tr><th>Date</th><th>Shadow</th><th>Entry</th><th>Close proxy</th><th>CLV</th><th>Official</th><th>Regulation</th><th>OT</th><th>Shadow P/L</th></tr></thead><tbody id="totals-v2-history"></tbody></table></div><div id="totals-v2-history-empty" class="empty" hidden>No tracked v2 shadow plays yet.</div></div>
+    </div>
+    <div>
+      <h3>V2 weighting design</h3>
+      <div class="card rule-list">
+        <div class="rule"><span>Market + KenPom</span><strong>1.0×</strong></div>
+        <div class="rule"><span>Season baseline stats</span><strong>1.0×</strong></div>
+        <div class="rule"><span>Season matchup interactions</span><strong>2.0×</strong></div>
+        <div class="rule"><span>Last-5 raw form</span><strong>0.5×</strong></div>
+        <div class="rule"><span>Last-5 matchup interactions</span><strong>1.0×</strong></div>
+        <div class="rule"><span>Ridge alpha</span><strong>30,000</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section split">
+    <div>
+      <h3>Development forecast comparison</h3>
+      <div class="card rule-list">
+        <div class="rule"><span>Combined dev CV RMSE</span><strong>v1 16.3314 → v2 16.3260</strong></div>
+        <div class="rule"><span>2023–24 CV RMSE</span><strong>16.4637 → 16.4583</strong></div>
+        <div class="rule"><span>2024–25 CV RMSE</span><strong>16.2013 → 16.1959</strong></div>
+        <div class="rule"><span>Selection objective</span><strong>RMSE only — not ROI</strong></div>
+        <div class="rule"><span>Dev 2pt shadow</span><strong>47–42 · 52.81%</strong></div>
+      </div>
+    </div>
+    <div>
+      <h3>Evidence policy</h3>
+      <div class="card rule-list">
+        <div class="rule"><span>Live status</span><strong>Shadow only</strong></div>
+        <div class="rule"><span>Counts in combined stats</span><strong>No</strong></div>
+        <div class="rule"><span>Creates betting plays</span><strong>No</strong></div>
+        <div class="rule"><span>2025–26 reconstruction</span><strong>Secondary sanity check only</strong></div>
+        <div class="rule"><span>2025–26 RMSE check</span><strong>16.8912 → 16.8879</strong></div>
+        <div class="rule"><span>Promotion basis</span><strong>Prospective 2026–27 evidence</strong></div>
+      </div>
+    </div>
+  </div>
+
   <div class="note">All records are prospective research tests, not guarantees. “Close” is a proxy: the latest scheduled snapshot captured before tip, not an independently certified sportsbook closing line. ATS and Totals are scored and tracked independently.</div>
 </div>
 <script>
@@ -166,11 +226,22 @@ function totalsRegCards(m){
  ];
  document.getElementById('totals-reg-kpis').innerHTML=arr.map(c=>`<div class="card kpi"><div class="label">${c[0]}</div><div class="value">${c[1]}</div><div class="hint">${c[2]}</div></div>`).join('');
 }
+function totalsV2Cards(m){
+ const arr=[
+  ['Today shadow',m.today_trackable??0,'2pt trackable observations'],
+  ['Tracked',m.entered_plays??0,'shadow entries'],
+  ['Record',`${m.wins??0}-${m.losses??0}${m.pushes?'-'+m.pushes:''}`,'shadow only'],
+  ['Win rate',pct(m.win_pct),'not a betting record'],
+  ['Shadow ROI',pct(m.roi),'diagnostic only'],
+  ['Avg CLV',m.avg_clv_proxy==null?'—':signed(m.avg_clv_proxy),'snapshot proxy']
+ ];
+ document.getElementById('totals-v2-kpis').innerHTML=arr.map(c=>`<div class="card kpi"><div class="label">${c[0]}</div><div class="value">${c[1]}</div><div class="hint">${c[2]}</div></div>`).join('');
+}
 async function boot(){
  try{
   const res=await fetch('data/state.json',{cache:'no-store'});if(!res.ok)throw new Error('State file unavailable');const s=await res.json();
   document.getElementById('updated').textContent=s.last_updated_pt?`Updated ${s.last_updated_pt.replace('T',' ')}`:'Not run yet';
-  cards('combined-kpis',s.combined_summary||{},'COMBINED');cards('ats-kpis',s.summary||{},'ATS');cards('totals-kpis',s.totals_summary||{},'TOTALS');totalsRegCards(s.totals_summary||{});
+  cards('combined-kpis',s.combined_summary||{},'COMBINED');cards('ats-kpis',s.summary||{},'ATS');cards('totals-kpis',s.totals_summary||{},'TOTALS');totalsRegCards(s.totals_summary||{});totalsV2Cards(s.totals_v2_summary||{});
 
   const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 
@@ -196,6 +267,18 @@ async function boot(){
   if(!totalHist.length){document.getElementById('totals-history-empty').hidden=false;thb.innerHTML=''}else{
    document.getElementById('totals-history-empty').hidden=true;
    thb.innerHTML=totalHist.map(p=>{const ot=p.went_overtime===true?(p.ot_assisted_win?'<span class="badge review">OT ASSISTED</span>':'<span class="badge">OT</span>'):'—';return `<tr><td>${esc(p.game_date)}</td><td><span class="team">${esc(p.bet_side)} ${f(p.entry_total,1)}</span><div style="color:var(--muted);font-size:12px">${esc(p.away_team)} @ ${esc(p.home_team)}</div></td><td>${f(p.entry_total,1)}</td><td>${f(p.closing_proxy_total,1)}</td><td class="${(p.clv_proxy_points??0)>0?'green':(p.clv_proxy_points??0)<0?'red':''}">${p.clv_proxy_points==null?'—':signed(p.clv_proxy_points)}</td><td>${resultBadge(p.result)}</td><td>${resultBadge(p.regulation_result)}</td><td>${ot}</td><td class="${(p.profit_units??0)>0?'green':(p.profit_units??0)<0?'red':''}">${p.profit_units==null?'—':f(p.profit_units,2)+'u'}</td></tr>`}).join('');
+  }
+
+  const v2=Object.values(s.totals_v2_plays||{}).sort((a,b)=>(b.game_date||'').localeCompare(a.game_date||'')||(b.first_seen_pt||'').localeCompare(a.first_seen_pt||''));
+  const v2Today=v2.filter(p=>p.game_date===today),v2tb=document.getElementById('totals-v2-today');
+  if(!v2Today.length){document.getElementById('totals-v2-today-empty').hidden=false;v2tb.innerHTML=''}else{
+   document.getElementById('totals-v2-today-empty').hidden=true;
+   v2tb.innerHTML=v2Today.map(p=>`<tr><td><span class="badge ${p.entry_total!=null?'':'review'}">${p.entry_total!=null?'SHADOW':'REVIEW'}</span></td><td><span class="team">${esc(p.away_team)} @ ${esc(p.home_team)}</span>${p.neutral_site?' <span class="yellow">(N)</span>':''}</td><td class="team">${esc(p.bet_side)}</td><td>${f(p.entry_total,1)} / ${f(p.latest_total,1)}</td><td>${f(p.entry_model_total??p.first_model_total,1)}</td><td>${f(p.entry_edge??p.first_edge,2)}</td><td>${esc(p.qc_status||'')}</td></tr>`).join('');
+  }
+  const v2Hist=v2.filter(p=>p.entry_total!=null).slice(0,100),v2hb=document.getElementById('totals-v2-history');
+  if(!v2Hist.length){document.getElementById('totals-v2-history-empty').hidden=false;v2hb.innerHTML=''}else{
+   document.getElementById('totals-v2-history-empty').hidden=true;
+   v2hb.innerHTML=v2Hist.map(p=>{const ot=p.went_overtime===true?(p.ot_assisted_win?'<span class="badge review">OT ASSISTED</span>':'<span class="badge">OT</span>'):'—';return `<tr><td>${esc(p.game_date)}</td><td><span class="team">${esc(p.bet_side)} ${f(p.entry_total,1)}</span><div style="color:var(--muted);font-size:12px">${esc(p.away_team)} @ ${esc(p.home_team)}</div></td><td>${f(p.entry_total,1)}</td><td>${f(p.closing_proxy_total,1)}</td><td class="${(p.clv_proxy_points??0)>0?'green':(p.clv_proxy_points??0)<0?'red':''}">${p.clv_proxy_points==null?'—':signed(p.clv_proxy_points)}</td><td>${resultBadge(p.result)}</td><td>${resultBadge(p.regulation_result)}</td><td>${ot}</td><td class="${(p.profit_units??0)>0?'green':(p.profit_units??0)<0?'red':''}">${p.profit_units==null?'—':f(p.profit_units,2)+'u'}</td></tr>`}).join('');
   }
  }catch(e){document.getElementById('error').innerHTML=`<div class="error">Dashboard could not load: ${esc(e.message)}</div>`}
 }
