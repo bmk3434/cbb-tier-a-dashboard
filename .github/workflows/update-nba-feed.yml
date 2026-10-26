@@ -74,7 +74,9 @@ jobs:
           scripts = re.findall(r'<script[^>]*>(.*?)</script>', html, flags=re.S)
           assert scripts, 'No dashboard scripts found'
           assert 'nbaRenderSchedule' in html
-          assert 'totals-v3-kpis' in html
+          assert 'ats-kpis' in html
+          assert 'totals-kpis' in html
+          assert 'nba-live-trial' in html
           Path('/tmp/basketball-dashboard-inline.js').write_text('\n'.join(scripts), encoding='utf-8')
           PY
           node --check /tmp/basketball-dashboard-inline.js
