@@ -91,3 +91,45 @@ Do not change these during the 2026–27 test:
 - Tier A thresholds inside `cbb_tierA_scanner.py`
 
 The whole purpose of 2026–27 is to evaluate the frozen rule prospectively.
+
+## NBA automated research feed (same dashboard)
+
+The NBA Moneyline Confidence Lab is part of the existing `site/index.html` page. It is **independent of the frozen CBB ATS v4, Totals v1, and v2/v3 challenger models**. The NBA data never enters the CBB Combined Performance totals.
+
+### Automatic schedule / back-to-back scanning — no key needed
+
+The standalone `.github/workflows/update-nba-feed.yml` workflow runs **six times daily** at UTC hours 01, 05, 09, 13, 17, and 21 (minute 23) and can also be launched from Actions → **Update NBA confidence feed** → **Run workflow**. The existing CBB workflow retains its normal schedule.
+
+The feed uses the ESPN public NBA scoreboard to retrieve NBA regular-season games and completed results, then checks each team's last game by **NBA game date in Eastern Time** to identify the second game of a back-to-back. It records the result of the previous game only after that game is final. The dashboard shows:
+
+- Upcoming games, home and away back-to-back status, and the home team's prior-game result.
+- A filter for all games, back-to-back matchups, or setups where the home team is on a back-to-back **after losing**, while the visitor is not on a back-to-back.
+- Feed update time, current feed availability, and (when available) a selected bookmaker's visiting-team moneyline.
+
+Scheduled jobs and source availability are not guaranteed to be instantaneous. If the ESPN source fails, the job fails rather than publishing an empty slate. The dashboard refreshes its published NBA feed every five minutes while open.
+
+### Enable actual moneylines (optional GitHub secret)
+
+Schedule scanning works without a key; moneyline tracking requires a quote source. This integration uses **[The Odds API v4](https://the-odds-api.com/liveapi/guides/v4/)** with the NBA `h2h` market and **DraftKings** as the fixed selected sportsbook. Quote availability and API-plan quotas depend on the provider.
+
+1. Create your own The Odds API account and retrieve its API key.
+2. In this repository go to **Settings → Secrets and variables → Actions → New repository secret**.
+3. Set the name to exactly `NBA_ODDS_API_KEY` and paste the key as the secret value (never paste it into files, comments, or the public dashboard).
+4. Run **Actions → Update NBA confidence feed → Run workflow** once, or allow the next scheduled job to execute.
+
+Until the key is provided, the NBA scanner still works, but the odds display clearly says `MISSING_API_KEY`, and **no moneyline-qualified paper wagers will be created**. If DraftKings is not listed on a matchup, the game remains unpriced. The script intentionally does not substitute odds from another book.
+
+### Exact forward paper-tracking rule and evidence policy
+
+An NBA paper entry is created **only before tip** when all conditions are met: (1) home team is playing on consecutive NBA game dates; (2) it **lost the previous game**, confirmed as final; (3) visiting team is not on a back-to-back; (4) the selected sportsbook provides a **visiting moneyline of -250 or shorter**; and (5) the game is still scheduled and has not begun. The first qualifying moneyline is frozen, and subsequent game results are graded W/L at that price for one-unit theoretical wagers. It is **not a certified closing line**, and the rule was selected retrospectively.
+
+The automatically populated games and paper entries deliberately have **no model_win_probability, injury verification or statistically calibrated confidence score**, because neither a live independent NBA model nor an injury data provider has been connected. They therefore display as **Unrated** rather than receiving a fabricated confidence score. CSV uploads can still provide independent model inputs; these uploads are stored in the local browser unless placed into the published `site/data/nba_plays.json` feed by a separate authorized process.
+
+The previous historical research returned **+10.73%** for 2021–22 through 2025–26 but **-17.69%** in the prior five seasons. Those figures are historical only; they are not part of the new prospective ledger or the CBB betting record.
+
+### Files
+
+- `nba_feed.py`: ESPN date and result collection, back-to-back calculation, optional odds lookup, entry snapshots, and grading.
+- `.github/workflows/update-nba-feed.yml`: independent scheduled job plus deployment of the same GitHub Pages site.
+- `site/data/nba_plays.json`: automatically committed current slate and prospective paper-tracker; do not put API keys here.
+- `site/index.html`: integrated HTML dashboard, interactive filters, confidence cards, and locally imported CSV plays.
