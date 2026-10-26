@@ -13,6 +13,8 @@ on:
       - 'nba_v2_shadow.py'
       - 'nba_model_v2_challenger.json'
       - 'test_nba_v2_shadow.py'
+      - 'nba_live_test.py'
+      - 'test_nba_live_test.py'
       - '.github/workflows/update-nba-feed.yml'
   schedule:
     # Six times daily, UTC. Limits optional odds API usage to roughly 180 calls/month.
@@ -45,8 +47,8 @@ jobs:
 
       - name: Validate NBA scanner and grading
         run: |
-          python -m py_compile nba_feed.py nba_predictor.py nba_v2_shadow.py test_nba_feed.py test_nba_predictor.py test_nba_v2_shadow.py
-          python -m unittest -q test_nba_feed.py test_nba_predictor.py test_nba_v2_shadow.py
+          python -m py_compile nba_feed.py nba_predictor.py nba_v2_shadow.py nba_live_test.py test_nba_feed.py test_nba_predictor.py test_nba_v2_shadow.py test_nba_live_test.py
+          python -m unittest -q test_nba_feed.py test_nba_predictor.py test_nba_v2_shadow.py test_nba_live_test.py
           python - <<'PY'
           from nba_predictor import read_model
           spec = read_model()
@@ -87,9 +89,9 @@ jobs:
         run: |
           git config user.name "basketball-dashboard-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add site/data/nba_plays.json
+          git add site/data/nba_plays.json site/data/nba_live_test.json
           if ! git diff --cached --quiet; then
-            git commit -m "Refresh NBA schedule, B2B signals and tracked moneylines"
+            git commit -m "Refresh NBA schedule, forecasts, and prospective paper-trial ledger"
             # Repository edits may land after checkout; integrate them rather
             # than force-pushing or overwriting CBB research state.
             pushed=0
