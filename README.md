@@ -136,13 +136,38 @@ For the retrospectively chosen B2B strategy, a qualifying schedule setup receive
 
 An NBA paper entry is created **only before tip** when all conditions are met: (1) home team is playing on consecutive NBA game dates; (2) it **lost the previous game**, confirmed as final; (3) visiting team is not on a back-to-back; (4) the selected sportsbook provides a **visiting moneyline of -250 or shorter**; and (5) the game is still scheduled and has not begun. The first qualifying moneyline is frozen, and subsequent game results are graded W/L at that price for one-unit theoretical wagers. It is **not a certified closing line**, and the rule was selected retrospectively.
 
-The automatically populated games and paper entries deliberately have **no model_win_probability, injury verification or statistically calibrated confidence score**, because neither a live independent NBA model nor an injury data provider has been connected. They therefore display as **Unrated** rather than receiving a fabricated confidence score. CSV uploads can still provide independent model inputs; these uploads are stored in the local browser unless placed into the published `site/data/nba_plays.json` feed by a separate authorized process.
+### NBA Elo model v1: free, independent probability projections
+
+The dashboard now has a **real, frozen, independently evaluated NBA win-probability model** with no additional paid data or Odds API usage. It combines:
+
+1. Prior-to-tip **home minus away Elo** ratings (K=20; 65 Elo home-court points; 0.72 offseason carry-over).
+2. Whether the home and away team is playing the second night of a back-to-back.
+3. A ridge-stabilized logistic probability calibration trained solely from past results.
+
+Historical input: the regular-season game results in the public `nikhilNathwani/NBA-Moneyline` archive, `tableau/games.csv`, frozen blob `337a5fcd7f4b2106d5813ce1611d67c95ed0b35d`. **The model does not take moneyline odds as predictive features.** Archived average bookmaker moneylines were used only as a comparison benchmark, not as guaranteed closing prices.
+
+| Evaluation | Games | Model accuracy | Model Brier | Historical no-vig bookmaker Brier |
+|---|---:|---:|---:|---:|
+| Training (2016–17 to 2023–24) | 9,519 | 64.15% | 0.21951 | 0.20832 |
+| Validation (2024–25) | 1,225 | 66.04% | 0.21211 | 0.19908 |
+| **Untouched holdout (2025–26)** | **1,225** | **67.76%** | **0.20977** | **0.19448** |
+
+The lower Brier score is better. The historical market outperformed this model on the untouched test, therefore **no profitable NBA moneyline advantage has been validated**. When sportsbook odds are present, implied break-even odds and *indicative* expected ROI can be compared against the forecast, but these differences are not reliable betting recommendations.
+
+The 2026–27 model starts with the **end-of-2025–26 Elo ratings regressed toward 1500**, then updates strength using completed **ESPN results only**. It remembers processed game IDs between runs to avoid double-counting. Only final games can affect the ratings; upcoming games cannot.
+
+The NBA scanner displays both the model's predicted visitor win probability and a **LOW 35/100 model-evidence grade**. Qualifying B2B research setups carry a separate **LOW 24/100 historical-strategy grade**. Both grades are heuristic evidence descriptors, **not probabilities of winning**. Automatic paper entries freeze the model prediction and sportsbook quote at the first qualifying pre-tip snapshot, and are capped below 50/100 confidence because this model has not demonstrated an independent edge over market expectations. Injury information remains **unverified**, never assumed.
+
+If the model cannot be loaded, the NBA workflow will fail its preflight validation rather than quietly substituting an invented probability. CSV uploads can still provide independently tested inputs; browser uploads are local unless shared through an authorized update of `site/data/nba_plays.json`.
 
 The previous historical research returned **+10.73%** for 2021–22 through 2025–26 but **-17.69%** in the prior five seasons. Those figures are historical only; they are not part of the new prospective ledger or the CBB betting record.
 
 ### Files
 
-- `nba_feed.py`: ESPN date and result collection, back-to-back calculation, optional odds lookup, entry snapshots, and grading.
+- `nba_feed.py`: ESPN date and result collection, back-to-back calculation, optional odds lookup, model integration, entry snapshots, and grading.
+- `nba_predictor.py`: free-data Elo updates and logistic win-probability forecasts, with no sportsbook API dependencies.
+- `nba_model_v1.json`: immutable historical model weights, 2026 preseason team ratings, and untouched holdout performance.
+- `test_nba_predictor.py`: unit tests covering model integrity, rest flags and leak-free Elo updates.
 - `.github/workflows/update-nba-feed.yml`: independent scheduled job plus deployment of the same GitHub Pages site.
 - `site/data/nba_plays.json`: automatically committed current slate and prospective paper-tracker; do not put API keys here.
 - `site/index.html`: integrated HTML dashboard, interactive filters, confidence cards, and locally imported CSV plays.
