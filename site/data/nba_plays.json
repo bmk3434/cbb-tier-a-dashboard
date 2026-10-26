@@ -794,6 +794,14 @@
     "model_id": "nba-elo-logistic-v1-2026-10-25",
     "status": "FROZEN PROSPECTIVE RESEARCH \u2014 NOT MARKET EDGE VALIDATED"
   },
+  "nba_v2_summary": {
+    "games_with_v2_predictions": 0,
+    "market_edge_validated": false,
+    "min_prior_games_per_team": 5,
+    "source": "BoxScore Lab daily team-game CSV (no odds API credits)",
+    "source_completed_team_games": 86,
+    "status": "OK"
+  },
   "odds_budget": {
     "calls_today": 0,
     "credits_this_month": 0,
@@ -824,5 +832,5 @@
     "units": 0,
     "wins": 0
   },
-  "updated_at": "2026-10-26T17:55:21.254738Z"
+  "updated_at": "2026-10-26T18:06:13.677375Z"
 }
