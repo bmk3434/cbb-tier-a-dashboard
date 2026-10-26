@@ -18,3 +18,13 @@ for filename in ("team_box.parquet","four_factors.parquet"):
     print("FIRST_ROWS",frame.head(2).to_json(orient="records",date_format="iso"))
     print("LAST_ROWS",frame.tail(2).to_json(orient="records",date_format="iso"))
     print("NULL_COUNTS",frame.isna().sum().sort_values(ascending=False).head(15).to_dict())
+
+url="https://raw.githubusercontent.com/llimllib/nba_data/main/data/gamelogs.parquet"
+with urllib.request.urlopen(urllib.request.Request(url,headers={"User-Agent":"NBAResearch/1.0"}),timeout=80) as response:
+    raw=response.read()
+frame=pd.read_parquet(BytesIO(raw))
+print("DATASET gamelogs.parquet BYTES",len(raw),"SHAPE",frame.shape)
+print("LOG_COLUMNS",list(frame.columns))
+print("LOG_DTYPES",frame.dtypes.astype(str).to_dict())
+print("LOG_FIRST_ROWS",frame.head(3).to_json(orient="records",date_format="iso"))
+print("LOG_LAST_ROWS",frame.tail(3).to_json(orient="records",date_format="iso"))
