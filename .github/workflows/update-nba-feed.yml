@@ -1,0 +1,69 @@
+name: Update NBA confidence feed
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'nba_feed.py'
+      - '.github/workflows/update-nba-feed.yml'
+      - 'site/data/nba_plays.json'
+  schedule:
+    # Six times daily, UTC. Limits optional odds API usage to roughly 180 calls/month.
+    - cron: '23 1,5,9,13,17,21 * * *'
+
+# Share deployment / git-push queue with the existing CBB update workflow.
+concurrency:
+  group: cbb-tier-a-dashboard
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  nba-feed-and-deploy:
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout existing basketball dashboard
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate feed script
+        run: python -m py_compile nba_feed.py
+
+      - name: Refresh NBA schedule and optional moneylines
+        env:
+          NBA_ODDS_API_KEY: ${{ secrets.NBA_ODDS_API_KEY }}
+          NBA_ODDS_BOOKMAKER: draftkings
+        run: python nba_feed.py
+
+      - name: Commit feed data without modifying CBB results
+        run: |
+          git config user.name "basketball-dashboard-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/data/nba_plays.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Refresh NBA schedule, B2B signals and tracked moneylines"
+            git push
+          fi
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload unified basketball dashboard
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy same dashboard
+        uses: actions/deploy-pages@v4
+        id: deployment
