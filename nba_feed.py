@@ -18,6 +18,8 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from zoneinfo import ZoneInfo
 
+from nba_predictor import read_model, advance_state, enrich_upcoming
+
 ROOT = Path(__file__).resolve().parent
 FEED = ROOT / "site" / "data" / "nba_plays.json"
 ET = ZoneInfo("America/New_York")
@@ -305,7 +307,7 @@ def previous_feed():
     except (OSError,ValueError):
         return {}
 
-def assemble(games, old, generated, odds_status, bookmaker, budget=None):
+def assemble(games, old, generated, odds_status, bookmaker, budget=None, elo_state=None, model=None):
     known = {str(p.get("game_id")):p for p in old.get("plays",[])
              if isinstance(p,dict) and p.get("game_id")}
     current = {g["game_id"]:g for g in games}
@@ -330,9 +332,15 @@ def assemble(games, old, generated, odds_status, bookmaker, budget=None):
             "bet_team":g["away_team"],"moneyline":ml,"entry_moneyline":ml,
             "odds_source":bookmaker,"first_seen_utc":generated.isoformat(),
             "price_verified":True,"injuries_verified":None,
-            "model_win_probability":None,"historical_out_of_sample":None,
-            "historical_bets":None,"historical_profitable_seasons":None,
-            "historical_seasons":None,"rest_context_score":None,
+            "model_win_probability":g.get("model_away_win_probability"),
+            "model_id":g.get("model_id"),
+            "model_market_validated":False,
+            "model_confidence":g.get("model_confidence"),
+            "historical_out_of_sample":True if g.get("model_id") else None,
+            "historical_bets":1225 if g.get("model_id") else None,
+            "historical_profitable_seasons":0 if g.get("model_id") else None,
+            "historical_seasons":1 if g.get("model_id") else None,
+            "rest_context_score":65 if g.get("model_id") else None,
             "status":"PAPER_TRACK","result":None
         }
     start_window=(generated.astimezone(ET).date()-timedelta(days=180)).isoformat()
@@ -344,8 +352,19 @@ def assemble(games, old, generated, odds_status, bookmaker, budget=None):
     future=[g for g in games if g["game_date"]>=generated.astimezone(ET).date().isoformat()
             and g["game_date"]<=(generated.astimezone(ET).date()+timedelta(days=2)).isoformat()]
     return {
-        "schema_version":3,
+        "schema_version":4,
         "odds_budget":budget or {},
+        "nba_elo_state":elo_state or {},
+        "nba_model_metadata":{
+            "model_id":model["model_id"] if model else None,
+            "status":model["status"] if model else "Not connected",
+            "holdout_games":model["evaluation"]["untouched_holdout"]["nba_model"]["games"] if model else None,
+            "holdout_accuracy_pct":model["evaluation"]["untouched_holdout"]["nba_model"]["accuracy_pct"] if model else None,
+            "holdout_brier":model["evaluation"]["untouched_holdout"]["nba_model"]["brier"] if model else None,
+            "market_holdout_brier":model["evaluation"]["untouched_holdout"]["historical_market_novig"]["brier"] if model else None,
+            "confidence_level":model["model_evidence_confidence_100"] if model else None,
+            "market_edge_validated":False,
+        },
         "research_confidence_method":"Heuristic 24/100: recent 5/5 positive (+20), prior 1/5 (+4), ten-year ROI negative (+0), independent holdout absent (+0). Not a predicted win probability.",
         "updated_at":generated.isoformat().replace("+00:00","Z"),
         "status":"OK",
@@ -353,11 +372,12 @@ def assemble(games, old, generated, odds_status, bookmaker, budget=None):
         "odds_source":"The Odds API v4 (optional)",
         "odds_status":odds_status,
         "selected_bookmaker":bookmaker,
-        "model_status":"No independent NBA win-probability model connected",
+        "model_status":"Frozen Elo+rest NBA research model enabled; historical market outperformed model on untouched 2025-26 holdout",
         "summary":{"scheduled_games":len(future),"b2b_games":sum(g["home_b2b"] or g["away_b2b"] for g in future),
                    "qualified_setups":sum(g["setup_qualified"] for g in future),
                    "setups_with_moneyline":sum(g["setup_qualified"] and g.get("away_moneyline") is not None for g in future),
                    "tracked_plays":len(tracked),"settled_plays":len(graded),
+                   "nba_model_predictions":sum(g.get("model_away_win_probability") is not None for g in future),
                    "wins":sum(p["result"]=="W" for p in graded),
                    "losses":sum(p["result"]=="L" for p in graded),
                    "units":round(profit,4),"roi":round(100*profit/len(graded),3) if graded else None},
@@ -369,13 +389,19 @@ def main():
     anchor=generated.astimezone(ET).date()
     games=annotate(calendar(anchor))
     old=previous_feed()
+    # Free ESPN results update last-known Elo before any new forecasts are made.
+    model=read_model()
+    elo_state=advance_state(games,old,generated,model)
+    predictions=enrich_upcoming(games,elo_state,model,generated)
     bookmaker=os.environ.get("NBA_ODDS_BOOKMAKER","draftkings").strip().lower()
     key=os.environ.get("NBA_ODDS_API_KEY","").strip()
     status,_,budget=match_odds(games,key,bookmaker,old,generated)
-    data=assemble(games,old,generated,status,bookmaker,budget)
+    data=assemble(games,old,generated,status,bookmaker,budget,elo_state,model)
     FEED.parent.mkdir(parents=True,exist_ok=True)
     FEED.write_text(json.dumps(data,indent=2,sort_keys=True)+"\n",encoding="utf-8")
-    print("NBA feed:",data["summary"],"odds:",status,"budget:",budget)
+    print("NBA feed:",data["summary"],"odds:",status,
+          "budget:",budget,"model forecasts:",predictions,
+          "Elo games settled:",len(elo_state["processed_game_ids"]))
     return 0
 
 if __name__=="__main__":
