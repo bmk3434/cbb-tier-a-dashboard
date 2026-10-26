@@ -6,7 +6,10 @@ on:
     branches: [main]
     paths:
       - 'nba_feed.py'
+      - 'nba_predictor.py'
+      - 'nba_model_v1.json'
       - 'test_nba_feed.py'
+      - 'test_nba_predictor.py'
       - '.github/workflows/update-nba-feed.yml'
   schedule:
     # Six times daily, UTC. Limits optional odds API usage to roughly 180 calls/month.
@@ -39,8 +42,16 @@ jobs:
 
       - name: Validate NBA scanner and grading
         run: |
-          python -m py_compile nba_feed.py test_nba_feed.py
-          python -m unittest -q test_nba_feed.py
+          python -m py_compile nba_feed.py nba_predictor.py test_nba_feed.py test_nba_predictor.py
+          python -m unittest -q test_nba_feed.py test_nba_predictor.py
+          python - <<'PY'
+          from nba_predictor import read_model
+          spec = read_model()
+          assert spec["model_id"] == "nba-elo-logistic-v1-2026-10-25"
+          assert spec["market_edge_validated"] is False
+          assert spec["evaluation"]["untouched_holdout"]["nba_model"]["brier"] > spec["evaluation"]["untouched_holdout"]["historical_market_novig"]["brier"]
+          print("NBA independent holdout / no-market-edge integrity OK")
+          PY
 
       - name: Check combined dashboard JavaScript
         run: |
