@@ -16,7 +16,6 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 
 from nba_feed import TEAM_NAMES
-from nba_predictor import as_utc
 
 ROOT=Path(__file__).resolve().parent
 MODEL_PATH=ROOT/"nba_model_v2_challenger.json"
@@ -79,8 +78,11 @@ def build_team_history(rows:list[dict], defaults:dict)->dict:
 def predict_pair(g, history, model):
     if g.get("model_away_win_probability") is None:
         return None
-    home=next((abbr for abbr,name in TEAM_NAMES.items() if name==g["home_team"]),None)
-    away=next((abbr for abbr,name in TEAM_NAMES.items() if name==g["away_team"]),None)
+    preferred={"Golden State Warriors":"GSW","New Orleans Pelicans":"NOP",
+               "New York Knicks":"NYK","San Antonio Spurs":"SAS",
+               "Utah Jazz":"UTA","Washington Wizards":"WAS"}
+    home=preferred.get(g["home_team"]) or next((a for a,n in TEAM_NAMES.items() if n==g["home_team"]),None)
+    away=preferred.get(g["away_team"]) or next((a for a,n in TEAM_NAMES.items() if n==g["away_team"]),None)
     if home is None or away is None:return None
     # Remove same-day and future source rows, preserving strictly pregame info.
     hh=[entry["stats"] for entry in history[home] if entry["date"]<g["game_date"]]
