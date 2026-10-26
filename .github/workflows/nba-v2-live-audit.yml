@@ -1,0 +1,23 @@
+name: NBA v2 free current-season source audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'nba_v2_live_audit.py'
+      - '.github/workflows/nba-v2-live-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Probe free NBA box-score CSV source (no sportsbook API)
+        run: python nba_v2_live_audit.py
