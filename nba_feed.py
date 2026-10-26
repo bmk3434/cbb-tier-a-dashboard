@@ -403,11 +403,22 @@ def main():
     key=os.environ.get("NBA_ODDS_API_KEY","").strip()
     status,_,budget=match_odds(games,key,bookmaker,old,generated)
     data=assemble(games,old,generated,status,bookmaker,budget,elo_state,model,v2_summary)
+    # Independent research ledger: no odds requests and no wagers.
+    from nba_live_test import read_ledger, refresh_ledger, save_ledger
+    trial=refresh_ledger(games,read_ledger(),generated,status)
+    data["nba_live_test"]={
+        "start":trial["start_game_date"],
+        "end_inclusive":trial["end_game_date_inclusive"],
+        "status":trial["status"],
+        "summary":trial["summary"],
+        "ledger":"data/nba_live_test.json",
+    }
     FEED.parent.mkdir(parents=True,exist_ok=True)
     FEED.write_text(json.dumps(data,indent=2,sort_keys=True)+"\n",encoding="utf-8")
+    save_ledger(trial)
     print("NBA feed:",data["summary"],"odds:",status,
           "budget:",budget,"model forecasts:",predictions,
-          "Elo games settled:",len(elo_state["processed_game_ids"]), "v2:",v2_summary)
+          "Elo games settled:",len(elo_state["processed_game_ids"]), "v2:",v2_summary,"paper_test:",trial["summary"]["games_recorded"],"recorded")
     return 0
 
 if __name__=="__main__":
