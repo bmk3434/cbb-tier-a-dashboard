@@ -307,7 +307,7 @@ def previous_feed():
     except (OSError,ValueError):
         return {}
 
-def assemble(games, old, generated, odds_status, bookmaker, budget=None, elo_state=None, model=None):
+def assemble(games, old, generated, odds_status, bookmaker, budget=None, elo_state=None, model=None, v2_summary=None):
     known = {str(p.get("game_id")):p for p in old.get("plays",[])
              if isinstance(p,dict) and p.get("game_id")}
     current = {g["game_id"]:g for g in games}
@@ -333,6 +333,9 @@ def assemble(games, old, generated, odds_status, bookmaker, budget=None, elo_sta
             "odds_source":bookmaker,"first_seen_utc":generated.isoformat(),
             "price_verified":True,"injuries_verified":False,
             "model_win_probability":g.get("model_away_win_probability"),
+            "model_v2_win_probability":g.get("model_v2_away_win_probability"),
+            "model_v2_id":g.get("model_v2_id"),
+            "model_v2_market_validated":False,
             "model_id":g.get("model_id"),
             "model_market_validated":False,
             "model_confidence":g.get("model_confidence"),
@@ -355,6 +358,7 @@ def assemble(games, old, generated, odds_status, bookmaker, budget=None, elo_sta
         "schema_version":4,
         "odds_budget":budget or {},
         "nba_elo_state":elo_state or {},
+        "nba_v2_summary":v2_summary or {"status":"NOT_READY","market_edge_validated":False},
         "nba_model_metadata":{
             "model_id":model["model_id"] if model else None,
             "status":model["status"] if model else "Not connected",
@@ -393,15 +397,17 @@ def main():
     model=read_model()
     elo_state=advance_state(games,old,generated,model)
     predictions=enrich_upcoming(games,elo_state,model,generated)
+    from nba_v2_shadow import enrich_v2
+    v2_summary=enrich_v2(games)
     bookmaker=os.environ.get("NBA_ODDS_BOOKMAKER","draftkings").strip().lower()
     key=os.environ.get("NBA_ODDS_API_KEY","").strip()
     status,_,budget=match_odds(games,key,bookmaker,old,generated)
-    data=assemble(games,old,generated,status,bookmaker,budget,elo_state,model)
+    data=assemble(games,old,generated,status,bookmaker,budget,elo_state,model,v2_summary)
     FEED.parent.mkdir(parents=True,exist_ok=True)
     FEED.write_text(json.dumps(data,indent=2,sort_keys=True)+"\n",encoding="utf-8")
     print("NBA feed:",data["summary"],"odds:",status,
           "budget:",budget,"model forecasts:",predictions,
-          "Elo games settled:",len(elo_state["processed_game_ids"]))
+          "Elo games settled:",len(elo_state["processed_game_ids"]), "v2:",v2_summary)
     return 0
 
 if __name__=="__main__":
