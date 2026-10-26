@@ -97,7 +97,9 @@ jobs:
             pushed=0
             for attempt in 1 2 3; do
               git fetch origin main
-              git rebase origin/main
+              # Prefer remote feed/ledger data when concurrent writers touch
+              # the same snapshots. Keep already-published first-seen forecasts.
+              git rebase -X ours origin/main
               if git push origin HEAD:main; then
                 pushed=1
                 break
