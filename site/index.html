@@ -271,6 +271,23 @@
     <div class="tag">NBA RESEARCH ONLY</div>
   </div>
   <div class="grid" id="nba-kpis"></div>
+  <div class="section" id="nba-scanner">
+    <h3>Automated NBA schedule and back-to-back scanner</h3>
+    <div class="desc">NBA regular-season games are refreshed separately from CBB. The previous night's result and rest status are checked automatically. A setup is not a bet unless a same-book pregame moneyline meets the fixed rule.</div>
+    <div class="card" style="margin-bottom:12px">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px">
+        <div class="nba-small" id="nba-feed-status">Waiting for first NBA feed update.</div>
+        <label class="nba-small" for="nba-scan-filter">Show <select id="nba-scan-filter" style="background:var(--card2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:7px"><option value="all">All games</option><option value="b2b">Back-to-back games</option><option value="setup">After-loss setups</option></select></label>
+      </div>
+    </div>
+    <div class="card table-card"><div class="scroll"><table class="table"><thead><tr><th>Date / time ET</th><th>Matchup</th><th>Home team</th><th>Home prior result</th><th>Visitor B2B</th><th>Visitor ML</th><th>Research signal</th></tr></thead><tbody id="nba-scan-body"></tbody></table></div><div class="empty" id="nba-scan-empty">No NBA schedule feed yet. The automatic workflow must complete its first run.</div></div>
+  </div>
+  <div class="section">
+    <h3>NBA prospective paper-tracker</h3>
+    <div class="desc">A historical game is entered only when the rule and selected sportsbook quote qualified before tip. First-qualifying price is frozen; final wins and losses are settled automatically. Never mixed into college-basketball statistics.</div>
+    <div class="card table-card"><div class="scroll"><table class="table"><thead><tr><th>Date</th><th>Matchup</th><th>Entry ML</th><th>Book</th><th>Result</th><th>Units</th></tr></thead><tbody id="nba-history-body"></tbody></table></div><div class="empty" id="nba-history-empty">No verified-price prospective NBA entries yet. A selected sportsbook API key is required for automatic moneyline entries.</div></div>
+  </div>
+
   <div class="section split">
     <div><h3>Adjust confidence weights</h3>
       <div class="desc">Relative importance of each component. These weights are heuristic and have not been validated as NBA prediction weights.</div>
@@ -430,6 +447,47 @@ async function boot(){
 /* NBA lab is deliberately independent of the CBB boot() and state feed. */
 const nbaDefault=[40,30,20,10],nbaWIds=[0,1,2,3];
 let nbaWeights=nbaDefault.slice(),nbaLocal=[],nbaPublished=[];
+
+let nbaSchedule=[],nbaFeedMeta={};
+function nbaRenderSchedule(){
+ const status=document.getElementById('nba-feed-status');
+ const meta=nbaFeedMeta||{}, summary=meta.summary||{};
+ const stamp=meta.updated_at?new Date(meta.updated_at).toLocaleString('en-US',{timeZone:'America/Los_Angeles',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):'Not yet updated';
+ const odds=meta.odds_status==='CONNECTED'?'Odds connected ('+esc(meta.selected_bookmaker||'')+')':meta.odds_status==='MISSING_API_KEY'?'Moneylines unavailable — add NBA_ODDS_API_KEY secret':meta.odds_status==='ODDS_ERROR'?'Moneylines temporarily unavailable':'Moneyline feed not run';
+ status.textContent='Last updated '+stamp+' · '+(summary.scheduled_games??nbaSchedule.length)+' games · '+(summary.b2b_games??0)+' B2B games · '+(summary.qualified_setups??0)+' qualifying setups · '+odds;
+ const filter=document.getElementById('nba-scan-filter').value;
+ const matching=nbaSchedule.filter(g=>filter==='setup'?g.setup_qualified:filter==='b2b'?(g.home_b2b||g.away_b2b):true);
+ const body=document.getElementById('nba-scan-body');
+ document.getElementById('nba-scan-empty').hidden=matching.length>0;
+ body.innerHTML=matching.map(g=>{
+  const time=g.start_utc?new Date(g.start_utc).toLocaleString('en-US',{timeZone:'America/New_York',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):g.game_date;
+  const homeStatus=g.home_b2b?'B2B':'Rested';
+  const previous=g.home_b2b?(g.home_previous_result||'Pending'):'—';
+  const visitor=g.away_b2b?'YES':'No';
+  const ml=g.away_moneyline==null?'—':(g.away_moneyline>0?'+':'')+g.away_moneyline+' · '+(g.moneyline_bookmaker||'');
+  const tracked=nbaPublished.some(p=>String(p.game_id)===String(g.game_id));
+  let badge='NO SETUP',cls='';
+  if(g.setup_qualified){
+   if(tracked){badge='PAPER-TRACKED';cls='review'}
+   else if(g.status!=='Scheduled'){badge='SETUP · GAME STARTED';cls=''}
+   else if(g.away_moneyline==null){badge='AWAITING ML';cls='review'}
+   else if(g.away_moneyline<=-250){badge='PRICE QUALIFIES';cls='review'}
+   else {badge='PRICE OUTSIDE RULE';cls=''}
+  }else if(g.home_b2b&&g.home_previous_result==null){badge='PRIOR GAME PENDING';cls='review'}
+  const results=g.status==='Final'&&g.home_score!=null&&g.away_score!=null?' · '+g.away_score+'–'+g.home_score:'';
+  return '<tr><td>'+esc(time)+'</td><td><span class="team">'+esc(g.away_team)+' @ '+esc(g.home_team)+'</span><div class="nba-small">'+esc(g.status||'')+esc(results)+'</div></td><td>'+homeStatus+'</td><td>'+esc(previous)+'</td><td>'+visitor+'</td><td>'+esc(ml)+'</td><td><span class="badge '+cls+'">'+esc(badge)+'</span></td></tr>';
+ }).join('');
+ const hs=document.getElementById('nba-history-body');
+ const history=[...nbaPublished].sort((a,b)=>String(b.game_date).localeCompare(String(a.game_date)));
+ document.getElementById('nba-history-empty').hidden=history.length>0;
+ hs.innerHTML=history.map(p=>{
+  const ml=Number(p.entry_moneyline??p.moneyline);
+  const status=p.result==='W'?'W':p.result==='L'?'L':'OPEN';
+  const units=p.result==='W'?(ml>0?ml/100:100/-ml):p.result==='L'?-1:null;
+  return '<tr><td>'+esc(p.game_date)+'</td><td><span class="team">'+esc(p.away_team)+' @ '+esc(p.home_team)+'</span></td><td>'+esc((ml>0?'+':'')+ml)+'</td><td>'+esc(p.odds_source||'—')+'</td><td>'+resultBadge(status==='OPEN'?null:status)+'</td><td class="'+(units>0?'green':units<0?'red':'')+'">'+(units===null?'—':(units>=0?'+':'')+units.toFixed(2)+'u')+'</td></tr>';
+ }).join('');
+}
+
 const nbaCols=['game_date','away_team','home_team','bet_team','moneyline','model_win_probability','historical_bets','historical_profitable_seasons','historical_seasons','historical_out_of_sample','rest_context_score','injuries_verified','price_verified','result'];
 const nbaNum=v=>v==null||String(v).trim()===''?null:(Number.isFinite(Number(v))?Number(v):null);
 const nbaBool=v=>v===true||['1','yes','true'].includes(String(v).toLowerCase())?true:v===false||['0','no','false'].includes(String(v).toLowerCase())?false:null;
@@ -482,6 +540,7 @@ function nbaRender(){
  document.getElementById('nba-playgrid').innerHTML=plays.map(nbaCard).join('');
  document.getElementById('nba-empty').hidden=plays.length>0;
  document.getElementById('nba-weight-total').textContent='Relative weight total: '+nbaWeights.reduce((a,b)=>a+b,0);
+ nbaRenderSchedule();
 }
 function nbaSyncWeights(){
  nbaWIds.forEach(i=>{document.getElementById('nba-weight-'+i).value=nbaWeights[i];document.getElementById('nba-weight-val-'+i).textContent=nbaWeights[i]+'%'});
@@ -509,7 +568,8 @@ async function nbaInit(){
   }catch(err){document.getElementById('nba-import-status').textContent='Import failed: '+err.message}
  });
  nbaSyncWeights();
- try{const res=await fetch('data/nba_plays.json',{cache:'no-store'});if(res.ok){const j=await res.json();if(Array.isArray(j.plays))nbaPublished=j.plays.filter(nbaValid)}}catch(e){}
+ try{const res=await fetch('data/nba_plays.json',{cache:'no-store'});if(res.ok){const j=await res.json();if(Array.isArray(j.plays))nbaPublished=j.plays.filter(nbaValid);if(Array.isArray(j.games))nbaSchedule=j.games;nbaFeedMeta=j}}catch(e){}
+ document.getElementById('nba-scan-filter').addEventListener('change',nbaRenderSchedule);
  nbaRender();
 }
 nbaInit();
