@@ -547,6 +547,21 @@ function nbaSyncWeights(){
  try{localStorage.setItem('nba_conf_weights_v1',JSON.stringify(nbaWeights))}catch(e){}
  nbaRender();
 }
+
+async function nbaRefreshFeed(){
+ try{
+  const response=await fetch('data/nba_plays.json',{cache:'no-store'});
+  if(!response.ok)throw new Error('HTTP '+response.status);
+  const j=await response.json();
+  if(Array.isArray(j.plays))nbaPublished=j.plays.filter(nbaValid);
+  if(Array.isArray(j.games))nbaSchedule=j.games;
+  nbaFeedMeta=j;
+  nbaRender();
+ }catch(e){
+  document.getElementById('nba-import-status').textContent='NBA shared feed unavailable; local CSV imports remain available.';
+ }
+}
+
 async function nbaInit(){
  try{const v=JSON.parse(localStorage.getItem('nba_conf_weights_v1')||'null');if(Array.isArray(v)&&v.length===4&&v.every(x=>Number.isFinite(x)&&x>=0&&x<=100)&&v.some(x=>x>0))nbaWeights=v}catch(e){}
  try{const v=JSON.parse(localStorage.getItem('nba_conf_local_v1')||'[]');if(Array.isArray(v))nbaLocal=v.filter(nbaValid)}catch(e){}
@@ -568,7 +583,8 @@ async function nbaInit(){
   }catch(err){document.getElementById('nba-import-status').textContent='Import failed: '+err.message}
  });
  nbaSyncWeights();
- try{const res=await fetch('data/nba_plays.json',{cache:'no-store'});if(res.ok){const j=await res.json();if(Array.isArray(j.plays))nbaPublished=j.plays.filter(nbaValid);if(Array.isArray(j.games))nbaSchedule=j.games;nbaFeedMeta=j}}catch(e){}
+ await nbaRefreshFeed();
+ setInterval(nbaRefreshFeed,300000);
  document.getElementById('nba-scan-filter').addEventListener('change',nbaRenderSchedule);
  nbaRender();
 }
