@@ -119,6 +119,19 @@ Schedule scanning works without a key; moneyline tracking requires a quote sourc
 
 Until the key is provided, the NBA scanner still works, but the odds display clearly says `MISSING_API_KEY`, and **no moneyline-qualified paper wagers will be created**. If DraftKings is not listed on a matchup, the game remains unpriced. The script intentionally does not substitute odds from another book.
 
+### Free-plan quota protection (500 credits/month)
+
+This NBA feed is intentionally restricted to one DraftKings `h2h` market. Per [The Odds API v4 documentation](https://the-odds-api.com/liveapi/guides/v4/), one bookmaker / one market costs approximately **1 credit** when data is returned.
+
+- The ESPN schedule, game results, back-to-back calculations, dashboard reloads, and confidence-evidence labels **do not use Odds API credits**.
+- The feed **never contacts the odds endpoint** unless a currently scheduled, qualifying home-back-to-back-after-loss matchup starts in the next **10 hours** and has not already been entered.
+- At most **four attempted odds calls each Eastern calendar day** and **120 assumed/observed credits per Eastern calendar month** are allowed by this workflow. It reserves at least **150 reported remaining provider credits** once quota headers are available.
+- The Odds API request uses **one bookmaker (`draftkings`) and one market (`h2h`)**. It never requests spreads, totals, alternate markets, historical odds, or multiple regions.
+- The odds call uses **no automatic retries**. Each request/attempt is recorded in `site/data/nba_plays.json` under `odds_budget`. Quota headers `x-requests-remaining`, `x-requests-used`, and `x-requests-last` are captured when available.
+- The usage counter measures **this repository's feed**, not other applications using the same API key. It resets by Eastern calendar month, which may differ from the vendor's actual subscription reset time. Inspect your provider balance if you run other scripts.
+
+For the retrospectively chosen B2B strategy, a qualifying schedule setup receives a **LOW 24/100 research-evidence score** (recent profitable seasons 5/5 worth 20 points; previous profitable seasons 1/5 worth 4; negative full-decade ROI 0; no independent holdout 0). The score is a deliberately conservative **heuristic, not a modeled NBA win probability or a license to bet**. Betting confidence and expected ROI remain unavailable until an independent model supplies tested probability estimates.
+
 ### Exact forward paper-tracking rule and evidence policy
 
 An NBA paper entry is created **only before tip** when all conditions are met: (1) home team is playing on consecutive NBA game dates; (2) it **lost the previous game**, confirmed as final; (3) visiting team is not on a back-to-back; (4) the selected sportsbook provides a **visiting moneyline of -250 or shorter**; and (5) the game is still scheduled and has not begun. The first qualifying moneyline is frozen, and subsequent game results are graded W/L at that price for one-unit theoretical wagers. It is **not a certified closing line**, and the rule was selected retrospectively.
