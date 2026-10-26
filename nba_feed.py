@@ -331,7 +331,7 @@ def assemble(games, old, generated, odds_status, bookmaker, budget=None, elo_sta
             "away_team":g["away_team"],"home_team":g["home_team"],
             "bet_team":g["away_team"],"moneyline":ml,"entry_moneyline":ml,
             "odds_source":bookmaker,"first_seen_utc":generated.isoformat(),
-            "price_verified":True,"injuries_verified":None,
+            "price_verified":True,"injuries_verified":False,
             "model_win_probability":g.get("model_away_win_probability"),
             "model_id":g.get("model_id"),
             "model_market_validated":False,
