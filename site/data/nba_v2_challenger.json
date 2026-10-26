@@ -1,0 +1,184 @@
+{
+  "confidence_status": "NOT VALIDATED AGAINST MARKET",
+  "features": [
+    "v1_pregame_logit",
+    "prior_10_off_rating_home_minus_away",
+    "prior_10_def_rating_home_minus_away",
+    "prior_10_pace_home_minus_away",
+    "prior_10_efg_pct_home_minus_away",
+    "prior_10_tm_tov_pct_home_minus_away",
+    "prior_10_three_pa_rate_home_minus_away",
+    "prior_10_ft_pct_home_minus_away",
+    "prior_10_oreb_pct_home_minus_away",
+    "prior_10_win_home_minus_away",
+    "min_prior_games_over_10"
+  ],
+  "generated_at_utc": "2026-10-26T18:01:51.833631+00:00",
+  "holdout_matched_games": 1225,
+  "injury_feature_included": false,
+  "logistic_coef": [
+    0.6625461121317078,
+    0.1946734012398553,
+    -0.1839134480314523,
+    -0.015981381144773297,
+    0.04922461290425452,
+    -0.01595034272884155,
+    0.0394210400901991,
+    0.02261957455187271,
+    0.013732343923996663,
+    -0.20253709090036345,
+    0.008101204275400016
+  ],
+  "logistic_intercept": 0.29660320349258484,
+  "market_source": "nikhilNathwani/NBA-Moneyline tableau/games.csv historical bookmaker-average",
+  "metrics": {
+    "holdout": {
+      "v1": {
+        "accuracy_pct": 67.755,
+        "brier": 0.20977,
+        "games": 1225,
+        "log_loss": 0.60774
+      },
+      "v2": {
+        "accuracy_pct": 67.755,
+        "brier": 0.20643,
+        "games": 1225,
+        "log_loss": 0.59979
+      }
+    },
+    "holdout_matched_market": {
+      "market_no_vig": {
+        "accuracy_pct": 69.388,
+        "brier": 0.19448,
+        "games": 1225,
+        "log_loss": 0.57018
+      },
+      "v1": {
+        "accuracy_pct": 67.755,
+        "brier": 0.20977,
+        "games": 1225,
+        "log_loss": 0.60774
+      },
+      "v2": {
+        "accuracy_pct": 67.755,
+        "brier": 0.20643,
+        "games": 1225,
+        "log_loss": 0.59979
+      }
+    },
+    "train": {
+      "v1": {
+        "accuracy_pct": 64.145,
+        "brier": 0.21951,
+        "games": 9519,
+        "log_loss": 0.62867
+      },
+      "v2": {
+        "accuracy_pct": 64.534,
+        "brier": 0.2181,
+        "games": 9519,
+        "log_loss": 0.62563
+      }
+    },
+    "validation": {
+      "v1": {
+        "accuracy_pct": 66.041,
+        "brier": 0.21211,
+        "games": 1225,
+        "log_loss": 0.61127
+      },
+      "v2": {
+        "accuracy_pct": 67.347,
+        "brier": 0.20824,
+        "games": 1225,
+        "log_loss": 0.60293
+      }
+    }
+  },
+  "model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
+  "notes": [
+    "Strict per-team prior-ten-game features; current game added only after pregame projection.",
+    "All regular-season games only; excludes 004 playoff and other non-regular IDs.",
+    "Hyperparameter selection uses 2024-25 validation only.",
+    "Market odds are reference outcomes, not predictive features.",
+    "No verified lineup/injury availability; do not infer or fabricate player data.",
+    "2026-27 live predictions require at least five completed current-season games per team and refreshed free game logs."
+  ],
+  "promotion_allowed": false,
+  "random_seed": 0,
+  "rolling_defaults": {
+    "def_rating": 111.0,
+    "efg_pct": 0.535,
+    "ft_pct": 0.77,
+    "off_rating": 111.0,
+    "oreb_pct": 0.275,
+    "pace": 99.0,
+    "three_pa_rate": 0.4,
+    "tm_tov_pct": 0.135,
+    "win": 0.5
+  },
+  "rolling_scales": {
+    "def_rating": 20.0,
+    "efg_pct": 0.15,
+    "ft_pct": 0.2,
+    "off_rating": 20.0,
+    "oreb_pct": 0.16,
+    "pace": 15.0,
+    "three_pa_rate": 0.22,
+    "tm_tov_pct": 0.1,
+    "win": 0.42
+  },
+  "rolling_window": 10,
+  "scaler_mean": [
+    0.2941217152775615,
+    -0.009660363483559238,
+    0.0003670818346598321,
+    -0.0008449404727165006,
+    -0.005583741456101981,
+    0.0018685110981045412,
+    -4.517262394027539e-05,
+    -0.0004598647316894973,
+    -0.0038408179985059193,
+    -0.015406192825789804,
+    0.9273663199915958
+  ],
+  "scaler_scale": [
+    0.7336805728393625,
+    0.34162591003087517,
+    0.32477315243165267,
+    0.24056973756417765,
+    0.2579452506134999,
+    0.2243302535992838,
+    0.321478938005875,
+    0.3121085019805914,
+    0.29176227856441816,
+    0.7329169578694885,
+    0.2141935609854165
+  ],
+  "season_untouched_holdout": "2025-26",
+  "season_validation": "2024-25",
+  "seasons_train": "2016-17 through 2023-24",
+  "selected_l2_C": 1.0,
+  "source": "llimllib/nba_data, data/gamelogs.parquet (regular-season logs only)",
+  "status": "EXPERIMENTAL SHADOW ONLY - DO NOT BET AUTOMATICALLY",
+  "v2_beats_market_holdout_brier": false,
+  "v2_beats_v1_holdout_brier": true,
+  "validation_candidates": [
+    {
+      "C": 1.0,
+      "validation_brier": 0.208237
+    },
+    {
+      "C": 0.3,
+      "validation_brier": 0.208259
+    },
+    {
+      "C": 0.1,
+      "validation_brier": 0.20832
+    },
+    {
+      "C": 0.03,
+      "validation_brier": 0.208518
+    }
+  ]
+}
