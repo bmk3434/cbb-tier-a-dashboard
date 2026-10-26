@@ -171,3 +171,23 @@ The previous historical research returned **+10.73%** for 2021–22 through 2025
 - `.github/workflows/update-nba-feed.yml`: independent scheduled job plus deployment of the same GitHub Pages site.
 - `site/data/nba_plays.json`: automatically committed current slate and prospective paper-tracker; do not put API keys here.
 - `site/index.html`: integrated HTML dashboard, interactive filters, confidence cards, and locally imported CSV plays.
+
+## NBA v2 rolling-four-factors challenger — shadow only (October 26, 2026)
+
+V1 remains frozen and is not overwritten. V2 is independently trained on free regular-season NBA team game logs from [llimllib/nba_data](https://github.com/llimllib/nba_data), with per-matchup **prior-ten-game** features: offensive rating, defensive rating, estimated pace, effective FG%, turnover rate, three-point attempt rate, FT%, offensive rebound rate and recent win rate, plus the exact V1 pregame logit. Every training feature is built before updating a team's game-history deque with the outcome being predicted, preventing same-game leakage.
+
+Development chronology is locked: **2016–17 through 2023–24** train, **2024–25** validation for the ridge hyperparameter only, **2025–26** untouched holdout. Comparison uses the exact same 1,225 holdout NBA regular-season games and a no-vig historical bookmaker-average moneyline benchmark.
+
+| 2025–26 untouched 1,225-game holdout | V1 | V2 | Historical no-vig bookmaker |
+| --- | ---: | ---: | ---: |
+| Winner accuracy | 67.755% | 67.755% | 69.388% |
+| Brier score (lower is better) | 0.20977 | 0.20643 | 0.19448 |
+| Log loss (lower is better) | 0.60774 | 0.59979 | 0.57018 |
+
+V2 improves forecast calibration versus V1 but **the market is still significantly better**. This is not evidence of profitable positive-EV bets, and no financial recommendation is authorized. V2 may not automatically promote itself, generate official wagers, or modify CBB/ATS records. The standalone reproducible research source is `nba_v2_research.py`; immutable v2 coefficients and holdout evidence are in `nba_model_v2_challenger.json`; GitHub Pages' read-only copy is `site/data/nba_v2_challenger.json`.
+
+### V2 live updates, with zero additional Odds API calls
+
+The same existing six-times-daily NBA workflow also loads the free [BoxScore Lab 2026–27 team-game CSV](https://boxscorelab.com/downloads/) to update prospective shadow features. For each future game, both teams must have played **at least five earlier current-season games**. Until then, the game is explicitly marked unavailable for V2; V1 keeps running normally. BoxScore Lab's estimated offensive/defensive ratings, turnover rates, and possession counts are proxies, so the model's performance with live features still needs prospective verification and may differ from the historical test. This feed does not use The Odds API and requires no new paid subscription.
+
+The live script `nba_v2_shadow.py` handles the daily source, team-name matching and feature-sufficiency checks; `test_nba_v2_shadow.py` prevents accidental same-day/future-game inclusion and tests that the challenger stays shadow only. The UI's V2 section compares all three Brier scores and displays live data coverage. The **120-credit monthly odds safety cap** is unchanged. The source currently provides fewer than five games per team in many matchups, so zero V2 forecasts early in the season is expected.
