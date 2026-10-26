@@ -1,0 +1,26 @@
+name: NBA v2 free-data research
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'nba_v2_research.py'
+      - '.github/workflows/nba-v2-research.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install free-data research packages
+        run: python -m pip install "pandas>=2.2,<3" "pyarrow>=17,<25" "scikit-learn>=1.5,<2"
+      - name: Inspect independent historical box scores
+        run: python nba_v2_research.py
