@@ -191,3 +191,19 @@ V2 improves forecast calibration versus V1 but **the market is still significant
 The same existing six-times-daily NBA workflow also loads the free [BoxScore Lab 2026–27 team-game CSV](https://boxscorelab.com/downloads/) to update prospective shadow features. For each future game, both teams must have played **at least five earlier current-season games**. Until then, the game is explicitly marked unavailable for V2; V1 keeps running normally. BoxScore Lab's estimated offensive/defensive ratings, turnover rates, and possession counts are proxies, so the model's performance with live features still needs prospective verification and may differ from the historical test. This feed does not use The Odds API and requires no new paid subscription.
 
 The live script `nba_v2_shadow.py` handles the daily source, team-name matching and feature-sufficiency checks; `test_nba_v2_shadow.py` prevents accidental same-day/future-game inclusion and tests that the challenger stays shadow only. The UI's V2 section compares all three Brier scores and displays live data coverage. The **120-credit monthly odds safety cap** is unchanged. The source currently provides fewer than five games per team in many matchups, so zero V2 forecasts early in the season is expected.
+
+## NBA prospective one-month paper experiment — October 26 to November 26, 2026
+
+The live-test tracker is part of the same basketball dashboard, under **NBA v1 vs v2 — One-Month Live Test**, without affecting any CBB calculations or grading. The separate immutable-source script is `nba_live_test.py`; its saved ledger is `site/data/nba_live_test.json`.
+
+The six-times-daily NBA schedule workflow automatically:
+
+1. Takes the **first scheduled-game pretip** V1 visitor-win probability and, when available, V2 visitor-win probability for every NBA regular-season game in the fixed window. Preserves timestamp, teams, model IDs and first recorded predictions unchanged.
+2. Records V2 as unavailable at first snapshot when one or both teams have fewer than five completed current-season games, rather than fabricating a rating or later adding a V2 forecast after the fact.
+3. Grades a recorded game only after ESPN reports its final winner. **Games first discovered after tip are not backfilled.**
+4. Publishes counts of frozen forecasts and final games, accuracy, Brier score, and log loss separately for V1 and V2, **plus a matched-game comparison** using only games where both predictions were available before tip.
+5. Preserves the previous first-forecast records on repeated runs and guards against duplicate grading.
+
+The tracking ledger makes **zero calls to The Odds API**. The existing B2B candidate-based bookmaker lookup, 4-calls/day and 120-credits/month protection are unchanged, and **this one-month test does not establish a betting edge** unless prices are independently confirmed. Historical model metrics remain separate from the live test.
+
+The experiment's last included NBA game date is **November 26, 2026** (Eastern game date); a review can be conducted November 27 after finals have populated. Model coefficient tuning and score rewrites during the prospective window would invalidate this first test, so both versions should stay frozen. No actual wagers are placed.
