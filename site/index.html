@@ -267,10 +267,16 @@
   <div class="divider" id="nba-lab"></div>
   <div class="model-head">
     <div><div class="model-title">NBA — Moneyline Confidence Lab</div>
-    <div class="model-desc">NBA plays share this dashboard with CBB ATS and Totals, but keep their own record. The three readings are model win probability, evidence confidence, and historical reliability. The back-to-back strategy has LOW (24/100) historical research confidence, not a predictive probability.</div></div>
+    <div class="model-desc">NBA plays share this dashboard with CBB ATS and Totals, but keep their own record. The three readings are model win probability, evidence confidence, and historical reliability. The back-to-back strategy has LOW (24/100) historical research confidence, not a predictive probability. An independent Elo model now forecasts NBA win probabilities with LOW (35/100) model confidence; neither is an established betting edge.</div></div>
     <div class="tag">NBA RESEARCH ONLY</div>
   </div>
   <div class="grid" id="nba-kpis"></div>
+  <div class="section">
+    <h3>NBA model v1 — independently tested</h3>
+    <div class="desc">Frozen Elo + home court + B2B rest logistic model; no paid data needed. Brier measures probability accuracy (lower is better). Model was trained on 2016–2023, checked on 2024–25 and evaluated once on an untouched 2025–26 holdout.</div>
+    <div class="grid" id="nba-model-kpis"></div>
+    <div class="desc">The market performed better on the untouched season. A positive displayed model-vs-odds edge is not a validated betting advantage; all new NBA picks remain research/paper-tracking only.</div>
+  </div>
   <div class="section" id="nba-scanner">
     <h3>Automated NBA schedule and back-to-back scanner</h3>
     <div class="desc">NBA regular-season games are refreshed separately from CBB. The previous night's result and rest status are checked automatically. A setup is not a bet unless a same-book pregame moneyline meets the fixed rule.</div>
@@ -280,7 +286,7 @@
         <label class="nba-small" for="nba-scan-filter">Show <select id="nba-scan-filter" style="background:var(--card2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:7px"><option value="all">All games</option><option value="b2b">Back-to-back games</option><option value="setup">After-loss setups</option></select></label>
       </div>
     </div>
-    <div class="card table-card"><div class="scroll"><table class="table"><thead><tr><th>Date / time ET</th><th>Matchup</th><th>Home team</th><th>Home prior result</th><th>Visitor B2B</th><th>Visitor ML</th><th>Research signal</th><th>Evidence confidence</th></tr></thead><tbody id="nba-scan-body"></tbody></table></div><div class="empty" id="nba-scan-empty">No NBA schedule feed yet. The automatic workflow must complete its first run.</div></div>
+    <div class="card table-card"><div class="scroll"><table class="table"><thead><tr><th>Date / time ET</th><th>Matchup</th><th>Home team</th><th>Home prior result</th><th>Visitor B2B</th><th>Visitor ML</th><th>Model visitor win</th><th>Model evidence</th><th>B2B research signal</th><th>B2B evidence</th></tr></thead><tbody id="nba-scan-body"></tbody></table></div><div class="empty" id="nba-scan-empty">No NBA schedule feed yet. The automatic workflow must complete its first run.</div></div>
   </div>
   <div class="section">
     <h3>NBA prospective paper-tracker</h3>
@@ -466,6 +472,16 @@ function nbaRenderSchedule(){
  const budget=meta.odds_budget||{};
  const usage=budget.month?' · Research quota '+(budget.credits_this_month??0)+'/120 monthly · '+(budget.calls_today??0)+'/4 daily'+(budget.provider_remaining==null?'':' · Provider remaining '+budget.provider_remaining):'';
  status.textContent='Last updated '+stamp+' · '+(summary.scheduled_games??nbaSchedule.length)+' games · '+(summary.b2b_games??0)+' B2B games · '+(summary.qualified_setups??0)+' qualifying setups · '+odds+usage;
+ const info=meta.nba_model_metadata||{};
+ const mCards=[
+  ['2025–26 holdout',info.holdout_games??'—','games untouched during training'],
+  ['Model accuracy',info.holdout_accuracy_pct==null?'—':Number(info.holdout_accuracy_pct).toFixed(2)+'%','holdout classification'],
+  ['Model Brier',info.holdout_brier??'—','lower is better'],
+  ['Bookmaker Brier',info.market_holdout_brier??'—','archived no-vig benchmark'],
+  ['Model confidence',info.confidence_level==null?'—':info.confidence_level+'/100','low; not a winning probability'],
+  ['Market edge status','NOT VALIDATED','paper-track only']
+ ];
+ document.getElementById('nba-model-kpis').innerHTML=mCards.map(x=>'<div class="card kpi"><div class="label">'+esc(x[0])+'</div><div class="value">'+esc(x[1])+'</div><div class="hint">'+esc(x[2])+'</div></div>').join('');
  const filter=document.getElementById('nba-scan-filter').value;
  const matching=nbaSchedule.filter(g=>filter==='setup'?g.setup_qualified:filter==='b2b'?(g.home_b2b||g.away_b2b):true);
  const body=document.getElementById('nba-scan-body');
@@ -476,6 +492,11 @@ function nbaRenderSchedule(){
   const previous=g.home_b2b?(g.home_previous_result||'Pending'):'—';
   const visitor=g.away_b2b?'YES':'No';
   const ml=g.away_moneyline==null?'—':(g.away_moneyline>0?'+':'')+g.away_moneyline+' · '+(g.moneyline_bookmaker||'');
+  const modelProb=g.model_away_win_probability==null?null:Number(g.model_away_win_probability);
+  const modelWin=modelProb==null?'—':(100*modelProb).toFixed(1)+'%';
+  const modelEV=modelProb==null||g.away_moneyline==null?null:100*(modelProb*(g.away_moneyline>0?g.away_moneyline/100:100/-g.away_moneyline)-(1-modelProb));
+  const evText=modelEV==null?'':'Indicative EV '+(modelEV>=0?'+':'')+modelEV.toFixed(1)+'% · not validated';
+  const modelEvidence=g.model_confidence==null?'—':g.model_confidence+'/100 LOW';
   const tracked=nbaPublished.some(p=>String(p.game_id)===String(g.game_id));
   let badge='NO SETUP',cls='';
   if(g.setup_qualified){
@@ -486,7 +507,7 @@ function nbaRenderSchedule(){
    else {badge='PRICE OUTSIDE RULE';cls=''}
   }else if(g.home_b2b&&g.home_previous_result==null){badge='PRIOR GAME PENDING';cls='review'}
   const results=g.status==='Final'&&g.home_score!=null&&g.away_score!=null?' · '+g.away_score+'–'+g.home_score:'';
-  return '<tr><td>'+esc(time)+'</td><td><span class="team">'+esc(g.away_team)+' @ '+esc(g.home_team)+'</span><div class="nba-small">'+esc(g.status||'')+esc(results)+'</div></td><td>'+homeStatus+'</td><td>'+esc(previous)+'</td><td>'+visitor+'</td><td>'+esc(ml)+'</td><td><span class="badge '+cls+'">'+esc(badge)+'</span></td><td>'+(g.research_confidence==null?'—':'<span class="yellow">'+esc(g.research_confidence)+'/100 LOW</span><div class="nba-small">Not a win probability</div>')+'</td></tr>';
+  return '<tr><td>'+esc(time)+'</td><td><span class="team">'+esc(g.away_team)+' @ '+esc(g.home_team)+'</span><div class="nba-small">'+esc(g.status||'')+esc(results)+'</div></td><td>'+homeStatus+'</td><td>'+esc(previous)+'</td><td>'+visitor+'</td><td>'+esc(ml)+'</td><td><strong>'+esc(modelWin)+'</strong><div class="nba-small">'+esc(evText)+'</div></td><td><span class="yellow">'+esc(modelEvidence)+'</span></td><td><span class="badge '+cls+'">'+esc(badge)+'</span></td><td>'+(g.research_confidence==null?'—':'<span class="yellow">'+esc(g.research_confidence)+'/100 LOW</span><div class="nba-small">Retrospective setup</div>')+'</td></tr>';
  }).join('');
  const hs=document.getElementById('nba-history-body');
  const history=[...nbaPublished].sort((a,b)=>String(b.game_date).localeCompare(String(a.game_date)));
@@ -514,7 +535,7 @@ function nbaScore(p){
  const factors=[edge===null?null:nbaClamp(50+5*edge),history,context!==null&&context>=0&&context<=100?context:null,injury===null||price===null?null:(injury?50:0)+(price?50:0)];
  const sum=nbaWeights.reduce((a,b)=>a+b,0);
  let conf=sum>0&&factors.every((v,i)=>nbaWeights[i]===0||v!==null)?factors.reduce((t,v,i)=>t+(v===null?0:v)*nbaWeights[i],0)/sum:null;
- if(conf!==null&&oos!==true)conf=Math.min(conf,49);
+ if(conf!==null&&(oos!==true||p.model_market_validated===false))conf=Math.min(conf,49);
  const label=conf===null?'UNRATED':oos!==true?'IN-SAMPLE ONLY':conf>=75&&ev>0?'RESEARCH CANDIDATE':conf>=50?'MONITOR':'PAPER-TRACK';
  return{ml,model,market,edge,ev,history,conf,label};
 }
