@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - 'nba_feed.py'
+      - 'test_nba_feed.py'
       - '.github/workflows/update-nba-feed.yml'
       - 'site/data/nba_plays.json'
   schedule:
@@ -37,8 +38,10 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Validate feed script
-        run: python -m py_compile nba_feed.py
+      - name: Validate NBA scanner and grading
+        run: |
+          python -m py_compile nba_feed.py test_nba_feed.py
+          python -m unittest -q test_nba_feed.py
 
       - name: Refresh NBA schedule and optional moneylines
         env:
