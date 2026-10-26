@@ -9,7 +9,7 @@ on:
       - '.github/workflows/nba-v2-research.yml'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   evaluate:
@@ -22,5 +22,22 @@ jobs:
           python-version: '3.12'
       - name: Install free-data research packages
         run: python -m pip install "pandas>=2.2,<3" "pyarrow>=17,<25" "scikit-learn>=1.5,<2"
-      - name: Inspect independent historical box scores
+      - name: Train challenger and evaluate untouched NBA holdout
         run: python nba_v2_research.py
+      - name: Publish v2 shadow-only research artifact
+        run: |
+          git config user.name "basketball-dashboard-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add nba_model_v2_challenger.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Record NBA v2 shadow challenger holdout (no betting promotion)"
+            for attempt in 1 2 3; do
+              git fetch origin main
+              git rebase origin/main
+              if git push origin HEAD:main; then
+                exit 0
+              fi
+              sleep 2
+            done
+            exit 1
+          fi
