@@ -150,16 +150,73 @@ def annotate(games):
         g["home_previous_date"] = hp["date"] if hp else None
         g["away_previous_date"] = ap["date"] if ap else None
         g["setup_qualified"] = bool(hp and hp["result"]=="Loss" and ap is None)
+        g["research_confidence"] = RESEARCH_CONFIDENCE if g["setup_qualified"] else None
+        g["research_confidence_label"] = "LOW / IN-SAMPLE" if g["setup_qualified"] else None
     return games
 
-def match_odds(games, key, preferred_book):
-    if not key:
-        return "MISSING_API_KEY", []
-    query = urlencode({"regions":"us","markets":"h2h",
-                       "oddsFormat":"american","apiKey":key})
-    events = request_json(ODDS+"?"+query)
-    if not isinstance(events,list):
-        raise ValueError("Odds API response was not an event list")
+# Dedicated conservative credit budget for a 500-credit/month personal plan.
+# The ledger is stored in the published NBA feed; never include API keys in it.
+MONTHLY_ODDS_CREDIT_LIMIT = 120
+DAILY_ODDS_CALL_LIMIT = 4
+MIN_PROVIDER_CREDITS = 150
+QUOTE_WINDOW_HOURS = 10
+RESEARCH_CONFIDENCE = 24  # Heuristic evidence score, NOT a winning probability.
+# Evidence breakdown: recent seasons 5/5 positive (20 pts),
+# prior five seasons 1/5 positive (4 pts), ten-year ROI -1.36% (0 pts),
+# independent out-of-sample validation unavailable (0 pts).
+
+def budget_for(previous, current):
+    month = current.astimezone(ET).strftime("%Y-%m")
+    day = current.astimezone(ET).date().isoformat()
+    old = previous.get("odds_budget") or {}
+    if old.get("month") != month:
+        return {"month":month, "day":day, "calls_today":0,
+                "credits_this_month":0,"provider_remaining":None,
+                "provider_used":None,"last_call_cost":None}
+    return {"month":month,"day":day,
+            "calls_today":int(old.get("calls_today",0)) if old.get("day")==day else 0,
+            "credits_this_month":int(old.get("credits_this_month",0)),
+            "provider_remaining":old.get("provider_remaining"),
+            "provider_used":old.get("provider_used"),
+            "last_call_cost":old.get("last_call_cost")}
+
+def price_candidates(games, old, current):
+    tracked = {str(p.get("game_id")) for p in old.get("plays",[])
+               if isinstance(p,dict) and p.get("game_id")}
+    ready = []
+    for g in games:
+        if not g["setup_qualified"] or g["game_id"] in tracked:
+            continue
+        hours = (timestamp(g["start_utc"])-current).total_seconds()/3600
+        if g["status"]=="Scheduled" and 0<hours<=QUOTE_WINDOW_HOURS:
+            ready.append(g)
+    return ready
+
+def budget_status(budget):
+    if budget["credits_this_month"]>=MONTHLY_ODDS_CREDIT_LIMIT:
+        return "SKIPPED_MONTHLY_LIMIT"
+    if budget["calls_today"]>=DAILY_ODDS_CALL_LIMIT:
+        return "SKIPPED_DAILY_LIMIT"
+    remaining = budget.get("provider_remaining")
+    if remaining is not None and int(remaining)<MIN_PROVIDER_CREDITS:
+        return "SKIPPED_PROVIDER_RESERVE"
+    return None
+
+def request_moneyline_quotes(api_key, bookmaker):
+    # ONE call, NO auto retries (including HTTP 4xx/5xx). Avoid multiple charges.
+    params = urlencode({"bookmakers":bookmaker,"markets":"h2h",
+                        "oddsFormat":"american","apiKey":api_key})
+    headers={"User-Agent":"BasketballResearchDashboard/1.1",
+             "Accept":"application/json"}
+    with urlopen(Request(ODDS+"?"+params,headers=headers),timeout=25) as response:
+        data=json.load(response)
+        usage={k:response.headers.get(k) for k in
+               ("x-requests-remaining","x-requests-used","x-requests-last")}
+    if not isinstance(data,list):
+        raise ValueError("Odds API unexpectedly returned a non-list payload")
+    return data,usage
+
+def apply_odds_quotes(games, events, bookmaker, generated):
     matches = {}
     for item in events:
         home = ALIAS.get(str(item.get("home_team") or "").casefold())
@@ -168,30 +225,78 @@ def match_odds(games, key, preferred_book):
             matches[home,away] = item
     hits = []
     for g in games:
+        if not g["setup_qualified"] or g["status"]!="Scheduled":
+            continue
+        if timestamp(g["start_utc"])<=generated:
+            continue
         item = matches.get((g["home_team"],g["away_team"]))
         if not item:
             continue
-        book = next((b for b in item.get("bookmakers",[]) if b.get("key")==preferred_book),None)
+        book = next((b for b in item.get("bookmakers",[])
+                     if b.get("key")==bookmaker),None)
         if not book:
-            continue  # No fabricated fallback to a different book.
-        market = next((m for m in book.get("markets",[]) if m.get("key")=="h2h"),None)
+            continue
+        market = next((m for m in book.get("markets",[])
+                       if m.get("key")=="h2h"),None)
         if not market:
             continue
-        outcome = next((o for o in market.get("outcomes",[]) if
-                        ALIAS.get(str(o.get("name") or "").casefold())==g["away_team"]),None)
+        # Market timestamp is more precise than deprecated bookmaker last_update.
+        updated = market.get("last_update")
+        if not updated:
+            continue
+        try:
+            quote_time = timestamp(updated)
+        except (ValueError,TypeError):
+            continue
+        if quote_time>generated+timedelta(minutes=5) or generated-quote_time>timedelta(hours=6):
+            continue
+        outcome = next((o for o in market.get("outcomes",[])
+                        if ALIAS.get(str(o.get("name") or "").casefold())==g["away_team"]),None)
         if not outcome:
             continue
         try:
-            ml = int(round(float(outcome["price"])))
+            ml=int(round(float(outcome["price"])))
         except (ValueError,TypeError,KeyError):
             continue
         if -100<ml<100:
             continue
-        g["away_moneyline"] = ml
-        g["moneyline_bookmaker"] = preferred_book
-        g["moneyline_last_update"] = book.get("last_update")
+        g["away_moneyline"]=ml
+        g["moneyline_bookmaker"]=bookmaker
+        g["moneyline_last_update"]=updated
         hits.append(g["game_id"])
-    return "CONNECTED", hits
+    return hits
+
+def match_odds(games, key, preferred_book, old=None, generated=None):
+    old=old or {}
+    generated=generated or now_utc()
+    budget=budget_for(old,generated)
+    if not key:
+        return "MISSING_API_KEY",[],budget
+    ready=price_candidates(games,old,generated)
+    if not ready:
+        return "SKIPPED_NO_READY_SETUP",[],budget
+    blocked=budget_status(budget)
+    if blocked:
+        return blocked,[],budget
+    # Budget an attempted call BEFORE the network request. One request at most.
+    budget["calls_today"]+=1
+    budget["credits_this_month"]+=1
+    budget["last_call_cost"]=1
+    try:
+        quotes,headers=request_moneyline_quotes(key,preferred_book)
+    except Exception:
+        return "ODDS_ERROR",[],budget
+    try:
+        actual=int(headers.get("x-requests-last")) if headers.get("x-requests-last") is not None else 1
+        budget["last_call_cost"]=max(actual,0)
+        budget["credits_this_month"]+=max(actual-1,0)
+        for name,header in (("provider_remaining","x-requests-remaining"),
+                            ("provider_used","x-requests-used")):
+            if headers.get(header) is not None:
+                budget[name]=int(headers[header])
+    except (TypeError,ValueError):
+        pass
+    return "CONNECTED",apply_odds_quotes(ready,quotes,preferred_book,generated),budget
 
 def previous_feed():
     try:
@@ -200,7 +305,7 @@ def previous_feed():
     except (OSError,ValueError):
         return {}
 
-def assemble(games, old, generated, odds_status, bookmaker):
+def assemble(games, old, generated, odds_status, bookmaker, budget=None):
     known = {str(p.get("game_id")):p for p in old.get("plays",[])
              if isinstance(p,dict) and p.get("game_id")}
     current = {g["game_id"]:g for g in games}
@@ -239,7 +344,9 @@ def assemble(games, old, generated, odds_status, bookmaker):
     future=[g for g in games if g["game_date"]>=generated.astimezone(ET).date().isoformat()
             and g["game_date"]<=(generated.astimezone(ET).date()+timedelta(days=2)).isoformat()]
     return {
-        "schema_version":2,
+        "schema_version":3,
+        "odds_budget":budget or {},
+        "research_confidence_method":"Heuristic 24/100: recent 5/5 positive (+20), prior 1/5 (+4), ten-year ROI negative (+0), independent holdout absent (+0). Not a predicted win probability.",
         "updated_at":generated.isoformat().replace("+00:00","Z"),
         "status":"OK",
         "schedule_source":"ESPN public NBA scoreboard",
@@ -264,15 +371,11 @@ def main():
     old=previous_feed()
     bookmaker=os.environ.get("NBA_ODDS_BOOKMAKER","draftkings").strip().lower()
     key=os.environ.get("NBA_ODDS_API_KEY","").strip()
-    try:
-        status,_=match_odds(games,key,bookmaker)
-    except Exception as ex:
-        status="ODDS_ERROR"  # Schedule and prior entry snapshots remain usable.
-        print("Warning: odds could not be fetched:",str(ex),file=sys.stderr)
-    data=assemble(games,old,generated,status,bookmaker)
+    status,_,budget=match_odds(games,key,bookmaker,old,generated)
+    data=assemble(games,old,generated,status,bookmaker,budget)
     FEED.parent.mkdir(parents=True,exist_ok=True)
     FEED.write_text(json.dumps(data,indent=2,sort_keys=True)+"\n",encoding="utf-8")
-    print("NBA feed:",data["summary"],"odds:",status)
+    print("NBA feed:",data["summary"],"odds:",status,"budget:",budget)
     return 0
 
 if __name__=="__main__":
