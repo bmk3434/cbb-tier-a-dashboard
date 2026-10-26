@@ -43,6 +43,20 @@ jobs:
           python -m py_compile nba_feed.py test_nba_feed.py
           python -m unittest -q test_nba_feed.py
 
+      - name: Check combined dashboard JavaScript
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          html = Path('site/index.html').read_text(encoding='utf-8')
+          scripts = re.findall(r'<script[^>]*>(.*?)</script>', html, flags=re.S)
+          assert scripts, 'No dashboard scripts found'
+          assert 'nbaRenderSchedule' in html
+          assert 'totals-v3-kpis' in html
+          Path('/tmp/basketball-dashboard-inline.js').write_text('\n'.join(scripts), encoding='utf-8')
+          PY
+          node --check /tmp/basketball-dashboard-inline.js
+
       - name: Refresh NBA schedule and optional moneylines
         env:
           NBA_ODDS_API_KEY: ${{ secrets.NBA_ODDS_API_KEY }}
