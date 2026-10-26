@@ -1,0 +1,175 @@
+{
+  "model_id": "nba-elo-logistic-v1-2026-10-25",
+  "created_at": "2026-10-25",
+  "status": "FROZEN PROSPECTIVE RESEARCH — NOT MARKET EDGE VALIDATED",
+  "training_source": "nikhilNathwani/NBA-Moneyline tableau/games.csv (archived bookmaker-average odds; results only used as model predictors)",
+  "training_source_blob_sha": "337a5fcd7f4b2106d5813ce1611d67c95ed0b35d",
+  "training_season_years": [
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023
+  ],
+  "validation_season_year": 2024,
+  "holdout_season_year": 2025,
+  "games_scored_total": 11969,
+  "model_features": [
+    "Intercept",
+    "Pregame home-minus-away Elo / 400",
+    "Home team second night back-to-back (0/1)",
+    "Away team second night back-to-back (0/1)"
+  ],
+  "logistic_coef": [
+    0.25102463614193926,
+    2.2228134580015397,
+    -0.20559129410040958,
+    0.35793987696869306
+  ],
+  "regularization": "L2 ridge on Newton matrix (1.0)",
+  "elo_k": 20,
+  "elo_home_advantage_points": 65,
+  "elo_initial": 1500,
+  "elo_season_reversion": 0.72,
+  "season_end_2025_elo": {
+    "Cleveland Cavaliers": 1621.479329373327,
+    "New York Knicks": 1614.7006729100062,
+    "Golden State Warriors": 1432.0309318250204,
+    "San Antonio Spurs": 1699.6974821108622,
+    "Portland Trail Blazers": 1523.055836303086,
+    "Utah Jazz": 1288.7624621574778,
+    "Boston Celtics": 1672.3903785452808,
+    "Brooklyn Nets": 1287.5285072292052,
+    "Indiana Pacers": 1330.4402629900578,
+    "Dallas Mavericks": 1364.6931552420283,
+    "Los Angeles Lakers": 1620.0217131163472,
+    "Houston Rockets": 1593.8262840265993,
+    "Memphis Grizzlies": 1312.1818913772606,
+    "Minnesota Timberwolves": 1571.1384984948472,
+    "Milwaukee Bucks": 1403.3418587077451,
+    "Charlotte Hornets": 1564.072051054079,
+    "New Orleans Pelicans": 1385.540077957936,
+    "Denver Nuggets": 1646.3690307148531,
+    "Orlando Magic": 1543.777853289474,
+    "Miami Heat": 1502.142935714086,
+    "Philadelphia 76ers": 1519.1242305563674,
+    "Oklahoma City Thunder": 1733.2050160055608,
+    "Phoenix Suns": 1519.6765531356218,
+    "Sacramento Kings": 1354.2267442074076,
+    "Toronto Raptors": 1520.4286256322393,
+    "Detroit Pistons": 1657.6269251795798,
+    "Atlanta Hawks": 1565.8491148910123,
+    "Washington Wizards": 1239.1179124969055,
+    "Chicago Bulls": 1369.1129173869472,
+    "Los Angeles Clippers": 1544.4407473687788
+  },
+  "preseason_2026_elo": {
+    "Cleveland Cavaliers": 1587.4651171487953,
+    "New York Knicks": 1582.5844844952044,
+    "Golden State Warriors": 1451.0622709140148,
+    "San Antonio Spurs": 1643.7821871198207,
+    "Portland Trail Blazers": 1516.600202138222,
+    "Utah Jazz": 1347.908972753384,
+    "Boston Celtics": 1624.121072552602,
+    "Brooklyn Nets": 1347.0205252050278,
+    "Indiana Pacers": 1377.9169893528417,
+    "Dallas Mavericks": 1402.5790717742605,
+    "Los Angeles Lakers": 1586.41563344377,
+    "Houston Rockets": 1567.5549244991514,
+    "Memphis Grizzlies": 1364.7709617916275,
+    "Minnesota Timberwolves": 1551.21971891629,
+    "Milwaukee Bucks": 1430.4061382695766,
+    "Charlotte Hornets": 1546.1318767589369,
+    "New Orleans Pelicans": 1417.588856129714,
+    "Denver Nuggets": 1605.3857021146941,
+    "Orlando Magic": 1531.5200543684214,
+    "Miami Heat": 1501.5429137141418,
+    "Philadelphia 76ers": 1513.7694460005846,
+    "Oklahoma City Thunder": 1667.9076115240036,
+    "Phoenix Suns": 1514.1671182576476,
+    "Sacramento Kings": 1395.0432558293335,
+    "Toronto Raptors": 1514.7086104552122,
+    "Detroit Pistons": 1613.4913861292973,
+    "Atlanta Hawks": 1547.4113627215288,
+    "Washington Wizards": 1312.164896997772,
+    "Chicago Bulls": 1405.761300518602,
+    "Los Angeles Clippers": 1531.9973381055208
+  },
+  "evaluation": {
+    "train": {
+      "nba_model": {
+        "games": 9519,
+        "accuracy_pct": 64.145,
+        "brier": 0.21951,
+        "log_loss": 0.62867
+      },
+      "elo_baseline": {
+        "games": 9519,
+        "accuracy_pct": 64.009,
+        "brier": 0.221,
+        "log_loss": 0.63199
+      },
+      "historical_market_novig": {
+        "games": 9519,
+        "accuracy_pct": 67.244,
+        "brier": 0.20832,
+        "log_loss": 0.60361
+      }
+    },
+    "validation": {
+      "nba_model": {
+        "games": 1225,
+        "accuracy_pct": 66.041,
+        "brier": 0.21211,
+        "log_loss": 0.61127
+      },
+      "elo_baseline": {
+        "games": 1225,
+        "accuracy_pct": 65.061,
+        "brier": 0.2146,
+        "log_loss": 0.61712
+      },
+      "historical_market_novig": {
+        "games": 1225,
+        "accuracy_pct": 69.469,
+        "brier": 0.19908,
+        "log_loss": 0.58132
+      }
+    },
+    "untouched_holdout": {
+      "nba_model": {
+        "games": 1225,
+        "accuracy_pct": 67.755,
+        "brier": 0.20977,
+        "log_loss": 0.60774
+      },
+      "elo_baseline": {
+        "games": 1225,
+        "accuracy_pct": 67.673,
+        "brier": 0.20952,
+        "log_loss": 0.60762
+      },
+      "historical_market_novig": {
+        "games": 1225,
+        "accuracy_pct": 69.388,
+        "brier": 0.19448,
+        "log_loss": 0.57018
+      }
+    }
+  },
+  "confidence_grade": "LOW",
+  "model_evidence_confidence_100": 35,
+  "historical_strategy_evidence_confidence_100": 24,
+  "market_edge_validated": false,
+  "caveats": [
+    "No point spread, player injuries or lineup features",
+    "No bookmaker prices used as model predictive features",
+    "Compared vs bookmaker-average archived moneyline no-vig benchmark; not independently certified closings",
+    "Holdout market Brier score outperformed model; do not classify any wager as validated +EV",
+    "2026 Elo is a continuation of 2025 season-end with fixed offseason reversion",
+    "Regular season only; no playoff model"
+  ]
+}
