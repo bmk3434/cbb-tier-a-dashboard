@@ -8,7 +8,6 @@ on:
       - 'nba_feed.py'
       - 'test_nba_feed.py'
       - '.github/workflows/update-nba-feed.yml'
-      - 'site/data/nba_plays.json'
   schedule:
     # Six times daily, UTC. Limits optional odds API usage to roughly 180 calls/month.
     - cron: '23 1,5,9,13,17,21 * * *'
@@ -70,7 +69,23 @@ jobs:
           git add site/data/nba_plays.json
           if ! git diff --cached --quiet; then
             git commit -m "Refresh NBA schedule, B2B signals and tracked moneylines"
-            git push
+            # Repository edits may land after checkout; integrate them rather
+            # than force-pushing or overwriting CBB research state.
+            pushed=0
+            for attempt in 1 2 3; do
+              git fetch origin main
+              git rebase origin/main
+              if git push origin HEAD:main; then
+                pushed=1
+                break
+              fi
+              echo "Remote moved during attempt ${attempt}; retrying safely."
+              sleep 2
+            done
+            if [ "$pushed" -ne 1 ]; then
+              echo "Unable to push NBA feed without a conflict." >&2
+              exit 1
+            fi
           fi
 
       - name: Configure GitHub Pages
