@@ -686,7 +686,7 @@
     "market_edge_validated": false,
     "min_prior_games_per_team": 5,
     "source": "BoxScore Lab daily team-game CSV (no odds API credits)",
-    "source_completed_team_games": 86,
+    "source_completed_team_games": 104,
     "status": "OK"
   },
   "odds_budget": {
@@ -719,5 +719,5 @@
     "units": 0,
     "wins": 0
   },
-  "updated_at": "2026-10-27T09:59:10.686792Z"
+  "updated_at": "2026-10-27T14:08:39.120981Z"
 }
