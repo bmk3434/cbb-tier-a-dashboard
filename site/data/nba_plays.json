@@ -58,6 +58,7 @@
     },
     {
       "away_b2b": false,
+      "away_moneyline": 235,
       "away_previous_date": null,
       "away_previous_result": null,
       "away_score": 0,
@@ -77,6 +78,8 @@
       "model_id": "nba-elo-logistic-v1-2026-10-25",
       "model_market_validated": false,
       "model_status": "PROSPECTIVE_RESEARCH_NOT_VALIDATED_EDGE",
+      "moneyline_bookmaker": "draftkings",
+      "moneyline_last_update": "2026-10-28T14:13:29Z",
       "research_confidence": 24,
       "research_confidence_label": "LOW / IN-SAMPLE",
       "setup_qualified": true,
@@ -809,7 +812,7 @@
       "games_recorded": 38,
       "last_run_graded": 0,
       "last_run_new": 0,
-      "odds_status": "SKIPPED_NO_READY_SETUP",
+      "odds_status": "CONNECTED",
       "paired": {
         "same_games": 0,
         "v1": {
@@ -858,20 +861,20 @@
     "market_edge_validated": false,
     "min_prior_games_per_team": 5,
     "source": "BoxScore Lab daily team-game CSV (no odds API credits)",
-    "source_completed_team_games": 104,
+    "source_completed_team_games": 112,
     "status": "OK"
   },
   "odds_budget": {
-    "calls_today": 0,
-    "credits_this_month": 0,
+    "calls_today": 1,
+    "credits_this_month": 1,
     "day": "2026-10-28",
-    "last_call_cost": null,
+    "last_call_cost": 1,
     "month": "2026-10",
-    "provider_remaining": null,
-    "provider_used": null
+    "provider_remaining": 499,
+    "provider_used": 1
   },
   "odds_source": "The Odds API v4 (optional)",
-  "odds_status": "SKIPPED_NO_READY_SETUP",
+  "odds_status": "CONNECTED",
   "plays": [],
   "research_confidence_method": "Heuristic 24/100: recent 5/5 positive (+20), prior 1/5 (+4), ten-year ROI negative (+0), independent holdout absent (+0). Not a predicted win probability.",
   "schedule_source": "ESPN public NBA scoreboard",
@@ -886,10 +889,10 @@
     "roi": null,
     "scheduled_games": 25,
     "settled_plays": 0,
-    "setups_with_moneyline": 0,
+    "setups_with_moneyline": 1,
     "tracked_plays": 0,
     "units": 0,
     "wins": 0
   },
-  "updated_at": "2026-10-28T10:07:09.657260Z"
+  "updated_at": "2026-10-28T14:13:56.886441Z"
 }
