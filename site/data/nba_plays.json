@@ -79,7 +79,7 @@
       "model_market_validated": false,
       "model_status": "PROSPECTIVE_RESEARCH_NOT_VALIDATED_EDGE",
       "moneyline_bookmaker": "draftkings",
-      "moneyline_last_update": "2026-10-28T17:59:46Z",
+      "moneyline_last_update": "2026-10-28T21:57:16Z",
       "research_confidence": 24,
       "research_confidence_label": "LOW / IN-SAMPLE",
       "setup_qualified": true,
@@ -865,13 +865,13 @@
     "status": "OK"
   },
   "odds_budget": {
-    "calls_today": 2,
-    "credits_this_month": 2,
+    "calls_today": 3,
+    "credits_this_month": 3,
     "day": "2026-10-28",
     "last_call_cost": 1,
     "month": "2026-10",
-    "provider_remaining": 498,
-    "provider_used": 2
+    "provider_remaining": 497,
+    "provider_used": 3
   },
   "odds_source": "The Odds API v4 (optional)",
   "odds_status": "CONNECTED",
@@ -894,5 +894,5 @@
     "units": 0,
     "wins": 0
   },
-  "updated_at": "2026-10-28T18:00:45.640932Z"
+  "updated_at": "2026-10-28T21:57:36.009822Z"
 }
