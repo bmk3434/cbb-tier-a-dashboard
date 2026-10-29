@@ -867,8 +867,8 @@
     "games_final": 25,
     "games_open": 20,
     "games_recorded": 45,
-    "last_run_graded": 7,
-    "last_run_new": 7,
+    "last_run_graded": 0,
+    "last_run_new": 0,
     "odds_status": "SKIPPED_NO_READY_SETUP",
     "paired": {
       "same_games": 0,
@@ -902,5 +902,5 @@
       "predictions": 0
     }
   },
-  "updated_at": "2026-10-29T06:00:26.473713Z"
+  "updated_at": "2026-10-29T10:09:01.804106Z"
 }
