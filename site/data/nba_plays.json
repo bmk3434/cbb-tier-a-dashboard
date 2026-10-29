@@ -30,7 +30,7 @@
     },
     {
       "away_b2b": false,
-      "away_moneyline": 190,
+      "away_moneyline": 195,
       "away_previous_date": null,
       "away_previous_result": null,
       "away_score": 0,
@@ -51,7 +51,7 @@
       "model_market_validated": false,
       "model_status": "PROSPECTIVE_RESEARCH_NOT_VALIDATED_EDGE",
       "moneyline_bookmaker": "draftkings",
-      "moneyline_last_update": "2026-10-29T14:17:40Z",
+      "moneyline_last_update": "2026-10-29T18:02:24Z",
       "research_confidence": 24,
       "research_confidence_label": "LOW / IN-SAMPLE",
       "setup_qualified": true,
@@ -801,13 +801,13 @@
     "status": "OK"
   },
   "odds_budget": {
-    "calls_today": 1,
-    "credits_this_month": 4,
+    "calls_today": 2,
+    "credits_this_month": 5,
     "day": "2026-10-29",
     "last_call_cost": 1,
     "month": "2026-10",
-    "provider_remaining": 496,
-    "provider_used": 4
+    "provider_remaining": 495,
+    "provider_used": 5
   },
   "odds_source": "The Odds API v4 (optional)",
   "odds_status": "CONNECTED",
@@ -830,5 +830,5 @@
     "units": 0,
     "wins": 0
   },
-  "updated_at": "2026-10-29T14:17:39.884304Z"
+  "updated_at": "2026-10-29T18:03:48.790301Z"
 }
