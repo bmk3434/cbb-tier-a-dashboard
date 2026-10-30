@@ -43,12 +43,44 @@ class LiveTestTests(unittest.TestCase):
         final=dict(self.game,status="Final",winner="Miami Heat")
         result=refresh_ledger([final],{},datetime(2026,10,27,6,0,tzinfo=timezone.utc))
         self.assertEqual(result["summary"]["games_recorded"],0)
-    def test_v2_missing_is_missing_forever_for_original_snapshot(self):
+    def test_v2_can_first_become_eligible_after_frozen_v1_but_before_tip(self):
         no_v2=dict(self.game,model_v2_away_win_probability=None)
         first=refresh_ledger([no_v2],{},self.now)
-        later=refresh_ledger([self.game],first,datetime(2026,10,26,18,0,tzinfo=timezone.utc))
+        self.assertIsNone(first["records"][0]["v2_away_win_probability"])
+        late=datetime(2026,10,26,18,0,tzinfo=timezone.utc)
+        later=refresh_ledger([self.game],first,late)
+        row=later["records"][0]
+        self.assertEqual(row["v1_away_win_probability"],.35)
+        self.assertEqual(row["v2_away_win_probability"],.4)
+        self.assertEqual(row["v2_first_seen_utc"],"2026-10-26T18:00:00Z")
+        self.assertFalse(row["v2_eligible_at_snapshot"])
+        self.assertEqual(later["summary"]["v2"]["predictions"],1)
+        self.assertEqual(later["summary"]["last_run_new_v2_on_existing"],1)
+        self.assertEqual(later["summary"]["last_run_new"],0)
+        # Later guesses must not overwrite either model's first recorded values.
+        changed=dict(self.game,model_away_win_probability=.93,model_v2_away_win_probability=.95)
+        twice=refresh_ledger([changed],later,datetime(2026,10,26,19,0,tzinfo=timezone.utc))
+        self.assertEqual(twice["records"][0]["v1_away_win_probability"],.35)
+        self.assertEqual(twice["records"][0]["v2_away_win_probability"],.4)
+        self.assertEqual(twice["summary"]["last_run_new_v2_on_existing"],0)
+
+    def test_v2_never_backfilled_after_tip_or_final(self):
+        no_v2=dict(self.game,model_v2_away_win_probability=None)
+        first=refresh_ledger([no_v2],{},self.now)
+        after=refresh_ledger([self.game],first,datetime(2026,10,27,1,0,tzinfo=timezone.utc))
+        self.assertIsNone(after["records"][0]["v2_away_win_probability"])
+        self.assertEqual(after["summary"]["last_run_new_v2_on_existing"],0)
+        final=dict(self.game,status="Final",winner="Miami Heat")
+        finaled=refresh_ledger([final],first,datetime(2026,10,27,2,0,tzinfo=timezone.utc))
+        self.assertIsNone(finaled["records"][0]["v2_away_win_probability"])
+        self.assertEqual(finaled["summary"]["v2"]["graded"],0)
+
+    def test_v2_withheld_when_game_changes_or_is_not_scheduled(self):
+        no_v2=dict(self.game,model_v2_away_win_probability=None)
+        first=refresh_ledger([no_v2],{},self.now)
+        changed=dict(self.game,home_team="Different home")
+        later=refresh_ledger([changed],first,datetime(2026,10,26,18,0,tzinfo=timezone.utc))
         self.assertIsNone(later["records"][0]["v2_away_win_probability"])
-        self.assertEqual(later["summary"]["v2"]["predictions"],0)
     def test_window_end_and_future_gates(self):
         out=dict(self.game,game_date="2026-11-27",start_utc="2026-11-28T00:00:00Z")
         a=refresh_ledger([out],{},self.now)
