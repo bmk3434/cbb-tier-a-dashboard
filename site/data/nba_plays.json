@@ -800,6 +800,7 @@
       "games_recorded": 49,
       "last_run_graded": 0,
       "last_run_new": 0,
+      "last_run_new_v2_on_existing": 11,
       "odds_status": "SKIPPED_NO_READY_SETUP",
       "paired": {
         "same_games": 0,
@@ -830,7 +831,7 @@
         "brier": null,
         "graded": 0,
         "log_loss": null,
-        "predictions": 0
+        "predictions": 11
       }
     }
   },
@@ -882,5 +883,5 @@
     "units": 0,
     "wins": 0
   },
-  "updated_at": "2026-10-30T18:02:51.572016Z"
+  "updated_at": "2026-10-30T19:16:51.071985Z"
 }

@@ -1,7 +1,7 @@
 {
   "end_game_date_inclusive": "2026-11-26",
   "experiment": "NBA v1 vs v2 untouched prospective paper trial",
-  "protocol": "Freeze first pretip scheduled-game forecast; no hindsight backfill or model retuning. No paid odds required.",
+  "protocol": "Freeze V1 at first pretip scan; independently freeze V2 at its first eligible pretip scan, possibly later. Never backfill started games or retune. No paid odds required.",
   "records": [
     {
       "away_score": null,
@@ -93,9 +93,10 @@
       "status": "OPEN",
       "v1_away_win_probability": 0.58234,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
-      "v2_away_win_probability": null,
+      "v2_away_win_probability": 0.49782,
       "v2_eligible_at_snapshot": false,
-      "v2_model_id": null,
+      "v2_first_seen_utc": "2026-10-30T19:16:51.071985Z",
+      "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
       "winner": null
     },
     {
@@ -112,9 +113,10 @@
       "status": "OPEN",
       "v1_away_win_probability": 0.2627,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
-      "v2_away_win_probability": null,
+      "v2_away_win_probability": 0.30931,
       "v2_eligible_at_snapshot": false,
-      "v2_model_id": null,
+      "v2_first_seen_utc": "2026-10-30T19:16:51.071985Z",
+      "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
       "winner": null
     },
     {
@@ -131,9 +133,10 @@
       "status": "OPEN",
       "v1_away_win_probability": 0.68905,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
-      "v2_away_win_probability": null,
+      "v2_away_win_probability": 0.67774,
       "v2_eligible_at_snapshot": false,
-      "v2_model_id": null,
+      "v2_first_seen_utc": "2026-10-30T19:16:51.071985Z",
+      "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
       "winner": null
     },
     {
@@ -150,9 +153,10 @@
       "status": "OPEN",
       "v1_away_win_probability": 0.38309,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
-      "v2_away_win_probability": null,
+      "v2_away_win_probability": 0.30512,
       "v2_eligible_at_snapshot": false,
-      "v2_model_id": null,
+      "v2_first_seen_utc": "2026-10-30T19:16:51.071985Z",
+      "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
       "winner": null
     },
     {
@@ -169,9 +173,10 @@
       "status": "OPEN",
       "v1_away_win_probability": 0.64545,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
-      "v2_away_win_probability": null,
+      "v2_away_win_probability": 0.64685,
       "v2_eligible_at_snapshot": false,
-      "v2_model_id": null,
+      "v2_first_seen_utc": "2026-10-30T19:16:51.071985Z",
+      "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
       "winner": null
     },
     {
@@ -188,9 +193,10 @@
       "status": "OPEN",
       "v1_away_win_probability": 0.39495,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
-      "v2_away_win_probability": null,
+      "v2_away_win_probability": 0.41037,
       "v2_eligible_at_snapshot": false,
-      "v2_model_id": null,
+      "v2_first_seen_utc": "2026-10-30T19:16:51.071985Z",
+      "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
       "winner": null
     },
     {
@@ -245,9 +251,10 @@
       "status": "OPEN",
       "v1_away_win_probability": 0.63794,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
-      "v2_away_win_probability": null,
+      "v2_away_win_probability": 0.64419,
       "v2_eligible_at_snapshot": false,
-      "v2_model_id": null,
+      "v2_first_seen_utc": "2026-10-30T19:16:51.071985Z",
+      "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
       "winner": null
     },
     {
@@ -283,9 +290,10 @@
       "status": "OPEN",
       "v1_away_win_probability": 0.68635,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
-      "v2_away_win_probability": null,
+      "v2_away_win_probability": 0.68428,
       "v2_eligible_at_snapshot": false,
-      "v2_model_id": null,
+      "v2_first_seen_utc": "2026-10-30T19:16:51.071985Z",
+      "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
       "winner": null
     },
     {
@@ -302,9 +310,10 @@
       "status": "OPEN",
       "v1_away_win_probability": 0.33211,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
-      "v2_away_win_probability": null,
+      "v2_away_win_probability": 0.34369,
       "v2_eligible_at_snapshot": false,
-      "v2_model_id": null,
+      "v2_first_seen_utc": "2026-10-30T19:16:51.071985Z",
+      "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
       "winner": null
     },
     {
@@ -340,9 +349,10 @@
       "status": "OPEN",
       "v1_away_win_probability": 0.47429,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
-      "v2_away_win_probability": null,
+      "v2_away_win_probability": 0.53373,
       "v2_eligible_at_snapshot": false,
-      "v2_model_id": null,
+      "v2_first_seen_utc": "2026-10-30T19:16:51.071985Z",
+      "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
       "winner": null
     },
     {
@@ -397,9 +407,10 @@
       "status": "OPEN",
       "v1_away_win_probability": 0.72807,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
-      "v2_away_win_probability": null,
+      "v2_away_win_probability": 0.64904,
       "v2_eligible_at_snapshot": false,
-      "v2_model_id": null,
+      "v2_first_seen_utc": "2026-10-30T19:16:51.071985Z",
+      "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
       "winner": null
     },
     {
@@ -945,6 +956,7 @@
     "games_recorded": 49,
     "last_run_graded": 0,
     "last_run_new": 0,
+    "last_run_new_v2_on_existing": 11,
     "odds_status": "SKIPPED_NO_READY_SETUP",
     "paired": {
       "same_games": 0,
@@ -975,8 +987,8 @@
       "brier": null,
       "graded": 0,
       "log_loss": null,
-      "predictions": 0
+      "predictions": 11
     }
   },
-  "updated_at": "2026-10-30T18:02:51.572016Z"
+  "updated_at": "2026-10-30T19:16:51.071985Z"
 }
