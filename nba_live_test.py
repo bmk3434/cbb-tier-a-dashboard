@@ -93,6 +93,33 @@ def refresh_ledger(games, existing, now, odds_status=None):
         if game and grade_row(row,game):
             graded_count+=1
 
+    # V2 can first become eligible AFTER V1 was recorded, but still before tip.
+    # Freeze the first independently observed V2 pregame forecast, never alter V1,
+    # and never create a V2 forecast retrospectively for a started/final game.
+    newly_added_v2=0
+    for gid,row in records.items():
+        if row.get("status")!="OPEN" or good_probability(row.get("v2_away_win_probability")) is not None:
+            continue
+        game=all_games.get(gid)
+        if not game or game.get("status")!="Scheduled":
+            continue
+        try:
+            tip=parse_dt(row["start_utc"])
+        except (ValueError,TypeError,KeyError):
+            continue
+        if now>=tip or game.get("start_utc")!=row.get("start_utc"):
+            continue
+        if game.get("home_team")!=row.get("home_team") or game.get("away_team")!=row.get("away_team"):
+            continue
+        p2=good_probability(game.get("model_v2_away_win_probability"))
+        if p2 is None or not game.get("model_v2_id"):
+            continue
+        row["v2_away_win_probability"]=p2
+        row["v2_model_id"]=game["model_v2_id"]
+        row["v2_eligible_at_snapshot"]=False
+        row["v2_first_seen_utc"]=now.astimezone(timezone.utc).isoformat().replace("+00:00","Z")
+        newly_added_v2+=1
+
     new_count=0
     for g in sorted(games,key=lambda t:(t.get("start_utc",""),str(t.get("game_id","")))):
         gid=str(g.get("game_id",""))
@@ -118,6 +145,7 @@ def refresh_ledger(games, existing, now, odds_status=None):
             "v2_model_id":g.get("model_v2_id") if v2 is not None else None,
             "v2_away_win_probability":v2,
             "v2_eligible_at_snapshot":v2 is not None,
+            "v2_first_seen_utc":now.astimezone(timezone.utc).isoformat().replace("+00:00","Z") if v2 is not None else None,
             "status":"OPEN","winner":None,"away_won":None,
             "home_score":None,"away_score":None,
             "betting_status":"NO BET - PAPER MODEL EVALUATION",
@@ -132,7 +160,7 @@ def refresh_ledger(games, existing, now, odds_status=None):
         "start_game_date":START.isoformat(),"end_game_date_inclusive":END.isoformat(),
         "updated_at":now.astimezone(timezone.utc).isoformat().replace("+00:00","Z"),
         "status":"ACTIVE" if now.date()<=END else "COMPLETED_WINDOW",
-        "protocol":"Freeze first pretip scheduled-game forecast; no hindsight backfill or model retuning. No paid odds required.",
+        "protocol":"Freeze V1 at first pretip scan; independently freeze V2 at its first eligible pretip scan, possibly later. Never backfill started games or retune. No paid odds required.",
         "records":rows,
         "summary":{
             "games_recorded":len(rows),
@@ -144,6 +172,7 @@ def refresh_ledger(games, existing, now, odds_status=None):
             "betting_plays":0,
             "odds_status":odds_status or "NOT_REQUESTED_FOR_TRIAL",
             "last_run_new":new_count,
+            "last_run_new_v2_on_existing":newly_added_v2,
             "last_run_graded":graded_count
         }
     }
