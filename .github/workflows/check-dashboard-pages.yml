@@ -1,0 +1,48 @@
+name: Check basketball dashboard pages
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'site/index.html'
+      - 'site/research.html'
+      - '.github/workflows/check-dashboard-pages.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-pages:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify navigation, model isolation, data feeds and JavaScript syntax
+        run: |
+          python - <<'PY'
+          import json, re
+          from pathlib import Path
+          main = Path("site/index.html").read_text(encoding="utf-8")
+          lab = Path("site/research.html").read_text(encoding="utf-8")
+          state = json.loads(Path("site/data/state.json").read_text(encoding="utf-8"))
+          nba = json.loads(Path("site/data/nba_plays.json").read_text(encoding="utf-8"))
+          assert 'id="season-records"' in main
+          assert 'id="qualified-plays"' in main
+          assert 'id="recent-results"' in main
+          assert 'research.html' in main
+          assert 'index.html' in lab
+          assert 'id="nba-live-trial"' in lab
+          assert 'id="nba-scanner"' in lab
+          assert 'id="ats-kpis"' in lab
+          assert 'id="totals-kpis"' in lab
+          assert 'id="totals-v2-kpis"' in lab
+          assert 'combined_summary' in state and 'totals_summary' in state
+          assert 'plays' in nba and 'summary' in nba
+          for label,page in (("home",main),("lab",lab)):
+              scripts = re.findall(r'<script[^>]*>(.*?)</script>',page,flags=re.S)
+              assert scripts, f"No inline scripts in {label}"
+              Path(f"/tmp/{label}-dashboard.js").write_text("\n".join(scripts),encoding="utf-8")
+          print("Two-page navigation and live-feed schemas verified")
+          PY
+          node --check /tmp/home-dashboard.js
+          node --check /tmp/lab-dashboard.js
