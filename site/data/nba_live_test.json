@@ -317,62 +317,62 @@
       "winner": null
     },
     {
-      "away_score": null,
+      "away_score": 121,
       "away_team": "Orlando Magic",
-      "away_won": null,
+      "away_won": true,
       "betting_status": "NO BET - PAPER MODEL EVALUATION",
       "first_seen_utc": "2026-10-28T05:59:17.075538Z",
       "game_date": "2026-10-30",
       "game_id": "401909281",
-      "home_score": null,
+      "home_score": 114,
       "home_team": "Toronto Raptors",
       "start_utc": "2026-10-30T23:30:00Z",
-      "status": "OPEN",
+      "status": "FINAL",
       "v1_away_win_probability": 0.44188,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
       "v2_away_win_probability": null,
       "v2_eligible_at_snapshot": false,
       "v2_model_id": null,
-      "winner": null
+      "winner": "Orlando Magic"
     },
     {
-      "away_score": null,
+      "away_score": 93,
       "away_team": "New York Knicks",
-      "away_won": null,
+      "away_won": false,
       "betting_status": "NO BET - PAPER MODEL EVALUATION",
       "first_seen_utc": "2026-10-28T05:59:17.075538Z",
       "game_date": "2026-10-30",
       "game_id": "401909280",
-      "home_score": null,
+      "home_score": 98,
       "home_team": "Philadelphia 76ers",
       "start_utc": "2026-10-30T23:30:00Z",
-      "status": "OPEN",
+      "status": "FINAL",
       "v1_away_win_probability": 0.47429,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
       "v2_away_win_probability": 0.53373,
       "v2_eligible_at_snapshot": false,
       "v2_first_seen_utc": "2026-10-30T19:16:51.071985Z",
       "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
-      "winner": null
+      "winner": "Philadelphia 76ers"
     },
     {
-      "away_score": null,
+      "away_score": 110,
       "away_team": "Detroit Pistons",
-      "away_won": null,
+      "away_won": true,
       "betting_status": "NO BET - PAPER MODEL EVALUATION",
       "first_seen_utc": "2026-10-28T05:59:17.075538Z",
       "game_date": "2026-10-30",
       "game_id": "401909279",
-      "home_score": null,
+      "home_score": 94,
       "home_team": "Brooklyn Nets",
       "start_utc": "2026-10-30T23:30:00Z",
-      "status": "OPEN",
+      "status": "FINAL",
       "v1_away_win_probability": 0.80805,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
       "v2_away_win_probability": null,
       "v2_eligible_at_snapshot": false,
       "v2_model_id": null,
-      "winner": null
+      "winner": "Detroit Pistons"
     },
     {
       "away_score": null,
@@ -394,24 +394,24 @@
       "winner": null
     },
     {
-      "away_score": null,
+      "away_score": 79,
       "away_team": "Charlotte Hornets",
-      "away_won": null,
+      "away_won": false,
       "betting_status": "NO BET - PAPER MODEL EVALUATION",
       "first_seen_utc": "2026-10-28T05:59:17.075538Z",
       "game_date": "2026-10-30",
       "game_id": "401909277",
-      "home_score": null,
+      "home_score": 95,
       "home_team": "Washington Wizards",
       "start_utc": "2026-10-30T23:00:00Z",
-      "status": "OPEN",
+      "status": "FINAL",
       "v1_away_win_probability": 0.72807,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
       "v2_away_win_probability": 0.64904,
       "v2_eligible_at_snapshot": false,
       "v2_first_seen_utc": "2026-10-30T19:16:51.071985Z",
       "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
-      "winner": null
+      "winner": "Washington Wizards"
     },
     {
       "away_score": 124,
@@ -951,44 +951,44 @@
   "status": "ACTIVE",
   "summary": {
     "betting_plays": 0,
-    "games_final": 28,
-    "games_open": 21,
+    "games_final": 32,
+    "games_open": 17,
     "games_recorded": 49,
-    "last_run_graded": 0,
+    "last_run_graded": 4,
     "last_run_new": 0,
     "last_run_new_v2_on_existing": 0,
     "odds_status": "SKIPPED_NO_READY_SETUP",
     "paired": {
-      "same_games": 0,
+      "same_games": 2,
       "v1": {
-        "accuracy_pct": null,
-        "brier": null,
-        "graded": 0,
-        "log_loss": null,
-        "predictions": 0
+        "accuracy_pct": 50.0,
+        "brier": 0.37752,
+        "graded": 2,
+        "log_loss": 0.97261,
+        "predictions": 2
       },
       "v2": {
-        "accuracy_pct": null,
-        "brier": null,
-        "graded": 0,
-        "log_loss": null,
-        "predictions": 0
+        "accuracy_pct": 0.0,
+        "brier": 0.35306,
+        "graded": 2,
+        "log_loss": 0.90504,
+        "predictions": 2
       }
     },
     "v1": {
-      "accuracy_pct": 64.29,
-      "brier": 0.22988,
-      "graded": 28,
-      "log_loss": 0.65061,
+      "accuracy_pct": 62.5,
+      "brier": 0.23562,
+      "graded": 32,
+      "log_loss": 0.66226,
       "predictions": 49
     },
     "v2": {
-      "accuracy_pct": null,
-      "brier": null,
-      "graded": 0,
-      "log_loss": null,
+      "accuracy_pct": 0.0,
+      "brier": 0.35306,
+      "graded": 2,
+      "log_loss": 0.90504,
       "predictions": 11
     }
   },
-  "updated_at": "2026-10-30T21:54:49.508189Z"
+  "updated_at": "2026-10-31T02:09:11.967587Z"
 }
