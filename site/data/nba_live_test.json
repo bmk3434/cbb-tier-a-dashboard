@@ -37,10 +37,10 @@
       "status": "OPEN",
       "v1_away_win_probability": 0.40987,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
-      "v2_away_win_probability": null,
+      "v2_away_win_probability": 0.45598,
       "v2_eligible_at_snapshot": false,
-      "v2_first_seen_utc": null,
-      "v2_model_id": null,
+      "v2_first_seen_utc": "2026-10-31T13:58:01.129578Z",
+      "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
       "winner": null
     },
     {
@@ -117,10 +117,10 @@
       "status": "OPEN",
       "v1_away_win_probability": 0.39621,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
-      "v2_away_win_probability": null,
+      "v2_away_win_probability": 0.38709,
       "v2_eligible_at_snapshot": false,
-      "v2_first_seen_utc": null,
-      "v2_model_id": null,
+      "v2_first_seen_utc": "2026-10-31T13:58:01.129578Z",
+      "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
       "winner": null
     },
     {
@@ -217,10 +217,10 @@
       "status": "OPEN",
       "v1_away_win_probability": 0.25276,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
-      "v2_away_win_probability": null,
+      "v2_away_win_probability": 0.30007,
       "v2_eligible_at_snapshot": false,
-      "v2_first_seen_utc": null,
-      "v2_model_id": null,
+      "v2_first_seen_utc": "2026-10-31T13:58:01.129578Z",
+      "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
       "winner": null
     },
     {
@@ -237,10 +237,10 @@
       "status": "OPEN",
       "v1_away_win_probability": 0.12725,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
-      "v2_away_win_probability": null,
+      "v2_away_win_probability": 0.13881,
       "v2_eligible_at_snapshot": false,
-      "v2_first_seen_utc": null,
-      "v2_model_id": null,
+      "v2_first_seen_utc": "2026-10-31T13:58:01.129578Z",
+      "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
       "winner": null
     },
     {
@@ -317,9 +317,10 @@
       "status": "OPEN",
       "v1_away_win_probability": 0.34322,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
-      "v2_away_win_probability": null,
+      "v2_away_win_probability": 0.35838,
       "v2_eligible_at_snapshot": false,
-      "v2_model_id": null,
+      "v2_first_seen_utc": "2026-10-31T13:58:01.129578Z",
+      "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
       "winner": null
     },
     {
@@ -336,9 +337,10 @@
       "status": "OPEN",
       "v1_away_win_probability": 0.51823,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
-      "v2_away_win_probability": null,
+      "v2_away_win_probability": 0.45575,
       "v2_eligible_at_snapshot": false,
-      "v2_model_id": null,
+      "v2_first_seen_utc": "2026-10-31T13:58:01.129578Z",
+      "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
       "winner": null
     },
     {
@@ -355,9 +357,10 @@
       "status": "OPEN",
       "v1_away_win_probability": 0.37125,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
-      "v2_away_win_probability": null,
+      "v2_away_win_probability": 0.37775,
       "v2_eligible_at_snapshot": false,
-      "v2_model_id": null,
+      "v2_first_seen_utc": "2026-10-31T13:58:01.129578Z",
+      "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
       "winner": null
     },
     {
@@ -374,9 +377,10 @@
       "status": "OPEN",
       "v1_away_win_probability": 0.59377,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
-      "v2_away_win_probability": null,
+      "v2_away_win_probability": 0.62499,
       "v2_eligible_at_snapshot": false,
-      "v2_model_id": null,
+      "v2_first_seen_utc": "2026-10-31T13:58:01.129578Z",
+      "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
       "winner": null
     },
     {
@@ -1256,7 +1260,7 @@
     "games_recorded": 64,
     "last_run_graded": 0,
     "last_run_new": 0,
-    "last_run_new_v2_on_existing": 0,
+    "last_run_new_v2_on_existing": 8,
     "odds_status": "SKIPPED_NO_READY_SETUP",
     "paired": {
       "same_games": 5,
@@ -1287,8 +1291,8 @@
       "brier": 0.34149,
       "graded": 5,
       "log_loss": 0.88349,
-      "predictions": 20
+      "predictions": 28
     }
   },
-  "updated_at": "2026-10-31T09:57:22.736277Z"
+  "updated_at": "2026-10-31T13:58:01.129578Z"
 }
