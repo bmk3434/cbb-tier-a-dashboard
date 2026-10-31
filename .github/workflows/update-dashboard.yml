@@ -16,6 +16,13 @@ on:
   schedule:
     - cron: '17 7,12,15,17 * * *'
       timezone: 'America/Los_Angeles'
+    # 2026-27 opening-week exception: the season begins with unusually early/overnight games.
+    - cron: '17 5 1 11 *'
+      timezone: 'America/Los_Angeles'
+    - cron: '17 20,23 1 11 *'
+      timezone: 'America/Los_Angeles'
+    - cron: '17 2,5 2 11 *'
+      timezone: 'America/Los_Angeles'
 
 concurrency:
   group: cbb-tier-a-dashboard
@@ -87,7 +94,16 @@ jobs:
 
       - name: Resolve Pacific date
         id: date
-        run: echo "today=$(TZ=America/Los_Angeles date +%F)" >> "$GITHUB_OUTPUT"
+        run: |
+          pacific_date="$(TZ=America/Los_Angeles date +%F)"
+          pacific_hour="$(TZ=America/Los_Angeles date +%H)"
+          target="$pacific_date"
+          # On Sunday Nov. 1, the U.S. opening marathon starts late Pacific time
+          # but is officially part of the Nov. 2 slate. Pre-scan that slate.
+          if [ "$pacific_date" = "2026-11-01" ] && [ "$pacific_hour" -ge 20 ]; then
+            target="2026-11-02"
+          fi
+          echo "today=$target" >> "$GITHUB_OUTPUT"
 
       - name: Run frozen Tier A scanner
         env:
