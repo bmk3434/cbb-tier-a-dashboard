@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="dark light" />
+<title>Basketball Research Lab | Model Development</title>
+<style>
+:root{--bg:#0b1220;--card:#121c2e;--card2:#172338;--text:#e7edf7;--muted:#91a0b7;--blue:#68a5ff;--green:#48d597;--red:#ff7185;--yellow:#f4ca64;--line:#273650;--shadow:0 12px 35px rgba(0,0,0,.24)}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#09111f,#0d1626 42%,#0a1220);color:var(--text);font:15px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+.wrap{max-width:1220px;margin:0 auto;padding:28px 18px 60px}.top{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:22px}.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);font-weight:750}.title{font-size:34px;font-weight:820;margin:4px 0 7px;letter-spacing:-.03em}.sub{color:var(--muted);max-width:800px}.pill{border:1px solid var(--line);background:rgba(18,28,46,.8);padding:9px 12px;border-radius:999px;color:var(--muted);white-space:nowrap}.model-head{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-top:34px}.model-title{font-size:25px;font-weight:820;margin:0}.model-desc{color:var(--muted);font-size:13px;margin-top:4px;max-width:800px}.tag{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:6px 9px;border:1px solid var(--line);border-radius:999px;color:var(--blue)}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:14px 0 24px}.card{background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}.kpi{min-height:112px}.kpi .label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.07em}.kpi .value{font-size:27px;font-weight:820;margin-top:12px}.kpi .hint{font-size:12px;color:var(--muted);margin-top:3px}.section{margin-top:24px}.section h3{font-size:19px;margin:0 0 12px}.desc{color:var(--muted);font-size:13px;margin:-7px 0 12px}.table-card{padding:0;overflow:hidden}.scroll{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:930px}.table th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#a9b6c9;background:#101a2b;position:sticky;top:0}.table th,.table td{padding:12px 13px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}.table tbody tr:hover{background:rgba(104,165,255,.05)}.team{font-weight:740}.green{color:var(--green)}.red{color:var(--red)}.yellow{color:var(--yellow)}.blue{color:var(--blue)}.badge{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:760;border:1px solid var(--line)}.badge.bet,.badge.win{color:#071a12;background:var(--green);border-color:transparent}.badge.review{color:#251c03;background:var(--yellow);border-color:transparent}.badge.loss{color:#2a0710;background:var(--red);border-color:transparent}.badge.push{color:#101827;background:#c0cad7;border-color:transparent}.empty{padding:28px;color:var(--muted);text-align:center}.note{margin-top:30px;color:var(--muted);font-size:12px;border-top:1px solid var(--line);padding-top:16px}.error{padding:18px;border:1px solid #613244;background:#2a1320;border-radius:14px;color:#ffc0ca}.split{display:grid;grid-template-columns:1.45fr 1fr;gap:12px}.rule-list{display:grid;gap:10px}.rule{display:flex;justify-content:space-between;gap:20px;padding:10px 0;border-bottom:1px solid var(--line)}.rule:last-child{border-bottom:0}.rule span:first-child{color:var(--muted)}.divider{height:1px;background:var(--line);margin:38px 0 0}
+@media(max-width:950px){.grid{grid-template-columns:repeat(3,1fr)}.split{grid-template-columns:1fr}.top,.model-head{flex-direction:column;align-items:flex-start}.pill{white-space:normal}}
+@media(max-width:560px){.grid{grid-template-columns:repeat(2,1fr)}.title{font-size:29px}.wrap{padding:20px 12px 44px}.kpi{min-height:102px}}
+
+/* Independent NBA confidence lab; does not modify CBB model or grading. */
+.nba-jump{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}.nba-jump a{padding:8px 11px;border:1px solid var(--line);border-radius:999px;color:var(--text);text-decoration:none;font-size:12px;background:var(--card)}
+.nba-weights{display:grid;grid-template-columns:repeat(2,1fr);gap:13px}.nba-weight label{display:flex;justify-content:space-between;color:var(--muted);font-size:12px}.nba-weight input{width:100%;accent-color:var(--blue)}
+.nba-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:14px 0}.nba-actions button{border:1px solid var(--line);border-radius:9px;background:var(--card2);color:var(--text);font:inherit;font-size:12px;padding:9px 12px;cursor:pointer}.nba-actions input{max-width:260px;color:var(--muted)}
+.nba-playgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}.nba-playhead{display:flex;justify-content:space-between;gap:12px}.nba-playname{font-weight:800;font-size:17px}.nba-small{color:var(--muted);font-size:12px}.nba-score{font-size:24px;font-weight:800}.nba-meter{height:9px;border-radius:99px;background:#293850;overflow:hidden;margin:9px 0}.nba-meter span{display:block;height:100%;background:var(--blue);border-radius:99px}.nba-facts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:13px 0}.nba-facts small{display:block;color:var(--muted)}.nba-facts strong{font-size:18px}.nba-tag{display:inline-block;border:1px solid var(--line);border-radius:99px;padding:4px 9px;font-size:11px;color:var(--muted)}
+@media(max-width:650px){.nba-weights{grid-template-columns:1fr}.nba-playgrid{grid-template-columns:1fr}}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <div class="eyebrow">Basketball Models / Research Lab</div>
+      <div class="title">Model Research Lab</div>
+      <div class="sub">Development and diagnostics: CBB ATS and totals, NBA v1/v2, prospective testing, schedule scanning, model design and historical audits. Official play and record summaries are on the main dashboard.</div>
+    </div>
+    <div class="pill" id="updated">Loading…</div>
+  </div>
+  <nav class="nba-jump" aria-label="Research navigation"><a href="index.html">← Plays &amp; Records</a><a href="research.html" aria-current="page" style="border-color:var(--blue);color:var(--blue)">Research Lab</a><a href="#ats-kpis">CBB ATS</a><a href="#totals-kpis">CBB Totals</a><a href="#totals-v2-kpis">Totals v2</a><a href="#nba-live-trial">NBA live test</a><a href="#nba-scanner">NBA scanner</a></nav>
+  <div id="error"></div>
+
+  <div class="model-head" style="margin-top:18px">
+    <div>
+      <div class="model-title">Combined Performance</div>
+      <div class="model-desc">Overall prospective results across both frozen models: ATS Tier A + Totals v1. Each qualified ATS or totals wager counts as one independent play.</div>
+    </div>
+    <div class="tag">ATS + Totals</div>
+  </div>
+  <div class="grid" id="combined-kpis"></div>
+
+  <div class="divider"></div>
+
+  <div class="model-head">
+    <div><div class="model-title">ATS — Tier A</div><div class="model-desc">Frozen v4 rule: absolute ATS edge ≥ 1.75 points and the model-selected side is an underdog of +4.0 or greater. Neutral spread orientation must be verified.</div></div>
+    <div class="tag">Spread model v4</div>
+  </div>
+  <div class="grid" id="ats-kpis"></div>
+
+  <div class="section">
+    <h3>Today’s ATS candidates</h3>
+    <div class="desc">Actionable candidates are entered at the first qualified scanner line after QC.</div>
+    <div class="card table-card"><div class="scroll"><table class="table"><thead><tr><th>Status</th><th>Game</th><th>Model bet</th><th>Entry/current</th><th>Edge</th><th>Move</th><th>QC</th></tr></thead><tbody id="ats-today"></tbody></table></div><div id="ats-today-empty" class="empty" hidden>No Tier A ATS candidates yet today.</div></div>
+  </div>
+
+  <div class="section split">
+    <div>
+      <h3>ATS forward-test history</h3>
+      <div class="desc">Research record uses the automated scanner entry line, not your personal wager line.</div>
+      <div class="card table-card"><div class="scroll"><table class="table"><thead><tr><th>Date</th><th>Bet</th><th>Entry</th><th>Close proxy</th><th>CLV</th><th>Result</th><th>P/L</th></tr></thead><tbody id="ats-history"></tbody></table></div><div id="ats-history-empty" class="empty" hidden>No tracked ATS plays yet.</div></div>
+    </div>
+    <div>
+      <h3>ATS frozen rules</h3>
+      <div class="card rule-list">
+        <div class="rule"><span>V4 edge</span><strong>≥ 1.75 pts</strong></div>
+        <div class="rule"><span>Selected side</span><strong>Underdog +4.0+</strong></div>
+        <div class="rule"><span>Neutral site</span><strong>Verify orientation</strong></div>
+        <div class="rule"><span>Staking</span><strong>Flat units</strong></div>
+        <div class="rule"><span>Moneyline</span><strong>No auto add-on</strong></div>
+        <div class="rule"><span>Historical research</span><strong>50–40 combined</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="model-head">
+    <div><div class="model-title">Totals — v1</div><div class="model-desc">Market-relative total model. Positive predicted residual = Over; negative = Under. A play qualifies when the absolute model edge is at least 2.00 points. No Over-only filter is part of the frozen rule.</div></div>
+    <div class="tag">Totals model v1</div>
+  </div>
+  <div class="grid" id="totals-kpis"></div>
+
+  <div class="section">
+    <h3>Regulation vs overtime tracking</h3>
+    <div class="desc">The official sportsbook result includes overtime. The regulation record re-grades every completed totals play using the score at the end of 40 minutes so we can see whether OT is rescuing our Overs.</div>
+    <div class="grid" id="totals-reg-kpis"></div>
+  </div>
+
+  <div class="section">
+    <h3>Today’s totals candidates</h3>
+    <div class="desc">Entry is the first scheduled scanner total after the frozen 2-point rule qualifies.</div>
+    <div class="card table-card"><div class="scroll"><table class="table"><thead><tr><th>Status</th><th>Game</th><th>Bet</th><th>Entry/current</th><th>Model total</th><th>Edge</th><th>QC</th></tr></thead><tbody id="totals-today"></tbody></table></div><div id="totals-today-empty" class="empty" hidden>No Totals v1 candidates yet today.</div></div>
+  </div>
+
+  <div class="section split">
+    <div>
+      <h3>Totals forward-test history</h3>
+      <div class="desc">Totals CLV proxy is signed in the favorable direction: higher is better for an Over entry, lower is better for an Under entry.</div>
+      <div class="card table-card"><div class="scroll"><table class="table"><thead><tr><th>Date</th><th>Bet</th><th>Entry</th><th>Close proxy</th><th>CLV</th><th>Official</th><th>Regulation</th><th>OT</th><th>P/L</th></tr></thead><tbody id="totals-history"></tbody></table></div><div id="totals-history-empty" class="empty" hidden>No tracked totals plays yet.</div></div>
+    </div>
+    <div>
+      <h3>Totals frozen rules</h3>
+      <div class="card rule-list">
+        <div class="rule"><span>Absolute edge</span><strong>≥ 2.00 pts</strong></div>
+        <div class="rule"><span>Side</span><strong>Sign chooses O/U</strong></div>
+        <div class="rule"><span>Side restriction</span><strong>None</strong></div>
+        <div class="rule"><span>Staking</span><strong>Flat units</strong></div>
+        <div class="rule"><span>Dev OOF</span><strong>191–151 (55.85%)</strong></div>
+        <div class="rule"><span>2025–26 holdout</span><strong>65–51 (56.03%)</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section split">
+    <div>
+      <h3>Historical overtime audit</h3>
+      <div class="card rule-list">
+        <div class="rule"><span>Official result</span><strong>256–202 · 55.90% · +6.71% ROI</strong></div>
+        <div class="rule"><span>Games ending in regulation</span><strong>237–197 · 54.61% · +4.25%</strong></div>
+        <div class="rule"><span>Re-grade all at 40 minutes</span><strong>242–216 · 52.84% · +0.87%</strong></div>
+        <div class="rule"><span>Qualified games reaching OT</span><strong>24 / 458 · 5.24%</strong></div>
+        <div class="rule"><span>Wins rescued by OT</span><strong>14</strong></div>
+        <div class="rule"><span>2025–26 no-OT games</span><strong>58–49 · 54.21% · +3.48%</strong></div>
+      </div>
+    </div>
+    <div>
+      <h3>Robustness audits</h3>
+      <div class="card rule-list">
+        <div class="rule"><span>0.5 pt worse line</span><strong>54.40% · +3.73% ROI</strong></div>
+        <div class="rule"><span>1.0 pt worse line</span><strong>52.62% · +0.46% ROI</strong></div>
+        <div class="rule"><span>1.5 pt worse line</span><strong>50.00% · −4.31% ROI</strong></div>
+        <div class="rule"><span>Edge ≥ 1.75</span><strong>53.02% · +1.23% ROI</strong></div>
+        <div class="rule"><span>Frozen edge ≥ 2.00</span><strong>55.90% · +6.71% ROI</strong></div>
+        <div class="rule"><span>Edge ≥ 2.50</span><strong>50.70% · −3.20% ROI</strong></div>
+        <div class="rule"><span>Interpretation</span><strong>Threshold stability is mixed</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="model-head">
+    <div>
+      <div class="model-title">Totals — v2 Challenger</div>
+      <div class="model-desc">Shadow-only challenger. It scores the same market totals as v1 but cannot create an actionable bet and is excluded from Combined Performance. We are testing whether different shrinkage by feature family improves prospective forecast quality.</div>
+    </div>
+    <div class="tag">SHADOW ONLY</div>
+  </div>
+  <div class="grid" id="totals-v2-kpis"></div>
+
+  <div class="section">
+    <h3>Today’s v2 shadow candidates</h3>
+    <div class="desc">A 2.0-point edge is used only as a common tracking threshold. These are observations, not wagers.</div>
+    <div class="card table-card"><div class="scroll"><table class="table"><thead><tr><th>Status</th><th>Game</th><th>Shadow side</th><th>Entry/current</th><th>V2 model total</th><th>Edge</th><th>QC</th></tr></thead><tbody id="totals-v2-today"></tbody></table></div><div id="totals-v2-today-empty" class="empty" hidden>No Totals v2 shadow candidates yet today.</div></div>
+  </div>
+
+  <div class="section split">
+    <div>
+      <h3>V2 prospective shadow history</h3>
+      <div class="desc">Tracked exactly like v1—official result, regulation result, overtime and CLV—but never included in our real-model combined record.</div>
+      <div class="card table-card"><div class="scroll"><table class="table"><thead><tr><th>Date</th><th>Shadow</th><th>Entry</th><th>Close proxy</th><th>CLV</th><th>Official</th><th>Regulation</th><th>OT</th><th>Shadow P/L</th></tr></thead><tbody id="totals-v2-history"></tbody></table></div><div id="totals-v2-history-empty" class="empty" hidden>No tracked v2 shadow plays yet.</div></div>
+    </div>
+    <div>
+      <h3>V2 weighting design</h3>
+      <div class="card rule-list">
+        <div class="rule"><span>Market + KenPom</span><strong>1.0×</strong></div>
+        <div class="rule"><span>Season baseline stats</span><strong>1.0×</strong></div>
+        <div class="rule"><span>Season matchup interactions</span><strong>2.0×</strong></div>
+        <div class="rule"><span>Last-5 raw form</span><strong>0.5×</strong></div>
+        <div class="rule"><span>Last-5 matchup interactions</span><strong>1.0×</strong></div>
+        <div class="rule"><span>Ridge alpha</span><strong>30,000</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section split">
+    <div>
+      <h3>Development forecast comparison</h3>
+      <div class="card rule-list">
+        <div class="rule"><span>Combined dev CV RMSE</span><strong>v1 16.3314 → v2 16.3260</strong></div>
+        <div class="rule"><span>2023–24 CV RMSE</span><strong>16.4637 → 16.4583</strong></div>
+        <div class="rule"><span>2024–25 CV RMSE</span><strong>16.2013 → 16.1959</strong></div>
+        <div class="rule"><span>Selection objective</span><strong>RMSE only — not ROI</strong></div>
+        <div class="rule"><span>Dev 2pt shadow</span><strong>47–42 · 52.81%</strong></div>
+      </div>
+    </div>
+    <div>
+      <h3>Evidence policy</h3>
+      <div class="card rule-list">
+        <div class="rule"><span>Live status</span><strong>Shadow only</strong></div>
+        <div class="rule"><span>Counts in combined stats</span><strong>No</strong></div>
+        <div class="rule"><span>Creates betting plays</span><strong>No</strong></div>
+        <div class="rule"><span>2025–26 reconstruction</span><strong>Secondary sanity check only</strong></div>
+        <div class="rule"><span>2025–26 RMSE check</span><strong>16.8912 → 16.8879</strong></div>
+        <div class="rule"><span>Promotion basis</span><strong>Prospective 2026–27 evidence</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider" id="nba-lab"></div>
+  <div class="model-head">
+    <div><div class="model-title">NBA — Moneyline Confidence Lab</div>
+    <div class="model-desc">NBA plays share this dashboard with CBB ATS and Totals, but keep their own record. The three readings are model win probability, evidence confidence, and historical reliability. The back-to-back strategy has LOW (24/100) historical research confidence, not a predictive probability. An independent Elo model now forecasts NBA win probabilities with LOW (35/100) model confidence; neither is an established betting edge.</div></div>
+    <div class="tag">NBA RESEARCH ONLY</div>
+  </div>
+  <div class="grid" id="nba-kpis"></div>
+  <div class="section">
+    <h3>NBA model v1 — independently tested</h3>
+    <div class="desc">Frozen Elo + home court + B2B rest logistic model; no paid data needed. Brier measures probability accuracy (lower is better). Model was trained on 2016–2023, checked on 2024–25 and evaluated once on an untouched 2025–26 holdout.</div>
+    <div class="grid" id="nba-model-kpis"></div>
+    <div class="desc">The market performed better on the untouched season. A positive displayed model-vs-odds edge is not a validated betting advantage; all new NBA picks remain research/paper-tracking only.</div>
+  </div>
+  <div class="section">
+    <div class="model-head" style="margin-top:8px">
+      <div><h3>NBA v2 — Four-Factor Challenger</h3>
+      <div class="model-desc">Frozen shadow-only challenger using the prior ten games: offensive and defensive rating, 3PA rate, effective FG%, FT%, turnovers, pace, rebounding and recent results. Validation uses 2024–25; 2025–26 is the untouched test.</div></div>
+      <div class="tag">SHADOW ONLY</div>
+    </div>
+    <div class="grid" id="nba-v2-kpis"></div>
+    <div id="nba-v2-live-status" class="desc">Waiting for free 2026–27 box-score data; minimum five completed games per team for live v2 forecasts.</div>
+    <div class="desc">A Brier improvement versus v1 does not establish a moneyline advantage. V2 may not create or promote wagers, and no verified injury feed is included. The full 2025–26 market benchmark still outperformed v2.</div>
+  </div>
+
+  <div class="section" id="nba-live-trial">
+    <div class="model-head">
+      <div>
+        <h3>NBA v1 vs v2 — One-Month Live Test</h3>
+        <div class="model-desc">October 26–November 26, 2026 · Results tracked on a frozen pretip prediction for each game. One-month paper test only; no stakes or automatic betting.</div>
+      </div>
+      <div class="tag">PROSPECTIVE / PAPER ONLY</div>
+    </div>
+    <div class="grid" id="nba-live-test-kpis">
+      <div class="card kpi"><div class="label">Status</div><div class="value">Loading</div><div class="hint">Retrieving paper-test ledger</div></div>
+    </div>
+    <div class="section split">
+      <div>
+        <h3>V1 live accuracy</h3>
+        <div id="nba-live-v1" class="card empty">No completed games graded yet.</div>
+      </div>
+      <div>
+        <h3>V2 live accuracy</h3>
+        <div id="nba-live-v2" class="card empty">Waiting for enough prior games to start v2 observations.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="desc" id="nba-live-paired">Head-to-head comparison will appear once both models have pregame predictions for the same completed games.</div>
+      <div class="desc">A lower Brier score means more accurate probability estimates. No returns or profitable betting edge will be inferred from prediction accuracy alone. Models stay frozen for this trial.</div>
+    </div>
+    <div class="section">
+      <div class="row" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <h3>Saved pregame forecasts</h3>
+        <label class="nba-small" for="nba-live-filter">Games <select id="nba-live-filter" style="background:var(--card2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:7px">
+          <option value="recent">Recent</option><option value="final">Finals only</option><option value="paired">Both models available</option><option value="open">Upcoming / pending</option>
+        </select></label>
+      </div>
+      <div class="card table-card">
+        <div class="scroll"><table class="table"><thead>
+          <tr><th>Game date</th><th>Matchup</th><th>V1 away win %</th><th>V2 away win %</th><th>Result</th><th>Forecast saved (PT)</th></tr>
+        </thead><tbody id="nba-live-test-rows"></tbody></table></div>
+        <div class="empty" id="nba-live-test-empty">The test ledger will appear after the first automated pre-tip run.</div>
+      </div>
+    </div>
+  </div>
+  <div class="section" id="nba-scanner">
+    <h3>Automated NBA schedule and back-to-back scanner</h3>
+    <div class="desc">NBA regular-season games are refreshed separately from CBB. The previous night's result and rest status are checked automatically. A setup is not a bet unless a same-book pregame moneyline meets the fixed rule.</div>
+    <div class="card" style="margin-bottom:12px">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px">
+        <div class="nba-small" id="nba-feed-status">Waiting for first NBA feed update.</div>
+        <label class="nba-small" for="nba-scan-filter">Show <select id="nba-scan-filter" style="background:var(--card2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:7px"><option value="all">All games</option><option value="b2b">Back-to-back games</option><option value="setup">After-loss setups</option></select></label>
+      </div>
+    </div>
+    <div class="card table-card"><div class="scroll"><table class="table"><thead><tr><th>Date / time ET</th><th>Matchup</th><th>Home team</th><th>Home prior result</th><th>Visitor B2B</th><th>Visitor ML</th><th>V1 visitor win</th><th>V2 visitor win (shadow)</th><th>Model evidence</th><th>B2B research signal</th><th>B2B evidence</th></tr></thead><tbody id="nba-scan-body"></tbody></table></div><div class="empty" id="nba-scan-empty">No NBA schedule feed yet. The automatic workflow must complete its first run.</div></div>
+  </div>
+  <div class="section">
+    <h3>NBA prospective paper-tracker</h3>
+    <div class="desc">A historical game is entered only when the rule and selected sportsbook quote qualified before tip. First-qualifying price is frozen; final wins and losses are settled automatically. Never mixed into college-basketball statistics.</div>
+    <div class="card table-card"><div class="scroll"><table class="table"><thead><tr><th>Date</th><th>Matchup</th><th>Entry ML</th><th>Book</th><th>Result</th><th>Units</th></tr></thead><tbody id="nba-history-body"></tbody></table></div><div class="empty" id="nba-history-empty">No verified-price prospective NBA entries yet. A selected sportsbook API key is required for automatic moneyline entries.</div></div>
+  </div>
+
+  <div class="section split">
+    <div><h3>Adjust confidence weights</h3>
+      <div class="desc">Relative importance of each component. These weights are heuristic and have not been validated as NBA prediction weights.</div>
+      <div class="card">
+        <div class="nba-weights">
+          <div class="nba-weight"><label for="nba-weight-0">Model vs. market edge <strong id="nba-weight-val-0">40%</strong></label><input type="range" id="nba-weight-0" min="0" max="100" step="5" value="40"></div>
+          <div class="nba-weight"><label for="nba-weight-1">Historical reliability <strong id="nba-weight-val-1">30%</strong></label><input type="range" id="nba-weight-1" min="0" max="100" step="5" value="30"></div>
+          <div class="nba-weight"><label for="nba-weight-2">Rest / travel <strong id="nba-weight-val-2">20%</strong></label><input type="range" id="nba-weight-2" min="0" max="100" step="5" value="20"></div>
+          <div class="nba-weight"><label for="nba-weight-3">Injury / line checks <strong id="nba-weight-val-3">10%</strong></label><input type="range" id="nba-weight-3" min="0" max="100" step="5" value="10"></div>
+        </div>
+        <div class="nba-actions"><button id="nba-reset" type="button">Reset</button><span class="nba-small" id="nba-weight-total"></span></div>
+      </div>
+    </div>
+    <div><h3>Load NBA plays</h3>
+      <div class="desc">Upload a CSV with actual model and evidence inputs. The import is saved in this browser; repository-published NBA plays are available to everyone viewing the dashboard.</div>
+      <div class="card">
+        <div class="nba-actions"><input id="nba-file" type="file" accept=".csv,text/csv" aria-label="Import NBA play CSV"><button id="nba-template" type="button">CSV template</button><button id="nba-clear" type="button">Clear import</button></div>
+        <p class="nba-small" id="nba-import-status" role="status">No NBA plays imported.</p>
+        <div class="rule-list">
+          <div class="rule"><span>Live sportsbook feed</span><strong>Not connected</strong></div>
+          <div class="rule"><span>Missing probability or evidence</span><strong>Unrated</strong></div>
+          <div class="rule"><span>Betting status</span><strong>Paper-track only</strong></div>
+          <div class="rule"><span>Included in CBB combined stats</span><strong>No</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="section"><h3>NBA play confidence</h3>
+    <div class="desc">Projected model win probability is separate from confidence in the estimated betting edge. Do not interpret a confidence score as a winning percentage.</div>
+    <div id="nba-playgrid" class="nba-playgrid"></div>
+    <div id="nba-empty" class="card empty">No NBA moneyline-qualified plays yet. Qualifying B2B matchups receive a 24/100 LOW historical-research confidence rating in the scanner, separate from model win probability.</div>
+  </div>
+  <div class="section"><h3>Back-to-back research reference</h3>
+    <div class="desc">Visiting favorite at -250 or shorter against a home team on game two of a back-to-back after a previous-night loss; visitor not on a back-to-back. Historical average prices, not verified book-specific closes.</div>
+    <div class="grid">
+      <div class="card kpi"><div class="label">Recent 5 seasons</div><div class="value green">+10.73%</div><div class="hint">90–10 · 100 bets</div></div>
+      <div class="card kpi"><div class="label">Prior 5 seasons</div><div class="value red">-17.69%</div><div class="hint">50–24 · 74 bets</div></div>
+      <div class="card kpi"><div class="label">All 10 seasons</div><div class="value red">-1.36%</div><div class="hint">140–34 · 174 bets</div></div>
+      <div class="card kpi"><div class="label">Confidence status</div><div class="value yellow" style="font-size:19px">PAPER-TRACK</div><div class="hint">Retrospectively discovered</div></div>
+    </div>
+    <div class="desc">These are historical research figures, not current predictions, and are not counted as actionable NBA or CBB plays.</div>
+  </div>
+
+  <div class="note">All records are prospective research tests, not guarantees. “Close” is a proxy: the latest scheduled snapshot captured before tip, not an independently certified sportsbook closing line. ATS and Totals are scored and tracked independently.</div>
+</div>
+<script>
+const f=(x,d=2)=>x==null||Number.isNaN(Number(x))?'—':Number(x).toFixed(d);
+const pct=x=>x==null?'—':(100*Number(x)).toFixed(2)+'%';
+const signed=(x,d=1)=>x==null?'—':(Number(x)>=0?'+':'')+Number(x).toFixed(d);
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function resultBadge(r){if(!r)return '<span class="badge">OPEN</span>';let c=r==='W'?'win':r==='L'?'loss':'push';return `<span class="badge ${c}">${r}</span>`}
+function atsStatus(p){return p.entry_line!=null?'<span class="badge bet">ACTIONABLE</span>':'<span class="badge review">REVIEW</span>'}
+function totalStatus(p){return p.entry_total!=null?'<span class="badge bet">ACTIONABLE</span>':'<span class="badge review">REVIEW</span>'}
+function cards(el,m,kind){
+ let arr;
+ if(kind==='COMBINED'){
+  arr=[['Total plays',m.entered_plays??0,'ATS + totals entries'],['Record',`${m.wins??0}-${m.losses??0}${m.pushes?'-'+m.pushes:''}`,'completed'],['Win rate',pct(m.win_pct),'combined'],['Profit',m.profit_units==null?'—':signed(m.profit_units,2)+'u','flat-unit result'],['ROI',pct(m.roi),'combined'],['Avg CLV',m.avg_clv_proxy==null?'—':signed(m.avg_clv_proxy),'snapshot proxy']];
+ }else if(kind==='ATS'){
+  arr=[['Today actionable',m.today_actionable??0,'first qualified lines'],['Today review',m.today_review??0,'neutral/QC'],['Record',`${m.wins??0}-${m.losses??0}${m.pushes?'-'+m.pushes:''}`,'completed'],['Win rate',pct(m.win_pct),'ATS'],['ROI',pct(m.roi),'scanner-entry test'],['Avg CLV',m.avg_clv_proxy==null?'—':signed(m.avg_clv_proxy),'snapshot proxy']];
+ }else{
+  arr=[['Today plays',m.today_actionable??0,'qualified totals'],['Tracked',m.tracked_candidates??0,'prospective candidates'],['Record',`${m.wins??0}-${m.losses??0}${m.pushes?'-'+m.pushes:''}`,'completed'],['Win rate',pct(m.win_pct),'O/U'],['ROI',pct(m.roi),'scanner-entry test'],['Avg CLV',m.avg_clv_proxy==null?'—':signed(m.avg_clv_proxy),'snapshot proxy']];
+ }
+ document.getElementById(el).innerHTML=arr.map(c=>`<div class="card kpi"><div class="label">${c[0]}</div><div class="value">${c[1]}</div><div class="hint">${c[2]}</div></div>`).join('');
+}
+function totalsRegCards(m){
+ const regRecord=`${m.regulation_wins??0}-${m.regulation_losses??0}${m.regulation_pushes?'-'+m.regulation_pushes:''}`;
+ const arr=[
+  ['Official record',`${m.wins??0}-${m.losses??0}${m.pushes?'-'+m.pushes:''}`,'includes overtime'],
+  ['Regulation record',regRecord,'score after 40 minutes'],
+  ['OT games',m.overtime_games??0,'prospective totals plays'],
+  ['OT-assisted wins',m.ot_assisted_wins??0,'official W, not W at 40m'],
+  ['Official ROI',pct(m.roi),'includes overtime'],
+  ['Regulation ROI',pct(m.regulation_roi),'40-minute re-grade']
+ ];
+ document.getElementById('totals-reg-kpis').innerHTML=arr.map(c=>`<div class="card kpi"><div class="label">${c[0]}</div><div class="value">${c[1]}</div><div class="hint">${c[2]}</div></div>`).join('');
+}
+function totalsV2Cards(m){
+ const arr=[
+  ['Today shadow',m.today_trackable??0,'2pt trackable observations'],
+  ['Tracked',m.entered_plays??0,'shadow entries'],
+  ['Record',`${m.wins??0}-${m.losses??0}${m.pushes?'-'+m.pushes:''}`,'shadow only'],
+  ['Win rate',pct(m.win_pct),'not a betting record'],
+  ['Shadow ROI',pct(m.roi),'diagnostic only'],
+  ['Avg CLV',m.avg_clv_proxy==null?'—':signed(m.avg_clv_proxy),'snapshot proxy']
+ ];
+ document.getElementById('totals-v2-kpis').innerHTML=arr.map(c=>`<div class="card kpi"><div class="label">${c[0]}</div><div class="value">${c[1]}</div><div class="hint">${c[2]}</div></div>`).join('');
+}
+async function boot(){
+ try{
+  const res=await fetch('data/state.json',{cache:'no-store'});if(!res.ok)throw new Error('State file unavailable');const s=await res.json();
+  document.getElementById('updated').textContent=s.last_updated_pt?`Updated ${s.last_updated_pt.replace('T',' ')}`:'Not run yet';
+  cards('combined-kpis',s.combined_summary||{},'COMBINED');cards('ats-kpis',s.summary||{},'ATS');cards('totals-kpis',s.totals_summary||{},'TOTALS');totalsRegCards(s.totals_summary||{});totalsV2Cards(s.totals_v2_summary||{});
+
+  const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+
+  const ats=Object.values(s.plays||{}).sort((a,b)=>(b.game_date||'').localeCompare(a.game_date||'')||(b.first_seen_pt||'').localeCompare(a.first_seen_pt||''));
+  const atsToday=ats.filter(p=>p.game_date===today);const atb=document.getElementById('ats-today');
+  if(!atsToday.length){document.getElementById('ats-today-empty').hidden=false;atb.innerHTML=''}else{
+   document.getElementById('ats-today-empty').hidden=true;
+   atb.innerHTML=atsToday.map(p=>{const entry=p.entry_line!=null?signed(p.entry_line):'—',latest=p.latest_line!=null?signed(p.latest_line):'—';const move=p.entry_line!=null&&p.latest_line!=null?p.entry_line-p.latest_line:null;return `<tr><td>${atsStatus(p)}</td><td><span class="team">${esc(p.away_team)} @ ${esc(p.home_team)}</span>${p.neutral_site?' <span class="yellow">(N)</span>':''}</td><td class="team">${esc(p.bet_team)}</td><td>${entry} / ${latest}</td><td>${f(p.entry_edge??p.first_edge,2)}</td><td class="${move>0?'green':move<0?'red':''}">${move==null?'—':signed(move)}</td><td>${esc(p.qc_status||'')}</td></tr>`}).join('');
+  }
+  const atsHist=ats.filter(p=>p.entry_line!=null).slice(0,100),ahb=document.getElementById('ats-history');
+  if(!atsHist.length){document.getElementById('ats-history-empty').hidden=false;ahb.innerHTML=''}else{
+   document.getElementById('ats-history-empty').hidden=true;
+   ahb.innerHTML=atsHist.map(p=>`<tr><td>${esc(p.game_date)}</td><td><span class="team">${esc(p.bet_team)}</span><div style="color:var(--muted);font-size:12px">${esc(p.away_team)} @ ${esc(p.home_team)}</div></td><td>${signed(p.entry_line)}</td><td>${signed(p.closing_proxy_line)}</td><td class="${(p.clv_proxy_points??0)>0?'green':(p.clv_proxy_points??0)<0?'red':''}">${p.clv_proxy_points==null?'—':signed(p.clv_proxy_points)}</td><td>${resultBadge(p.result)}</td><td class="${(p.profit_units??0)>0?'green':(p.profit_units??0)<0?'red':''}">${p.profit_units==null?'—':f(p.profit_units,2)+'u'}</td></tr>`).join('');
+  }
+
+  const totals=Object.values(s.totals_plays||{}).sort((a,b)=>(b.game_date||'').localeCompare(a.game_date||'')||(b.first_seen_pt||'').localeCompare(a.first_seen_pt||''));
+  const totalsToday=totals.filter(p=>p.game_date===today),ttb=document.getElementById('totals-today');
+  if(!totalsToday.length){document.getElementById('totals-today-empty').hidden=false;ttb.innerHTML=''}else{
+   document.getElementById('totals-today-empty').hidden=true;
+   ttb.innerHTML=totalsToday.map(p=>`<tr><td>${totalStatus(p)}</td><td><span class="team">${esc(p.away_team)} @ ${esc(p.home_team)}</span>${p.neutral_site?' <span class="yellow">(N)</span>':''}</td><td class="team">${esc(p.bet_side)}</td><td>${f(p.entry_total,1)} / ${f(p.latest_total,1)}</td><td>${f(p.entry_model_total??p.first_model_total,1)}</td><td>${f(p.entry_edge??p.first_edge,2)}</td><td>${esc(p.qc_status||'')}</td></tr>`).join('');
+  }
+  const totalHist=totals.filter(p=>p.entry_total!=null).slice(0,100),thb=document.getElementById('totals-history');
+  if(!totalHist.length){document.getElementById('totals-history-empty').hidden=false;thb.innerHTML=''}else{
+   document.getElementById('totals-history-empty').hidden=true;
+   thb.innerHTML=totalHist.map(p=>{const ot=p.went_overtime===true?(p.ot_assisted_win?'<span class="badge review">OT ASSISTED</span>':'<span class="badge">OT</span>'):'—';return `<tr><td>${esc(p.game_date)}</td><td><span class="team">${esc(p.bet_side)} ${f(p.entry_total,1)}</span><div style="color:var(--muted);font-size:12px">${esc(p.away_team)} @ ${esc(p.home_team)}</div></td><td>${f(p.entry_total,1)}</td><td>${f(p.closing_proxy_total,1)}</td><td class="${(p.clv_proxy_points??0)>0?'green':(p.clv_proxy_points??0)<0?'red':''}">${p.clv_proxy_points==null?'—':signed(p.clv_proxy_points)}</td><td>${resultBadge(p.result)}</td><td>${resultBadge(p.regulation_result)}</td><td>${ot}</td><td class="${(p.profit_units??0)>0?'green':(p.profit_units??0)<0?'red':''}">${p.profit_units==null?'—':f(p.profit_units,2)+'u'}</td></tr>`}).join('');
+  }
+
+  const v2=Object.values(s.totals_v2_plays||{}).sort((a,b)=>(b.game_date||'').localeCompare(a.game_date||'')||(b.first_seen_pt||'').localeCompare(a.first_seen_pt||''));
+  const v2Today=v2.filter(p=>p.game_date===today),v2tb=document.getElementById('totals-v2-today');
+  if(!v2Today.length){document.getElementById('totals-v2-today-empty').hidden=false;v2tb.innerHTML=''}else{
+   document.getElementById('totals-v2-today-empty').hidden=true;
+   v2tb.innerHTML=v2Today.map(p=>`<tr><td><span class="badge ${p.entry_total!=null?'':'review'}">${p.entry_total!=null?'SHADOW':'REVIEW'}</span></td><td><span class="team">${esc(p.away_team)} @ ${esc(p.home_team)}</span>${p.neutral_site?' <span class="yellow">(N)</span>':''}</td><td class="team">${esc(p.bet_side)}</td><td>${f(p.entry_total,1)} / ${f(p.latest_total,1)}</td><td>${f(p.entry_model_total??p.first_model_total,1)}</td><td>${f(p.entry_edge??p.first_edge,2)}</td><td>${esc(p.qc_status||'')}</td></tr>`).join('');
+  }
+  const v2Hist=v2.filter(p=>p.entry_total!=null).slice(0,100),v2hb=document.getElementById('totals-v2-history');
+  if(!v2Hist.length){document.getElementById('totals-v2-history-empty').hidden=false;v2hb.innerHTML=''}else{
+   document.getElementById('totals-v2-history-empty').hidden=true;
+   v2hb.innerHTML=v2Hist.map(p=>{const ot=p.went_overtime===true?(p.ot_assisted_win?'<span class="badge review">OT ASSISTED</span>':'<span class="badge">OT</span>'):'—';return `<tr><td>${esc(p.game_date)}</td><td><span class="team">${esc(p.bet_side)} ${f(p.entry_total,1)}</span><div style="color:var(--muted);font-size:12px">${esc(p.away_team)} @ ${esc(p.home_team)}</div></td><td>${f(p.entry_total,1)}</td><td>${f(p.closing_proxy_total,1)}</td><td class="${(p.clv_proxy_points??0)>0?'green':(p.clv_proxy_points??0)<0?'red':''}">${p.clv_proxy_points==null?'—':signed(p.clv_proxy_points)}</td><td>${resultBadge(p.result)}</td><td>${resultBadge(p.regulation_result)}</td><td>${ot}</td><td class="${(p.profit_units??0)>0?'green':(p.profit_units??0)<0?'red':''}">${p.profit_units==null?'—':f(p.profit_units,2)+'u'}</td></tr>`}).join('');
+  }
+
+ }catch(e){document.getElementById('error').innerHTML=`<div class="error">Dashboard could not load: ${esc(e.message)}</div>`}
+}
+
+/* NBA lab is deliberately independent of the CBB boot() and state feed. */
+const nbaDefault=[40,30,20,10],nbaWIds=[0,1,2,3];
+let nbaWeights=nbaDefault.slice(),nbaLocal=[],nbaPublished=[];
+
+let nbaSchedule=[],nbaFeedMeta={},nbaV2Research=null,nbaTrial=null;
+
+function nbaRenderTrial(){
+  const root=document.getElementById('nba-live-test-kpis');
+  const trial=nbaTrial,summary=trial?.summary||{},records=trial?.records||[];
+  const metrics=(m)=>m&&m.graded>0?'<strong>'+esc(m.accuracy_pct)+'% accuracy</strong> · Brier <strong>'+esc(m.brier)+'</strong> · '+esc(m.graded)+' finalized games':'No finalized games graded yet';
+  const v1=summary.v1||{},v2=summary.v2||{},pair=summary.paired||{};
+  const data=[
+    ['Paper test','Oct 26–Nov 26','2026 • no real wagers'],
+    ['Saved pretip forecasts',summary.games_recorded??0,'Frozen on first scheduled pre-tip scan'],
+    ['Final games graded',summary.games_final??0,'Only ESPN completed results'],
+    ['V1 forecasts',v1.predictions??0,'Pregame snapshots'],
+    ['V2 forecasts',v2.predictions??0,'Requires 5 previous games per team'],
+    ['Same-game comparison',pair.same_games??0,'Only games with both models'],
+  ];
+  root.innerHTML=data.map(x=>'<div class="card kpi"><div class="label">'+esc(x[0])+'</div><div class="value" style="font-size:23px">'+esc(x[1])+'</div><div class="hint">'+esc(x[2])+'</div></div>').join('');
+  document.getElementById('nba-live-v1').innerHTML='<div class="nba-small">'+metrics(v1)+'</div><div class="nba-small" style="margin-top:9px">Log loss: '+esc(v1.log_loss??'—')+'</div>';
+  document.getElementById('nba-live-v2').innerHTML='<div class="nba-small">'+metrics(v2)+'</div><div class="nba-small" style="margin-top:9px">Log loss: '+esc(v2.log_loss??'—')+'</div>';
+  const compare=(pair.same_games>0&&pair.v1?.brier!=null&&pair.v2?.brier!=null)
+    ?'On '+pair.same_games+' paired final game(s): V1 Brier '+pair.v1.brier+'; V2 Brier '+pair.v2.brier+'; difference '+(pair.v2.brier-pair.v1.brier).toFixed(5)+' (negative favors V2)'
+    :'No paired finalized games yet; V1-only games do not count toward the v1-versus-v2 comparison.';
+  document.getElementById('nba-live-paired').textContent=compare;
+  const choice=document.getElementById('nba-live-filter').value;
+  const show=records.filter(r=>choice==='final'?r.status==='FINAL':choice==='paired'?r.v2_away_win_probability!=null:choice==='open'?r.status==='OPEN':true).slice(0,45);
+  document.getElementById('nba-live-test-empty').hidden=show.length>0;
+  const asPct=x=>x==null?'—':(100*Number(x)).toFixed(1)+'%';
+  const recorded=x=>x?new Date(x).toLocaleString('en-US',{timeZone:'America/Los_Angeles',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'—';
+  document.getElementById('nba-live-test-rows').innerHTML=show.map(r=>{
+    const final=r.status==='FINAL'?(r.away_won?'Visitor won':'Home won')+' · '+esc(r.away_score)+'–'+esc(r.home_score):'Awaiting final';
+    return '<tr><td>'+esc(r.game_date)+'</td><td>'+esc(r.away_team)+' @ '+esc(r.home_team)+'</td><td>'+asPct(r.v1_away_win_probability)+'</td><td>'+asPct(r.v2_away_win_probability)+'</td><td>'+final+'</td><td>'+esc(recorded(r.first_seen_utc))+'</td></tr>';
+  }).join('');
+}
+
+function nbaRenderSchedule(){
+ const status=document.getElementById('nba-feed-status');
+ const meta=nbaFeedMeta||{}, summary=meta.summary||{};
+ const stamp=meta.updated_at?new Date(meta.updated_at).toLocaleString('en-US',{timeZone:'America/Los_Angeles',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}):'Not yet updated';
+ const statusMap={
+  CONNECTED:'DraftKings odds checked',
+  MISSING_API_KEY:'NBA_ODDS_API_KEY not configured (0 odds calls)',
+  SKIPPED_NO_READY_SETUP:'No eligible matchup near tip (0 odds calls)',
+  SKIPPED_DAILY_LIMIT:'Daily safety limit reached (4 calls)',
+  SKIPPED_MONTHLY_LIMIT:'Monthly safety limit reached (120 credits)',
+  SKIPPED_PROVIDER_RESERVE:'Remaining provider credits reserved',
+  ODDS_ERROR:'Odds source unavailable (no automatic retries)'
+ };
+ const odds=statusMap[meta.odds_status]||'No odds requests';
+ const budget=meta.odds_budget||{};
+ const usage=budget.month?' · Research quota '+(budget.credits_this_month??0)+'/120 monthly · '+(budget.calls_today??0)+'/4 daily'+(budget.provider_remaining==null?'':' · Provider remaining '+budget.provider_remaining):'';
+ status.textContent='Last updated '+stamp+' · '+(summary.scheduled_games??nbaSchedule.length)+' games · '+(summary.b2b_games??0)+' B2B games · '+(summary.qualified_setups??0)+' qualifying setups · '+odds+usage;
+ const info=meta.nba_model_metadata||{};
+ const mCards=[
+  ['2025–26 holdout',info.holdout_games??'—','games untouched during training'],
+  ['Model accuracy',info.holdout_accuracy_pct==null?'—':Number(info.holdout_accuracy_pct).toFixed(2)+'%','holdout classification'],
+  ['Model Brier',info.holdout_brier??'—','lower is better'],
+  ['Bookmaker Brier',info.market_holdout_brier??'—','archived no-vig benchmark'],
+  ['Model confidence',info.confidence_level==null?'—':info.confidence_level+'/100','low; not a winning probability'],
+  ['Market edge status','NOT VALIDATED','paper-track only']
+ ];
+ document.getElementById('nba-model-kpis').innerHTML=mCards.map(x=>'<div class="card kpi"><div class="label">'+esc(x[0])+'</div><div class="value">'+esc(x[1])+'</div><div class="hint">'+esc(x[2])+'</div></div>').join('');
+ const v2=nbaV2Research;
+ const v2Stats=v2?.metrics?.holdout||{},marketStats=v2?.metrics?.holdout_matched_market?.market_no_vig||{};
+ const v1Brier=v2Stats?.v1?.brier??null,v2Brier=v2Stats?.v2?.brier??null;
+ const v2Cards=[
+   ['2025–26 holdout',v2Stats?.v2?.games??'—','fully untouched regular-season games'],
+   ['V1 Brier',v1Brier??'—','same games, lower is better'],
+   ['V2 Brier',v2Brier??'—','improved versus V1' ],
+   ['Bookmaker Brier',marketStats?.brier??'—','market still better'],
+   ['Brier change',v1Brier==null||v2Brier==null?'—':(v2Brier-v1Brier).toFixed(5),'negative means V2 improved'],
+   ['V2 evidence grade','40/100','LOW; market edge not validated']
+ ];
+ document.getElementById('nba-v2-kpis').innerHTML=v2Cards.map(x=>'<div class="card kpi"><div class="label">'+esc(x[0])+'</div><div class="value">'+esc(x[1])+'</div><div class="hint">'+esc(x[2])+'</div></div>').join('');
+ const v2Feed=meta.nba_v2_summary||{};
+ const v2Label=v2Feed.status==='OK'?
+   (v2Feed.games_with_v2_predictions||0)+' live V2 predictions · '+(v2Feed.source_completed_team_games||0)+' free team box-score rows loaded':
+   (v2Feed.status==='SOURCE_UNAVAILABLE'?'V2 source temporarily unavailable · no invented predictions':'V2 free data not yet published');
+ document.getElementById('nba-v2-live-status').textContent=v2Label+' · minimum 5 prior current-season games per team · no Odds API credits';
+
+ const filter=document.getElementById('nba-scan-filter').value;
+ const matching=nbaSchedule.filter(g=>filter==='setup'?g.setup_qualified:filter==='b2b'?(g.home_b2b||g.away_b2b):true);
+ const body=document.getElementById('nba-scan-body');
+ document.getElementById('nba-scan-empty').hidden=matching.length>0;
+ body.innerHTML=matching.map(g=>{
+  const time=g.start_utc?new Date(g.start_utc).toLocaleString('en-US',{timeZone:'America/New_York',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):g.game_date;
+  const homeStatus=g.home_b2b?'B2B':'Rested';
+  const previous=g.home_b2b?(g.home_previous_result||'Pending'):'—';
+  const visitor=g.away_b2b?'YES':'No';
+  const ml=g.away_moneyline==null?'—':(g.away_moneyline>0?'+':'')+g.away_moneyline+' · '+(g.moneyline_bookmaker||'');
+  const modelProb=g.model_away_win_probability==null?null:Number(g.model_away_win_probability);
+  const modelWin=modelProb==null?'—':(100*modelProb).toFixed(1)+'%';
+  const modelEV=modelProb==null||g.away_moneyline==null?null:100*(modelProb*(g.away_moneyline>0?g.away_moneyline/100:100/-g.away_moneyline)-(1-modelProb));
+  const evText=modelEV==null?'':'Indicative EV '+(modelEV>=0?'+':'')+modelEV.toFixed(1)+'% · not validated';
+  const modelEvidence=g.model_confidence==null?'—':g.model_confidence+'/100 LOW';
+  const v2Win=g.model_v2_away_win_probability==null?null:Number(g.model_v2_away_win_probability);
+  const v2Text=v2Win==null?'—':(100*v2Win).toFixed(1)+'%';
+  const v2Delta=v2Win!=null&&modelProb!=null?(v2Win-modelProb)*100:null;
+  const v2Sub=v2Delta==null?'Need 5 current-season games/team':(v2Delta>=0?'+':'')+v2Delta.toFixed(1)+' pp vs v1 · evidence '+(g.model_v2_confidence??40)+'/100 LOW';
+  const tracked=nbaPublished.some(p=>String(p.game_id)===String(g.game_id));
+  let badge='NO SETUP',cls='';
+  if(g.setup_qualified){
+   if(tracked){badge='PAPER-TRACKED';cls='review'}
+   else if(g.status!=='Scheduled'){badge='SETUP · GAME STARTED';cls=''}
+   else if(g.away_moneyline==null){badge='AWAITING ML';cls='review'}
+   else if(g.away_moneyline<=-250){badge='PRICE QUALIFIES';cls='review'}
+   else {badge='PRICE OUTSIDE RULE';cls=''}
+  }else if(g.home_b2b&&g.home_previous_result==null){badge='PRIOR GAME PENDING';cls='review'}
+  const results=g.status==='Final'&&g.home_score!=null&&g.away_score!=null?' · '+g.away_score+'–'+g.home_score:'';
+  return '<tr><td>'+esc(time)+'</td><td><span class="team">'+esc(g.away_team)+' @ '+esc(g.home_team)+'</span><div class="nba-small">'+esc(g.status||'')+esc(results)+'</div></td><td>'+homeStatus+'</td><td>'+esc(previous)+'</td><td>'+visitor+'</td><td>'+esc(ml)+'</td><td><strong>'+esc(modelWin)+'</strong><div class="nba-small">'+esc(evText)+'</div></td><td><strong>'+esc(v2Text)+'</strong><div class="nba-small">'+esc(v2Sub)+'</div></td><td><span class="yellow">'+esc(modelEvidence)+'</span></td><td><span class="badge '+cls+'">'+esc(badge)+'</span></td><td>'+(g.research_confidence==null?'—':'<span class="yellow">'+esc(g.research_confidence)+'/100 LOW</span><div class="nba-small">Retrospective setup</div>')+'</td></tr>';
+ }).join('');
+ const hs=document.getElementById('nba-history-body');
+ const history=[...nbaPublished].sort((a,b)=>String(b.game_date).localeCompare(String(a.game_date)));
+ document.getElementById('nba-history-empty').hidden=history.length>0;
+ hs.innerHTML=history.map(p=>{
+  const ml=Number(p.entry_moneyline??p.moneyline);
+  const status=p.result==='W'?'W':p.result==='L'?'L':'OPEN';
+  const units=p.result==='W'?(ml>0?ml/100:100/-ml):p.result==='L'?-1:null;
+  return '<tr><td>'+esc(p.game_date)+'</td><td><span class="team">'+esc(p.away_team)+' @ '+esc(p.home_team)+'</span></td><td>'+esc((ml>0?'+':'')+ml)+'</td><td>'+esc(p.odds_source||'—')+'</td><td>'+resultBadge(status==='OPEN'?null:status)+'</td><td class="'+(units>0?'green':units<0?'red':'')+'">'+(units===null?'—':(units>=0?'+':'')+units.toFixed(2)+'u')+'</td></tr>';
+ }).join('');
+}
+
+const nbaCols=['game_date','away_team','home_team','bet_team','moneyline','model_win_probability','historical_bets','historical_profitable_seasons','historical_seasons','historical_out_of_sample','rest_context_score','injuries_verified','price_verified','result'];
+const nbaNum=v=>v==null||String(v).trim()===''?null:(Number.isFinite(Number(v))?Number(v):null);
+const nbaBool=v=>v===true||['1','yes','true'].includes(String(v).toLowerCase())?true:v===false||['0','no','false'].includes(String(v).toLowerCase())?false:null;
+const nbaClamp=x=>Math.max(0,Math.min(100,x));
+const nbaProb=v=>{let x=nbaNum(v);return x===null?null:x>1&&x<=100?x/100:x>=0&&x<=1?x:null};
+function nbaValid(p){const ml=nbaNum(p&&p.moneyline);return p&&/^\d{4}-\d{2}-\d{2}$/.test(String(p.game_date||''))&&String(p.away_team||'').trim()&&String(p.home_team||'').trim()&&String(p.bet_team||'').trim()&&ml!==null&&Math.abs(ml)>=100}
+function nbaScore(p){
+ const ml=nbaNum(p.moneyline),model=nbaProb(p.model_win_probability),market=ml>0?100/(ml+100):-ml/(100-ml);
+ const edge=model===null?null:100*(model-market),ev=model===null?null:100*(model*(ml>0?ml/100:100/-ml)-(1-model));
+ const bets=nbaNum(p.historical_bets),good=nbaNum(p.historical_profitable_seasons),seasons=nbaNum(p.historical_seasons),oos=nbaBool(p.historical_out_of_sample);
+ const history=bets!==null&&bets>=0&&seasons>0&&good!==null&&good>=0&&good<=seasons&&oos!==null?nbaClamp(Math.min(bets/500,1)*50+30*good/seasons+(oos?20:0)):null;
+ const context=nbaNum(p.rest_context_score),injury=nbaBool(p.injuries_verified),price=nbaBool(p.price_verified);
+ const factors=[edge===null?null:nbaClamp(50+5*edge),history,context!==null&&context>=0&&context<=100?context:null,injury===null||price===null?null:(injury?50:0)+(price?50:0)];
+ const sum=nbaWeights.reduce((a,b)=>a+b,0);
+ let conf=sum>0&&factors.every((v,i)=>nbaWeights[i]===0||v!==null)?factors.reduce((t,v,i)=>t+(v===null?0:v)*nbaWeights[i],0)/sum:null;
+ if(conf!==null&&(oos!==true||p.model_market_validated===false))conf=Math.min(conf,49);
+ const label=conf===null?'UNRATED':oos!==true?'IN-SAMPLE ONLY':conf>=75&&ev>0?'RESEARCH CANDIDATE':conf>=50?'MONITOR':'PAPER-TRACK';
+ return{ml,model,market,edge,ev,history,conf,label};
+}
+function nbaCsv(text){
+ const out=[];let row=[],cell='',quoted=false;
+ for(let i=0;i<text.length;i++){let c=text[i];
+  if(c==='"'){if(quoted&&text[i+1]==='"'){cell+='"';i++}else quoted=!quoted}
+  else if(c===','&&!quoted){row.push(cell);cell=''}
+  else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell);cell='';if(row.some(x=>x.trim()))out.push(row);row=[]}
+  else cell+=c;
+ }
+ if(quoted)throw new Error('Unclosed quoted CSV field');
+ row.push(cell);if(row.some(x=>x.trim()))out.push(row);
+ if(!out.length)return[];
+ const header=out.shift().map((x,i)=>(i===0?x.replace(/^\uFEFF/,''):x).trim());
+ return out.map(row=>Object.fromEntries(header.map((k,i)=>[k,(row[i]||'').trim()])));
+}
+function nbaCard(p){
+ const a=nbaScore(p),num=(a.conf===null?'—':a.conf.toFixed(0)+'/100');
+ const gauge=a.conf===null?'':'<div class="nba-meter"><span style="width:'+nbaClamp(a.conf)+'%"></span></div>';
+ const pp=v=>v===null?'—':(v>=0?'+':'')+v.toFixed(2)+' pp';
+ const pct=v=>v===null?'—':(100*v).toFixed(1)+'%';
+ const signed=v=>v===null?'—':(v>=0?'+':'')+v.toFixed(2)+'%';
+ const facts=[['Model win probability',pct(a.model)],['Market break-even',pct(a.market)],['Probability edge',pp(a.edge)],['Modeled expected ROI',signed(a.ev)],['Historical reliability',a.history===null?'—':a.history.toFixed(0)+'/100'],['Sample size',nbaNum(p.historical_bets)===null?'—':nbaNum(p.historical_bets)+' bets']];
+ return '<div class="card"><div class="nba-playhead"><div><div class="nba-playname">'+esc(p.bet_team)+' ML '+(a.ml>0?'+':'')+a.ml+'</div><div class="nba-small">'+esc(p.game_date)+' · '+esc(p.away_team)+' @ '+esc(p.home_team)+'</div></div><div style="text-align:right"><div class="nba-score">'+num+'</div><div class="nba-small">Edge confidence</div></div></div>'+gauge+'<div class="nba-facts">'+facts.map(x=>'<div><small>'+esc(x[0])+'</small><strong>'+esc(x[1])+'</strong></div>').join('')+'</div><span class="nba-tag">'+esc(a.label)+'</span><p class="nba-small">Inputs may be user-supplied; confidence is not a calibrated win probability.</p></div>';
+}
+function nbaRender(){
+ const m=new Map();
+ for(const p of nbaPublished.concat(nbaLocal))if(nbaValid(p))m.set([p.game_date,p.away_team,p.home_team,p.bet_team].join('|'),p);
+ const plays=[...m.values()].sort((a,b)=>String(b.game_date).localeCompare(String(a.game_date)));
+ const rated=plays.filter(p=>nbaScore(p).conf!==null).length;
+ const cards=[['NBA plays',plays.length,'published + local'],['Model confidence available',rated,'requires independent model validation'],['Model-unrated',plays.length-rated,'no guessed model probabilities'],['B2B setup research','24/100','LOW · historical 10yr ROI -1.36%'],['API budget',((nbaFeedMeta.odds_budget||{}).credits_this_month??0)+'/120','credits used by this feed this month'],['Status','RESEARCH','no automatic wagers']];
+ document.getElementById('nba-kpis').innerHTML=cards.map(x=>'<div class="card kpi"><div class="label">'+esc(x[0])+'</div><div class="value">'+esc(x[1])+'</div><div class="hint">'+esc(x[2])+'</div></div>').join('');
+ document.getElementById('nba-playgrid').innerHTML=plays.map(nbaCard).join('');
+ document.getElementById('nba-empty').hidden=plays.length>0;
+ document.getElementById('nba-weight-total').textContent='Relative weight total: '+nbaWeights.reduce((a,b)=>a+b,0);
+ nbaRenderSchedule();
+}
+function nbaSyncWeights(){
+ nbaWIds.forEach(i=>{document.getElementById('nba-weight-'+i).value=nbaWeights[i];document.getElementById('nba-weight-val-'+i).textContent=nbaWeights[i]+'%'});
+ try{localStorage.setItem('nba_conf_weights_v1',JSON.stringify(nbaWeights))}catch(e){}
+ nbaRender();
+}
+
+async function nbaRefreshFeed(){
+ try{
+  const response=await fetch('data/nba_plays.json',{cache:'no-store'});
+  if(!response.ok)throw new Error('HTTP '+response.status);
+  const j=await response.json();
+  if(!nbaV2Research){try{
+    const v2Res=await fetch('data/nba_v2_challenger.json',{cache:'no-store'});
+    if(v2Res.ok)nbaV2Research=await v2Res.json();
+  }catch(err){}}
+  if(Array.isArray(j.plays))nbaPublished=j.plays.filter(nbaValid);
+  if(Array.isArray(j.games))nbaSchedule=j.games;
+  nbaFeedMeta=j;
+  try{
+    const trialRes=await fetch('data/nba_live_test.json',{cache:'no-store'});
+    if(trialRes.ok)nbaTrial=await trialRes.json();
+  }catch(err){}
+  nbaRenderTrial();
+  nbaRender();
+ }catch(e){
+  document.getElementById('nba-import-status').textContent='NBA shared feed unavailable; local CSV imports remain available.';
+ }
+}
+
+async function nbaInit(){
+ try{const v=JSON.parse(localStorage.getItem('nba_conf_weights_v1')||'null');if(Array.isArray(v)&&v.length===4&&v.every(x=>Number.isFinite(x)&&x>=0&&x<=100)&&v.some(x=>x>0))nbaWeights=v}catch(e){}
+ try{const v=JSON.parse(localStorage.getItem('nba_conf_local_v1')||'[]');if(Array.isArray(v))nbaLocal=v.filter(nbaValid)}catch(e){}
+ nbaWIds.forEach(i=>document.getElementById('nba-weight-'+i).addEventListener('input',e=>{nbaWeights[i]=Number(e.target.value);nbaSyncWeights()}));
+ document.getElementById('nba-reset').addEventListener('click',()=>{nbaWeights=nbaDefault.slice();nbaSyncWeights()});
+ document.getElementById('nba-template').addEventListener('click',()=>{
+  const file=new Blob([nbaCols.join(',')+'\n'],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(file),a=document.createElement('a');
+  a.href=url;a.download='nba_confidence_template.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ });
+ document.getElementById('nba-clear').addEventListener('click',()=>{
+  nbaLocal=[];try{localStorage.removeItem('nba_conf_local_v1')}catch(e){}
+  document.getElementById('nba-file').value='';document.getElementById('nba-import-status').textContent='Local plays cleared; published feed unchanged.';nbaRender();
+ });
+ document.getElementById('nba-file').addEventListener('change',async e=>{
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  try{const values=nbaCsv(await f.text()),good=values.filter(nbaValid);if(!good.length)throw new Error('No valid rows. Supply game_date, teams, bet_team and American moneyline.');
+   nbaLocal=good;try{localStorage.setItem('nba_conf_local_v1',JSON.stringify(good))}catch(err){}
+   document.getElementById('nba-import-status').textContent='Imported '+good.length+' play(s); skipped '+(values.length-good.length)+' invalid row(s).';nbaRender();
+  }catch(err){document.getElementById('nba-import-status').textContent='Import failed: '+err.message}
+ });
+ nbaSyncWeights();
+ await nbaRefreshFeed();
+ setInterval(nbaRefreshFeed,300000);
+ document.getElementById('nba-scan-filter').addEventListener('change',nbaRenderSchedule);
+ document.getElementById('nba-live-filter').addEventListener('change',nbaRenderTrial);
+ nbaRender();
+}
+nbaInit();
+
+boot();setInterval(boot,300000);
+</script>
+</body>
+</html>
