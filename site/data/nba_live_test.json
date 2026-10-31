@@ -504,23 +504,23 @@
       "winner": null
     },
     {
-      "away_score": null,
+      "away_score": 112,
       "away_team": "Portland Trail Blazers",
-      "away_won": null,
+      "away_won": true,
       "betting_status": "NO BET - PAPER MODEL EVALUATION",
       "first_seen_utc": "2026-10-29T06:00:26.473713Z",
       "game_date": "2026-10-31",
       "game_id": "401909896",
-      "home_score": null,
+      "home_score": 90,
       "home_team": "Utah Jazz",
       "start_utc": "2026-10-31T19:00:00Z",
-      "status": "OPEN",
+      "status": "FINAL",
       "v1_away_win_probability": 0.72095,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
       "v2_away_win_probability": null,
       "v2_eligible_at_snapshot": false,
       "v2_model_id": null,
-      "winner": null
+      "winner": "Portland Trail Blazers"
     },
     {
       "away_score": 127,
@@ -1255,10 +1255,10 @@
   "status": "ACTIVE",
   "summary": {
     "betting_plays": 0,
-    "games_final": 38,
-    "games_open": 26,
+    "games_final": 39,
+    "games_open": 25,
     "games_recorded": 64,
-    "last_run_graded": 0,
+    "last_run_graded": 1,
     "last_run_new": 0,
     "last_run_new_v2_on_existing": 0,
     "odds_status": "CONNECTED",
@@ -1280,10 +1280,10 @@
       }
     },
     "v1": {
-      "accuracy_pct": 63.16,
-      "brier": 0.2344,
-      "graded": 38,
-      "log_loss": 0.65902,
+      "accuracy_pct": 64.1,
+      "brier": 0.23039,
+      "graded": 39,
+      "log_loss": 0.65051,
       "predictions": 64
     },
     "v2": {
@@ -1294,5 +1294,5 @@
       "predictions": 28
     }
   },
-  "updated_at": "2026-10-31T17:50:07.269161Z"
+  "updated_at": "2026-10-31T21:52:20.794468Z"
 }
