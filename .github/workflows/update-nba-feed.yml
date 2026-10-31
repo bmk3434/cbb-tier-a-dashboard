@@ -65,21 +65,26 @@ jobs:
           print("NBA independent holdout / v2 shadow-only integrity OK")
           PY
 
-      - name: Check combined dashboard JavaScript
+      - name: Check dashboard and research page JavaScript
         run: |
           python - <<'PY'
           import re
           from pathlib import Path
-          html = Path('site/index.html').read_text(encoding='utf-8')
-          scripts = re.findall(r'<script[^>]*>(.*?)</script>', html, flags=re.S)
-          assert scripts, 'No dashboard scripts found'
-          assert 'nbaRenderSchedule' in html
-          assert 'ats-kpis' in html
-          assert 'totals-kpis' in html
-          assert 'nba-live-trial' in html
-          Path('/tmp/basketball-dashboard-inline.js').write_text('\n'.join(scripts), encoding='utf-8')
+          homepage = Path('site/index.html').read_text(encoding='utf-8')
+          research = Path('site/research.html').read_text(encoding='utf-8')
+          assert 'research.html' in homepage, 'Main dashboard must link to research'
+          assert 'index.html' in research, 'Research must link to main'
+          assert 'nbaRenderSchedule' in research, 'NBA model scanner must be preserved'
+          assert 'ats-kpis' in research and 'totals-kpis' in research
+          assert 'nba-live-trial' in research
+          assert 'qualified-plays' in homepage or 'nbaRenderSchedule' in homepage
+          for page, content in [('main',homepage),('research',research)]:
+              scripts = re.findall(r'<script[^>]*>(.*?)</script>',content,flags=re.S)
+              assert scripts, f'No JavaScript in {page}'
+              Path('/tmp/basketball-' + page + '.js').write_text('\n'.join(scripts),encoding='utf-8')
           PY
-          node --check /tmp/basketball-dashboard-inline.js
+          node --check /tmp/basketball-main.js
+          node --check /tmp/basketball-research.js
 
       - name: Refresh NBA schedule and optional moneylines
         env:
