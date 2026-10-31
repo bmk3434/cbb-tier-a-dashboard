@@ -210,6 +210,7 @@
     },
     {
       "away_b2b": false,
+      "away_moneyline": 120,
       "away_previous_date": null,
       "away_previous_result": null,
       "away_score": 0,
@@ -237,6 +238,8 @@
       "model_v2_min_prior_games": 5,
       "model_v2_source": "Free BoxScore Lab game logs; estimated possession/ratings proxies",
       "model_v2_status": "EARLY PROSPECTIVE SHADOW - UNVALIDATED VS ODDS",
+      "moneyline_bookmaker": "draftkings",
+      "moneyline_last_update": "2026-10-31T17:49:35Z",
       "research_confidence": 24,
       "research_confidence_label": "LOW / IN-SAMPLE",
       "setup_qualified": true,
@@ -1046,8 +1049,8 @@
       "games_recorded": 64,
       "last_run_graded": 0,
       "last_run_new": 0,
-      "last_run_new_v2_on_existing": 8,
-      "odds_status": "SKIPPED_NO_READY_SETUP",
+      "last_run_new_v2_on_existing": 0,
+      "odds_status": "CONNECTED",
       "paired": {
         "same_games": 5,
         "v1": {
@@ -1100,16 +1103,16 @@
     "status": "OK"
   },
   "odds_budget": {
-    "calls_today": 0,
-    "credits_this_month": 6,
+    "calls_today": 1,
+    "credits_this_month": 7,
     "day": "2026-10-31",
     "last_call_cost": 1,
     "month": "2026-10",
-    "provider_remaining": 494,
-    "provider_used": 6
+    "provider_remaining": 493,
+    "provider_used": 7
   },
   "odds_source": "The Odds API v4 (optional)",
-  "odds_status": "SKIPPED_NO_READY_SETUP",
+  "odds_status": "CONNECTED",
   "plays": [],
   "research_confidence_method": "Heuristic 24/100: recent 5/5 positive (+20), prior 1/5 (+4), ten-year ROI negative (+0), independent holdout absent (+0). Not a predicted win probability.",
   "schedule_source": "ESPN public NBA scoreboard",
@@ -1124,10 +1127,10 @@
     "roi": null,
     "scheduled_games": 26,
     "settled_plays": 0,
-    "setups_with_moneyline": 0,
+    "setups_with_moneyline": 1,
     "tracked_plays": 0,
     "units": 0,
     "wins": 0
   },
-  "updated_at": "2026-10-31T13:58:01.129578Z"
+  "updated_at": "2026-10-31T17:50:07.269161Z"
 }
