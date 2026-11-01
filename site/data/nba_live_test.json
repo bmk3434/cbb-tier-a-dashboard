@@ -1260,7 +1260,7 @@
     "games_recorded": 64,
     "last_run_graded": 0,
     "last_run_new": 0,
-    "last_run_new_v2_on_existing": 1,
+    "last_run_new_v2_on_existing": 0,
     "odds_status": "SKIPPED_NO_READY_SETUP",
     "paired": {
       "same_games": 11,
@@ -1294,5 +1294,5 @@
       "predictions": 29
     }
   },
-  "updated_at": "2026-11-01T17:50:48.485896Z"
+  "updated_at": "2026-11-01T21:53:27.772200Z"
 }
