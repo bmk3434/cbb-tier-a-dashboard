@@ -3,74 +3,6 @@
   "last_updated_pt": "2026-11-02T12:58:01-08:00",
   "status": "OK",
   "plays": {
-    "372670": {
-      "game_id": "372670",
-      "game_date": "2026-11-02",
-      "start_utc": "2026-11-03T03:00:00.000Z",
-      "away_team": "UCLA",
-      "home_team": "Arizona",
-      "neutral_site": false,
-      "bet_team": "Arizona",
-      "bet_side": "Home",
-      "first_seen_pt": "2026-11-02T06:22:54-08:00",
-      "first_scanner_line": 4.5,
-      "first_edge": 2.6819027279526573,
-      "first_confidence": 0.5963546581093904,
-      "profile_tag": "",
-      "tier": "A",
-      "qc_status": "OK_NON_NEUTRAL",
-      "qc_source": "",
-      "first_actionable_pt": "2026-11-02T06:22:54-08:00",
-      "entry_line": 4.5,
-      "entry_edge": 2.6819027279526573,
-      "entry_provider": "Draft Kings",
-      "result": null,
-      "profit_units": null,
-      "home_score": null,
-      "away_score": null,
-      "settled_at_pt": null,
-      "closing_proxy_line": 4.5,
-      "clv_proxy_points": 0.0,
-      "snapshots": [
-        {
-          "timestamp_pt": "2026-11-02T06:22:54-08:00",
-          "team_spread": 4.5,
-          "home_spread": 4.5,
-          "provider": "Draft Kings",
-          "model_bet_now": "Arizona",
-          "edge_now": 2.6819027279526573,
-          "tier_now": "A",
-          "actionable_now": true,
-          "qc_status_now": "OK_NON_NEUTRAL"
-        },
-        {
-          "timestamp_pt": "2026-11-02T08:17:47-08:00",
-          "team_spread": 4.5,
-          "home_spread": 4.5,
-          "provider": "Draft Kings",
-          "model_bet_now": "Arizona",
-          "edge_now": 2.6819027279526573,
-          "tier_now": "A",
-          "actionable_now": true,
-          "qc_status_now": "OK_NON_NEUTRAL"
-        },
-        {
-          "timestamp_pt": "2026-11-02T12:58:01-08:00",
-          "team_spread": 4.5,
-          "home_spread": 4.5,
-          "provider": "Draft Kings",
-          "model_bet_now": "Arizona",
-          "edge_now": 2.6819027279526573,
-          "tier_now": "A",
-          "actionable_now": true,
-          "qc_status_now": "OK_NON_NEUTRAL"
-        }
-      ],
-      "latest_line": 4.5,
-      "latest_provider": "Draft Kings",
-      "latest_edge": 2.6819027279526573,
-      "latest_snapshot_pt": "2026-11-02T12:58:01-08:00"
-    },
     "374584": {
       "game_id": "374584",
       "game_date": "2026-11-02",
@@ -98,7 +30,7 @@
       "away_score": null,
       "settled_at_pt": null,
       "closing_proxy_line": 5.5,
-      "clv_proxy_points": 0.0,
+      "clv_proxy_points": 0,
       "snapshots": [
         {
           "timestamp_pt": "2026-11-02T06:22:54-08:00",
@@ -871,8 +803,8 @@
     }
   ],
   "summary": {
-    "tracked_candidates": 2,
-    "entered_plays": 2,
+    "tracked_candidates": 1,
+    "entered_plays": 1,
     "completed_plays": 0,
     "wins": 0,
     "losses": 0,
@@ -880,10 +812,10 @@
     "win_pct": null,
     "profit_units": 0,
     "roi": null,
-    "avg_clv_proxy": 0.0,
-    "positive_clv_proxy_pct": 0.0,
-    "today_candidates": 2,
-    "today_actionable": 2,
+    "avg_clv_proxy": 0,
+    "positive_clv_proxy_pct": 0,
+    "today_candidates": 1,
+    "today_actionable": 1,
     "today_review": 0
   },
   "totals_plays": {},
@@ -912,7 +844,7 @@
     "today_actionable": 0
   },
   "combined_summary": {
-    "entered_plays": 2,
+    "entered_plays": 1,
     "completed_plays": 0,
     "wins": 0,
     "losses": 0,
@@ -920,10 +852,10 @@
     "win_pct": null,
     "profit_units": 0,
     "roi": null,
-    "avg_clv_proxy": 0.0,
-    "positive_clv_proxy_pct": 0.0,
-    "today_actionable": 2,
-    "ats_entered": 2,
+    "avg_clv_proxy": 0,
+    "positive_clv_proxy_pct": 0,
+    "today_actionable": 1,
+    "ats_entered": 1,
     "totals_entered": 0
   },
   "totals_v2_plays": {},

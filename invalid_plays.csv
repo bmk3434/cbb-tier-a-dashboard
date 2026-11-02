@@ -1,0 +1,2 @@
+Game_ID,Invalidated_At_PT,Reason
+372670,2026-11-02T12:41:00-08:00,"Invalid market orientation: feed/scanner stored Arizona +4.5, while verified market was Arizona -4.5. Exclude from official ATS forward-test record."

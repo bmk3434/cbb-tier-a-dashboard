@@ -25,6 +25,7 @@ DATA = ROOT / "data"
 SITE_DATA = ROOT / "site" / "data"
 STATE_PATH = DATA / "state.json"
 SITE_STATE_PATH = SITE_DATA / "state.json"
+INVALID_PLAYS_PATH = ROOT / "invalid_plays.csv"
 LOCAL_TZ = ZoneInfo("America/Los_Angeles")
 CBBD_BASE = "https://api.collegebasketballdata.com"
 SEASON = 2027
@@ -76,6 +77,12 @@ def read_csv(path: Path) -> List[Dict[str, str]]:
         return list(csv.DictReader(f))
 
 
+def load_invalid_play_ids() -> set[str]:
+    """Return ATS game IDs that must never enter the official forward-test record."""
+    rows = read_csv(INVALID_PLAYS_PATH)
+    return {str(r.get("Game_ID") or "").strip() for r in rows if str(r.get("Game_ID") or "").strip()}
+
+
 def team_spread_from_home_spread(play: Dict[str, Any], home_spread: float) -> float:
     if play["bet_side"] == "Home":
         return float(home_spread)
@@ -110,7 +117,7 @@ def append_snapshot(play: Dict[str, Any], row: Dict[str, Any]) -> None:
     play["latest_snapshot_pt"] = ts
 
 
-def create_or_update_candidates(state: Dict[str, Any], target_date: str) -> int:
+def create_or_update_candidates(state: Dict[str, Any], target_date: str, invalid_ids: set[str]) -> int:
     cand_path = OUTPUT / f"tierA_candidates_{target_date}.csv"
     candidates = read_csv(cand_path)
     plays = state["plays"]
@@ -118,6 +125,8 @@ def create_or_update_candidates(state: Dict[str, Any], target_date: str) -> int:
     for r in candidates:
         gid = str(r.get("Game_ID") or "").strip()
         if not gid:
+            continue
+        if gid in invalid_ids:
             continue
         if gid not in plays:
             actionable = as_bool(r.get("Actionable"))
@@ -975,7 +984,10 @@ def main() -> int:
         target = sys.argv[1]
 
     state = load_state()
-    created = create_or_update_candidates(state, target)
+    invalid_ids = load_invalid_play_ids()
+    for gid in invalid_ids:
+        state["plays"].pop(gid, None)
+    created = create_or_update_candidates(state, target, invalid_ids)
     totals_created = create_or_update_totals_candidates(state, target)
     totals_v2_created = create_or_update_totals_v2_candidates(state, target)
     totals_v3_created = create_or_update_totals_v3_candidates(state, target)
