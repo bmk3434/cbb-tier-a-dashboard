@@ -344,44 +344,44 @@
       "winner": null
     },
     {
-      "away_score": null,
+      "away_score": 98,
       "away_team": "Brooklyn Nets",
-      "away_won": null,
+      "away_won": true,
       "betting_status": "NO BET - PAPER MODEL EVALUATION",
       "first_seen_utc": "2026-10-30T06:01:38.971890Z",
       "game_date": "2026-11-01",
       "game_id": "401909904",
-      "home_score": null,
+      "home_score": 90,
       "home_team": "Indiana Pacers",
       "start_utc": "2026-11-01T22:00:00Z",
-      "status": "OPEN",
+      "status": "FINAL",
       "v1_away_win_probability": 0.37125,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
       "v2_away_win_probability": 0.37775,
       "v2_eligible_at_snapshot": false,
       "v2_first_seen_utc": "2026-10-31T13:58:01.129578Z",
       "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
-      "winner": null
+      "winner": "Brooklyn Nets"
     },
     {
-      "away_score": null,
+      "away_score": 108,
       "away_team": "Boston Celtics",
-      "away_won": null,
+      "away_won": true,
       "betting_status": "NO BET - PAPER MODEL EVALUATION",
       "first_seen_utc": "2026-10-30T06:01:38.971890Z",
       "game_date": "2026-11-01",
       "game_id": "401909903",
-      "home_score": null,
+      "home_score": 97,
       "home_team": "Orlando Magic",
       "start_utc": "2026-11-01T20:30:00Z",
-      "status": "OPEN",
+      "status": "FINAL",
       "v1_away_win_probability": 0.59377,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
       "v2_away_win_probability": 0.62499,
       "v2_eligible_at_snapshot": false,
       "v2_first_seen_utc": "2026-10-31T13:58:01.129578Z",
       "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
-      "winner": null
+      "winner": "Boston Celtics"
     },
     {
       "away_score": 98,
@@ -1255,44 +1255,44 @@
   "status": "ACTIVE",
   "summary": {
     "betting_plays": 0,
-    "games_final": 45,
-    "games_open": 19,
+    "games_final": 47,
+    "games_open": 17,
     "games_recorded": 64,
-    "last_run_graded": 0,
+    "last_run_graded": 2,
     "last_run_new": 0,
     "last_run_new_v2_on_existing": 0,
     "odds_status": "SKIPPED_NO_READY_SETUP",
     "paired": {
-      "same_games": 11,
+      "same_games": 13,
       "v1": {
-        "accuracy_pct": 45.45,
-        "brier": 0.28888,
-        "graded": 11,
-        "log_loss": 0.77486,
-        "predictions": 11
+        "accuracy_pct": 46.15,
+        "brier": 0.28754,
+        "graded": 13,
+        "log_loss": 0.77197,
+        "predictions": 13
       },
       "v2": {
-        "accuracy_pct": 45.45,
-        "brier": 0.274,
-        "graded": 11,
-        "log_loss": 0.7419,
-        "predictions": 11
+        "accuracy_pct": 46.15,
+        "brier": 0.27245,
+        "graded": 13,
+        "log_loss": 0.7388,
+        "predictions": 13
       }
     },
     "v1": {
-      "accuracy_pct": 62.22,
-      "brier": 0.23154,
-      "graded": 45,
-      "log_loss": 0.65265,
+      "accuracy_pct": 61.7,
+      "brier": 0.23361,
+      "graded": 47,
+      "log_loss": 0.65705,
       "predictions": 64
     },
     "v2": {
-      "accuracy_pct": 45.45,
-      "brier": 0.274,
-      "graded": 11,
-      "log_loss": 0.7419,
+      "accuracy_pct": 46.15,
+      "brier": 0.27245,
+      "graded": 13,
+      "log_loss": 0.7388,
       "predictions": 29
     }
   },
-  "updated_at": "2026-11-01T21:53:27.772200Z"
+  "updated_at": "2026-11-02T02:18:29.099846Z"
 }
