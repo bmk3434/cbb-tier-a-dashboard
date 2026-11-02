@@ -74,6 +74,7 @@
     },
     {
       "away_b2b": false,
+      "away_moneyline": -336,
       "away_previous_date": null,
       "away_previous_result": null,
       "away_score": 0,
@@ -101,6 +102,8 @@
       "model_v2_min_prior_games": 7,
       "model_v2_source": "Free BoxScore Lab game logs; estimated possession/ratings proxies",
       "model_v2_status": "EARLY PROSPECTIVE SHADOW - UNVALIDATED VS ODDS",
+      "moneyline_bookmaker": "draftkings",
+      "moneyline_last_update": "2026-11-02T18:10:03Z",
       "research_confidence": 24,
       "research_confidence_label": "LOW / IN-SAMPLE",
       "setup_qualified": true,
@@ -146,6 +149,7 @@
     },
     {
       "away_b2b": false,
+      "away_moneyline": 131,
       "away_previous_date": null,
       "away_previous_result": null,
       "away_score": 0,
@@ -173,6 +177,8 @@
       "model_v2_min_prior_games": 6,
       "model_v2_source": "Free BoxScore Lab game logs; estimated possession/ratings proxies",
       "model_v2_status": "EARLY PROSPECTIVE SHADOW - UNVALIDATED VS ODDS",
+      "moneyline_bookmaker": "draftkings",
+      "moneyline_last_update": "2026-11-02T18:10:03Z",
       "research_confidence": 24,
       "research_confidence_label": "LOW / IN-SAMPLE",
       "setup_qualified": true,
@@ -1174,7 +1180,7 @@
       "last_run_graded": 0,
       "last_run_new": 0,
       "last_run_new_v2_on_existing": 0,
-      "odds_status": "SKIPPED_NO_READY_SETUP",
+      "odds_status": "CONNECTED",
       "paired": {
         "same_games": 15,
         "v1": {
@@ -1227,17 +1233,45 @@
     "status": "OK"
   },
   "odds_budget": {
-    "calls_today": 0,
-    "credits_this_month": 0,
+    "calls_today": 1,
+    "credits_this_month": 1,
     "day": "2026-11-02",
-    "last_call_cost": null,
+    "last_call_cost": 1,
     "month": "2026-11",
-    "provider_remaining": null,
-    "provider_used": null
+    "provider_remaining": 499,
+    "provider_used": 1
   },
   "odds_source": "The Odds API v4 (optional)",
-  "odds_status": "SKIPPED_NO_READY_SETUP",
-  "plays": [],
+  "odds_status": "CONNECTED",
+  "plays": [
+    {
+      "away_team": "Atlanta Hawks",
+      "bet_team": "Atlanta Hawks",
+      "entry_moneyline": -336,
+      "first_seen_utc": "2026-11-02T18:10:42.492008+00:00",
+      "game_date": "2026-11-02",
+      "game_id": "401909909",
+      "historical_bets": 1225,
+      "historical_out_of_sample": true,
+      "historical_profitable_seasons": 0,
+      "historical_seasons": 1,
+      "home_team": "Indiana Pacers",
+      "injuries_verified": false,
+      "model_confidence": 35,
+      "model_id": "nba-elo-logistic-v1-2026-10-25",
+      "model_market_validated": false,
+      "model_v2_id": "nba-log-rolling-four-factors-v2-2026-10-26",
+      "model_v2_market_validated": false,
+      "model_v2_win_probability": 0.70884,
+      "model_win_probability": 0.72107,
+      "moneyline": -336,
+      "odds_source": "draftkings",
+      "price_verified": true,
+      "rest_context_score": 65,
+      "result": null,
+      "status": "PAPER_TRACK"
+    }
+  ],
   "research_confidence_method": "Heuristic 24/100: recent 5/5 positive (+20), prior 1/5 (+4), ten-year ROI negative (+0), independent holdout absent (+0). Not a predicted win probability.",
   "schedule_source": "ESPN public NBA scoreboard",
   "schema_version": 4,
@@ -1251,10 +1285,10 @@
     "roi": null,
     "scheduled_games": 29,
     "settled_plays": 0,
-    "setups_with_moneyline": 0,
-    "tracked_plays": 0,
+    "setups_with_moneyline": 2,
+    "tracked_plays": 1,
     "units": 0,
     "wins": 0
   },
-  "updated_at": "2026-11-02T14:29:46.210980Z"
+  "updated_at": "2026-11-02T18:10:42.492008Z"
 }
