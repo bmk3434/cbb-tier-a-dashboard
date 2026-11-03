@@ -37,10 +37,10 @@
       "status": "OPEN",
       "v1_away_win_probability": 0.50474,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
-      "v2_away_win_probability": null,
+      "v2_away_win_probability": 0.49671,
       "v2_eligible_at_snapshot": false,
-      "v2_first_seen_utc": null,
-      "v2_model_id": null,
+      "v2_first_seen_utc": "2026-11-03T18:04:09.557290Z",
+      "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
       "winner": null
     },
     {
@@ -117,10 +117,10 @@
       "status": "OPEN",
       "v1_away_win_probability": 0.49081,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
-      "v2_away_win_probability": null,
+      "v2_away_win_probability": 0.57678,
       "v2_eligible_at_snapshot": false,
-      "v2_first_seen_utc": null,
-      "v2_model_id": null,
+      "v2_first_seen_utc": "2026-11-03T18:04:09.557290Z",
+      "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
       "winner": null
     },
     {
@@ -1580,7 +1580,7 @@
     "games_recorded": 80,
     "last_run_graded": 0,
     "last_run_new": 0,
-    "last_run_new_v2_on_existing": 0,
+    "last_run_new_v2_on_existing": 2,
     "odds_status": "SKIPPED_NO_READY_SETUP",
     "paired": {
       "same_games": 29,
@@ -1611,8 +1611,8 @@
       "brier": 0.22945,
       "graded": 29,
       "log_loss": 0.64425,
-      "predictions": 43
+      "predictions": 45
     }
   },
-  "updated_at": "2026-11-03T14:26:53.596705Z"
+  "updated_at": "2026-11-03T18:04:09.557290Z"
 }
