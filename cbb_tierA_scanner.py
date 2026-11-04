@@ -802,9 +802,25 @@ def main() -> int:
         print("No CBBD/KenPom games found for this date.")
         return 0
 
-    archive = kenpom_get("archive", {"d": target_date.isoformat()}, kenpom_key)
+    try:
+        archive = kenpom_get("archive", {"d": target_date.isoformat()}, kenpom_key)
+    except RuntimeError as exc:
+        msg = str(exc)
+        # KenPom may not publish the same-day archive until later in the day.
+        # That is an expected availability condition, not a broken workflow.
+        if "HTTP 404" in msg and "Data not found" in msg and "kenpom.com" in msg:
+            print("SCAN_STATUS=SKIPPED_KENPOM_ARCHIVE")
+            print(f"KenPom same-day archive is not available yet for {target_date.isoformat()}.")
+            print("Clean skip: no games will be scored and the persistent dashboard state will remain unchanged.")
+            return 0
+        raise
+    if archive is None:
+        print("SCAN_STATUS=SKIPPED_KENPOM_ARCHIVE")
+        print(f"KenPom same-day archive is not available yet for {target_date.isoformat()}.")
+        print("Clean skip: no games will be scored and the persistent dashboard state will remain unchanged.")
+        return 0
     if not isinstance(archive, list):
-        raise RuntimeError("KenPom archive is unavailable for this date. Do not score games until the same-day archive is available.")
+        raise RuntimeError("Unexpected KenPom archive response. Do not score games until a valid same-day archive is available.")
 
     prior_rows = fetch_teamstats_history(target_date, cbbd_key, refresh=args.refresh_history)
     snapshots = build_snapshots(prior_rows)
