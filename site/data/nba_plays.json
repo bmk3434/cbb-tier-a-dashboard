@@ -39,7 +39,7 @@
     {
       "away_b2b": true,
       "away_previous_date": "2026-11-04",
-      "away_previous_result": null,
+      "away_previous_result": "Win",
       "away_score": 0,
       "away_team": "Miami Heat",
       "game_date": "2026-11-05",
@@ -49,17 +49,17 @@
       "home_previous_result": null,
       "home_score": 0,
       "home_team": "Golden State Warriors",
-      "model_away_win_probability": 0.33909,
+      "model_away_win_probability": 0.35438,
       "model_confidence": 35,
-      "model_elo_away": 1476.98,
+      "model_elo_away": 1489.13,
       "model_elo_home": 1487.49,
-      "model_home_win_probability": 0.66091,
+      "model_home_win_probability": 0.64562,
       "model_id": "nba-elo-logistic-v1-2026-10-25",
       "model_market_validated": false,
       "model_status": "PROSPECTIVE_RESEARCH_NOT_VALIDATED_EDGE",
-      "model_v2_away_win_probability": 0.32639,
+      "model_v2_away_win_probability": 0.33993,
       "model_v2_confidence": 40,
-      "model_v2_home_win_probability": 0.67361,
+      "model_v2_home_win_probability": 0.66007,
       "model_v2_id": "nba-log-rolling-four-factors-v2-2026-10-26",
       "model_v2_market_validated": false,
       "model_v2_min_prior_games": 7,
@@ -651,7 +651,7 @@
   ],
   "model_status": "Frozen Elo+rest NBA research model enabled; historical market outperformed model on untouched 2025-26 holdout",
   "nba_elo_state": {
-    "last_processed_game_start_utc": "2026-11-05T03:00:00Z",
+    "last_processed_game_start_utc": "2026-11-05T03:30:00Z",
     "model_id": "nba-elo-logistic-v1-2026-10-25",
     "processed_game_ids": [
       "401909088",
@@ -773,7 +773,8 @@
       "401909931",
       "401909932",
       "401909933",
-      "401909934"
+      "401909934",
+      "401909935"
     ],
     "ratings": {
       "Atlanta Hawks": 1548.3742886038935,
@@ -788,10 +789,10 @@
       "Golden State Warriors": 1487.4885135862012,
       "Houston Rockets": 1603.3020858795423,
       "Indiana Pacers": 1362.639664403308,
-      "Los Angeles Clippers": 1487.7590786759065,
+      "Los Angeles Clippers": 1475.6119370404103,
       "Los Angeles Lakers": 1604.3651064663472,
       "Memphis Grizzlies": 1403.8567274227407,
-      "Miami Heat": 1476.9805463272849,
+      "Miami Heat": 1489.127687962781,
       "Milwaukee Bucks": 1388.9278773702188,
       "Minnesota Timberwolves": 1574.427208793249,
       "New Orleans Pelicans": 1423.208633749763,
@@ -816,42 +817,42 @@
     "status": "ACTIVE",
     "summary": {
       "betting_plays": 0,
-      "games_final": 77,
-      "games_open": 19,
+      "games_final": 78,
+      "games_open": 18,
       "games_recorded": 96,
-      "last_run_graded": 13,
-      "last_run_new": 7,
+      "last_run_graded": 1,
+      "last_run_new": 0,
       "last_run_new_v2_on_existing": 0,
       "odds_status": "SKIPPED_NO_READY_SETUP",
       "paired": {
-        "same_games": 42,
+        "same_games": 43,
         "v1": {
-          "accuracy_pct": 57.14,
-          "brier": 0.23209,
-          "graded": 42,
-          "log_loss": 0.65013,
-          "predictions": 42
+          "accuracy_pct": 55.81,
+          "brier": 0.23466,
+          "graded": 43,
+          "log_loss": 0.65549,
+          "predictions": 43
         },
         "v2": {
-          "accuracy_pct": 61.9,
-          "brier": 0.21864,
-          "graded": 42,
-          "log_loss": 0.62044,
-          "predictions": 42
+          "accuracy_pct": 60.47,
+          "brier": 0.22116,
+          "graded": 43,
+          "log_loss": 0.62573,
+          "predictions": 43
         }
       },
       "v1": {
-        "accuracy_pct": 61.04,
-        "brier": 0.22428,
-        "graded": 77,
-        "log_loss": 0.63513,
+        "accuracy_pct": 60.26,
+        "brier": 0.2258,
+        "graded": 78,
+        "log_loss": 0.63828,
         "predictions": 96
       },
       "v2": {
-        "accuracy_pct": 61.9,
-        "brier": 0.21864,
-        "graded": 42,
-        "log_loss": 0.62044,
+        "accuracy_pct": 60.47,
+        "brier": 0.22116,
+        "graded": 43,
+        "log_loss": 0.62573,
         "predictions": 61
       }
     }
@@ -934,5 +935,5 @@
     "units": 0.2976,
     "wins": 1
   },
-  "updated_at": "2026-11-05T06:19:25.246635Z"
+  "updated_at": "2026-11-05T10:23:52.732177Z"
 }
