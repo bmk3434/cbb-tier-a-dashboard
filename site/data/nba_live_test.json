@@ -1901,7 +1901,7 @@
     "last_run_graded": 0,
     "last_run_new": 0,
     "last_run_new_v2_on_existing": 0,
-    "odds_status": "CONNECTED",
+    "odds_status": "SKIPPED_NO_READY_SETUP",
     "paired": {
       "same_games": 43,
       "v1": {
@@ -1934,5 +1934,5 @@
       "predictions": 61
     }
   },
-  "updated_at": "2026-11-05T22:04:42.120171Z"
+  "updated_at": "2026-11-06T02:24:42.368315Z"
 }

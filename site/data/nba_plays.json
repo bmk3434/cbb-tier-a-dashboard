@@ -2,41 +2,22 @@
   "games": [
     {
       "away_b2b": false,
-      "away_moneyline": -101,
       "away_previous_date": null,
       "away_previous_result": null,
-      "away_score": 0,
+      "away_score": 16,
       "away_team": "Orlando Magic",
       "game_date": "2026-11-05",
       "game_id": "401909936",
       "home_b2b": true,
       "home_previous_date": "2026-11-04",
       "home_previous_result": "Loss",
-      "home_score": 0,
+      "home_score": 17,
       "home_team": "Phoenix Suns",
-      "model_away_win_probability": 0.51879,
-      "model_confidence": 35,
-      "model_elo_away": 1501.77,
-      "model_elo_home": 1480.06,
-      "model_home_win_probability": 0.48121,
-      "model_id": "nba-elo-logistic-v1-2026-10-25",
-      "model_market_validated": false,
-      "model_status": "PROSPECTIVE_RESEARCH_NOT_VALIDATED_EDGE",
-      "model_v2_away_win_probability": 0.50571,
-      "model_v2_confidence": 40,
-      "model_v2_home_win_probability": 0.49429,
-      "model_v2_id": "nba-log-rolling-four-factors-v2-2026-10-26",
-      "model_v2_market_validated": false,
-      "model_v2_min_prior_games": 6,
-      "model_v2_source": "Free BoxScore Lab game logs; estimated possession/ratings proxies",
-      "model_v2_status": "EARLY PROSPECTIVE SHADOW - UNVALIDATED VS ODDS",
-      "moneyline_bookmaker": "draftkings",
-      "moneyline_last_update": "2026-11-05T22:03:38Z",
       "research_confidence": 24,
       "research_confidence_label": "LOW / IN-SAMPLE",
       "setup_qualified": true,
       "start_utc": "2026-11-06T02:00:00Z",
-      "status": "Scheduled",
+      "status": "Live",
       "winner": null
     },
     {
@@ -826,7 +807,7 @@
       "last_run_graded": 0,
       "last_run_new": 0,
       "last_run_new_v2_on_existing": 0,
-      "odds_status": "CONNECTED",
+      "odds_status": "SKIPPED_NO_READY_SETUP",
       "paired": {
         "same_games": 43,
         "v1": {
@@ -871,7 +852,7 @@
     "status": "FROZEN PROSPECTIVE RESEARCH \u2014 NOT MARKET EDGE VALIDATED"
   },
   "nba_v2_summary": {
-    "games_with_v2_predictions": 18,
+    "games_with_v2_predictions": 17,
     "market_edge_validated": false,
     "min_prior_games_per_team": 5,
     "source": "BoxScore Lab daily team-game CSV (no odds API credits)",
@@ -888,7 +869,7 @@
     "provider_used": 4
   },
   "odds_source": "The Odds API v4 (optional)",
-  "odds_status": "CONNECTED",
+  "odds_status": "SKIPPED_NO_READY_SETUP",
   "plays": [
     {
       "away_score": 108,
@@ -928,15 +909,15 @@
   "summary": {
     "b2b_games": 6,
     "losses": 0,
-    "nba_model_predictions": 18,
+    "nba_model_predictions": 17,
     "qualified_setups": 1,
     "roi": 29.762,
     "scheduled_games": 18,
     "settled_plays": 1,
-    "setups_with_moneyline": 1,
+    "setups_with_moneyline": 0,
     "tracked_plays": 1,
     "units": 0.2976,
     "wins": 1
   },
-  "updated_at": "2026-11-05T22:04:42.120171Z"
+  "updated_at": "2026-11-06T02:24:42.368315Z"
 }
