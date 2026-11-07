@@ -83,6 +83,32 @@ def load_invalid_play_ids() -> set[str]:
     return {str(r.get("Game_ID") or "").strip() for r in rows if str(r.get("Game_ID") or "").strip()}
 
 
+def candidate_row_is_post_tip(row: Dict[str, Any]) -> bool:
+    """Reject scanner rows first observed at or after scheduled tipoff."""
+    scan_ts = parse_iso(str(row.get("Run_Timestamp_PT") or ""))
+    start_ts = parse_iso(str(row.get("Start_UTC") or ""))
+    if scan_ts is None or start_ts is None:
+        return True
+    return scan_ts.astimezone(timezone.utc) >= start_ts.astimezone(timezone.utc)
+
+
+def prune_post_tip_state(state: Dict[str, Any]) -> int:
+    """Remove legacy forward-test entries whose first observation occurred at/after tipoff."""
+    removed = 0
+    for key in ["plays", "totals_plays", "totals_v2_plays", "totals_v3_plays"]:
+        bucket = state.get(key, {})
+        bad = []
+        for gid, play in bucket.items():
+            first = parse_iso(str(play.get("first_seen_pt") or ""))
+            start = parse_iso(str(play.get("start_utc") or ""))
+            if first is not None and start is not None and first.astimezone(timezone.utc) >= start.astimezone(timezone.utc):
+                bad.append(gid)
+        for gid in bad:
+            bucket.pop(gid, None)
+            removed += 1
+    return removed
+
+
 def team_spread_from_home_spread(play: Dict[str, Any], home_spread: float) -> float:
     if play["bet_side"] == "Home":
         return float(home_spread)
@@ -125,6 +151,8 @@ def create_or_update_candidates(state: Dict[str, Any], target_date: str, invalid
     for r in candidates:
         gid = str(r.get("Game_ID") or "").strip()
         if not gid:
+            continue
+        if candidate_row_is_post_tip(r):
             continue
         if gid in invalid_ids:
             continue
@@ -226,6 +254,8 @@ def create_or_update_totals_candidates(state: Dict[str, Any], target_date: str) 
     for r in candidates:
         gid = str(r.get("Game_ID") or "").strip()
         if not gid:
+            continue
+        if candidate_row_is_post_tip(r):
             continue
         actionable = as_bool(r.get("Totals_Actionable"))
         total_line = safe_float(r.get("Market_Total"))
@@ -331,6 +361,8 @@ def create_or_update_totals_v2_candidates(state: Dict[str, Any], target_date: st
         gid = str(r.get("Game_ID") or "").strip()
         if not gid:
             continue
+        if candidate_row_is_post_tip(r):
+            continue
         trackable = as_bool(r.get("Totals_V2_Trackable_Shadow"))
         total_line = safe_float(r.get("Market_Total"))
         if gid not in plays:
@@ -435,6 +467,8 @@ def create_or_update_totals_v3_candidates(state: Dict[str, Any], target_date: st
     for r in candidates:
         gid = str(r.get("Game_ID") or "").strip()
         if not gid:
+            continue
+        if candidate_row_is_post_tip(r):
             continue
         trackable = as_bool(r.get("Totals_V3_Trackable_Shadow"))
         total_line = safe_float(r.get("Market_Total"))
@@ -984,6 +1018,9 @@ def main() -> int:
         target = sys.argv[1]
 
     state = load_state()
+    pruned_post_tip = prune_post_tip_state(state)
+    if pruned_post_tip:
+        print(f"Forward-test QC: removed {pruned_post_tip} legacy post-tip candidate entries.")
     invalid_ids = load_invalid_play_ids()
     for gid in invalid_ids:
         state["plays"].pop(gid, None)
