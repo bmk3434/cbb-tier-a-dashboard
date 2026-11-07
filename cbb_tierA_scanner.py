@@ -837,6 +837,25 @@ def main() -> int:
 
     for game in today_lines:
         counts["line_games"] += 1
+
+        # Forward-test integrity: never create a model candidate at or after tipoff.
+        start_raw = str(game.get("startDate") or "").strip()
+        if not start_raw:
+            counts["missing_start"] += 1
+            audit.append(f"Missing start time: {game.get('gameId')} {game.get('awayTeam')} @ {game.get('homeTeam')}")
+            continue
+        try:
+            game_start_utc = datetime.fromisoformat(start_raw.replace("Z", "+00:00"))
+            if game_start_utc.tzinfo is None:
+                game_start_utc = game_start_utc.replace(tzinfo=timezone.utc)
+        except Exception:
+            counts["missing_start"] += 1
+            audit.append(f"Unparseable start time: {game.get('gameId')} {start_raw} {game.get('awayTeam')} @ {game.get('homeTeam')}")
+            continue
+        if datetime.now(timezone.utc) >= game_start_utc.astimezone(timezone.utc):
+            counts["already_started"] += 1
+            continue
+
         # D-I proxy used in development: both conference fields are populated.
         if game.get("homeConference") is None or game.get("awayConference") is None:
             counts["non_d1_proxy"] += 1
@@ -1064,7 +1083,7 @@ def main() -> int:
         f.write("2026-27 TIER A SCANNER AUDIT\n")
         f.write("=" * 40 + "\n")
         f.write(f"Date: {target_date.isoformat()}\n")
-        for key in ["line_games", "non_d1_proxy", "no_spread", "fanmatch_unmatched", "archive_unmatched", "scored", "tier_a", "actionable", "neutral_review", "totals_qualified", "totals_actionable", "totals_v2_shadow", "totals_v2_trackable", "totals_v3_shadow", "totals_v3_trackable"]:
+        for key in ["line_games", "already_started", "missing_start", "non_d1_proxy", "no_spread", "fanmatch_unmatched", "archive_unmatched", "scored", "tier_a", "actionable", "neutral_review", "totals_qualified", "totals_actionable", "totals_v2_shadow", "totals_v2_trackable", "totals_v3_shadow", "totals_v3_trackable"]:
             f.write(f"{key}: {counts[key]}\n")
         if audit:
             f.write("\nDETAILS\n")
@@ -1074,6 +1093,8 @@ def main() -> int:
     print("AUDIT")
     print("-" * 70)
     print(f"CBBD line games:           {counts['line_games']}")
+    print(f"Already started excluded:  {counts['already_started']}")
+    print(f"Missing start excluded:    {counts['missing_start']}")
     print(f"Scored D-I games:          {counts['scored']}")
     print(f"FanMatch unmatched:        {counts['fanmatch_unmatched']}")
     print(f"Archive unmatched:         {counts['archive_unmatched']}")
