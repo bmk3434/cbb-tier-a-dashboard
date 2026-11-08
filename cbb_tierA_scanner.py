@@ -802,25 +802,28 @@ def main() -> int:
         print("No CBBD/KenPom games found for this date.")
         return 0
 
+    # Pregame ratings must reflect games completed before the target slate.
+    # KenPom's archive for the game date may not exist until after games finish.
+    # Use exactly the preceding calendar day's snapshot; never use a future
+    # or older fallback that could introduce leakage or unbounded staleness.
+    ratings_date = target_date - timedelta(days=1)
+    print(f"KENPOM_RATINGS_DATE={ratings_date.isoformat()}")
     try:
-        archive = kenpom_get("archive", {"d": target_date.isoformat()}, kenpom_key)
+        archive = kenpom_get("archive", {"d": ratings_date.isoformat()}, kenpom_key)
     except RuntimeError as exc:
         msg = str(exc)
-        # KenPom may not publish the same-day archive until later in the day.
-        # That is an expected availability condition, not a broken workflow.
         if "HTTP 404" in msg and "Data not found" in msg and "kenpom.com" in msg:
             print("SCAN_STATUS=SKIPPED_KENPOM_ARCHIVE")
-            print(f"KenPom same-day archive is not available yet for {target_date.isoformat()}.")
-            print("Clean skip: no games will be scored and the persistent dashboard state will remain unchanged.")
+            print(f"Pregame KenPom archive unavailable for {ratings_date.isoformat()}; no bets scored.")
             return 0
         raise
     if archive is None:
         print("SCAN_STATUS=SKIPPED_KENPOM_ARCHIVE")
-        print(f"KenPom same-day archive is not available yet for {target_date.isoformat()}.")
-        print("Clean skip: no games will be scored and the persistent dashboard state will remain unchanged.")
+        print(f"Pregame KenPom archive unavailable for {ratings_date.isoformat()}; no bets scored.")
         return 0
-    if not isinstance(archive, list):
-        raise RuntimeError("Unexpected KenPom archive response. Do not score games until a valid same-day archive is available.")
+    if not isinstance(archive, list) or not archive:
+        raise RuntimeError(f"Invalid or empty pregame KenPom archive for {ratings_date.isoformat()}.")
+    print(f"KENPOM_RATINGS_TEAMS={len(archive)}")
 
     prior_rows = fetch_teamstats_history(target_date, cbbd_key, refresh=args.refresh_history)
     snapshots = build_snapshots(prior_rows)
