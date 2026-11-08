@@ -1,6 +1,6 @@
 {
   "version": 4,
-  "last_updated_pt": "2026-11-08T09:09:14-08:00",
+  "last_updated_pt": "2026-11-08T11:15:37-08:00",
   "status": "OK",
   "plays": {
     "374584": {
@@ -492,12 +492,23 @@
           "tier_now": "A",
           "actionable_now": true,
           "qc_status_now": "OK_NON_NEUTRAL"
+        },
+        {
+          "timestamp_pt": "2026-11-08T11:15:33-08:00",
+          "team_spread": 6.5,
+          "home_spread": 6.5,
+          "provider": "Draft Kings",
+          "model_bet_now": "Wichita State",
+          "edge_now": 3.4831082453924145,
+          "tier_now": "A",
+          "actionable_now": true,
+          "qc_status_now": "OK_NON_NEUTRAL"
         }
       ],
       "latest_line": 6.5,
       "latest_provider": "Draft Kings",
-      "latest_edge": 3.475740728908929,
-      "latest_snapshot_pt": "2026-11-08T09:09:09-08:00"
+      "latest_edge": 3.4831082453924145,
+      "latest_snapshot_pt": "2026-11-08T11:15:33-08:00"
     }
   },
   "runs": [
@@ -1384,6 +1395,19 @@
       "new_totals_v3_shadow_candidates": 5,
       "newly_settled_totals_v3_shadow": 6,
       "new_regulation_audits": 11
+    },
+    {
+      "timestamp_pt": "2026-11-08T11:15:37-08:00",
+      "date": "2026-11-08",
+      "new_candidates": 0,
+      "newly_settled": 0,
+      "new_totals_candidates": 0,
+      "newly_settled_totals": 0,
+      "new_totals_v2_shadow_candidates": 0,
+      "newly_settled_totals_v2_shadow": 0,
+      "new_totals_v3_shadow_candidates": 0,
+      "newly_settled_totals_v3_shadow": 0,
+      "new_regulation_audits": 0
     }
   ],
   "summary": {
@@ -2922,13 +2946,24 @@
           "qualified_now": true,
           "actionable_now": true,
           "qc_status_now": "OK_TOTAL"
+        },
+        {
+          "timestamp_pt": "2026-11-08T11:15:33-08:00",
+          "market_total": 158.5,
+          "provider": "Draft Kings",
+          "model_bet_now": "Over",
+          "model_total_now": 161.09484841872253,
+          "edge_now": 2.594848418722542,
+          "qualified_now": true,
+          "actionable_now": true,
+          "qc_status_now": "OK_TOTAL"
         }
       ],
       "latest_total": 158.5,
-      "latest_model_total": 161.09751812618634,
-      "latest_edge": 2.597518126186343,
+      "latest_model_total": 161.09484841872253,
+      "latest_edge": 2.594848418722542,
       "latest_provider": "Draft Kings",
-      "latest_snapshot_pt": "2026-11-08T09:09:09-08:00"
+      "latest_snapshot_pt": "2026-11-08T11:15:33-08:00"
     }
   },
   "totals_summary": {
@@ -3766,13 +3801,24 @@
           "qualified_now": true,
           "trackable_now": true,
           "qc_status_now": "SHADOW_OK"
+        },
+        {
+          "timestamp_pt": "2026-11-08T11:15:33-08:00",
+          "market_total": 158.5,
+          "provider": "Draft Kings",
+          "model_bet_now": "Over",
+          "model_total_now": 160.57090882746584,
+          "edge_now": 2.070908827465855,
+          "qualified_now": true,
+          "trackable_now": true,
+          "qc_status_now": "SHADOW_OK"
         }
       ],
       "latest_total": 158.5,
-      "latest_model_total": 160.57115832477277,
-      "latest_edge": 2.071158324772757,
+      "latest_model_total": 160.57090882746584,
+      "latest_edge": 2.070908827465855,
       "latest_provider": "Draft Kings",
-      "latest_snapshot_pt": "2026-11-08T09:09:09-08:00"
+      "latest_snapshot_pt": "2026-11-08T11:15:33-08:00"
     }
   },
   "totals_v2_summary": {
@@ -5253,13 +5299,24 @@
           "qualified_now": true,
           "trackable_now": true,
           "qc_status_now": "EXPERIMENTAL_SHADOW_OK"
+        },
+        {
+          "timestamp_pt": "2026-11-08T11:15:33-08:00",
+          "market_total": 158.5,
+          "provider": "Draft Kings",
+          "model_bet_now": "Over",
+          "model_total_now": 161.1653608863504,
+          "edge_now": 2.665360886350408,
+          "qualified_now": true,
+          "trackable_now": true,
+          "qc_status_now": "EXPERIMENTAL_SHADOW_OK"
         }
       ],
       "latest_total": 158.5,
-      "latest_model_total": 161.16542590094184,
-      "latest_edge": 2.665425900941831,
+      "latest_model_total": 161.1653608863504,
+      "latest_edge": 2.665360886350408,
       "latest_provider": "Draft Kings",
-      "latest_snapshot_pt": "2026-11-08T09:09:09-08:00"
+      "latest_snapshot_pt": "2026-11-08T11:15:33-08:00"
     },
     "377977": {
       "game_id": "377977",
@@ -5309,13 +5366,24 @@
           "qualified_now": true,
           "trackable_now": true,
           "qc_status_now": "EXPERIMENTAL_SHADOW_OK"
+        },
+        {
+          "timestamp_pt": "2026-11-08T11:15:33-08:00",
+          "market_total": 151.5,
+          "provider": "Draft Kings",
+          "model_bet_now": "Under",
+          "model_total_now": 149.11245455889258,
+          "edge_now": 2.3875454411074175,
+          "qualified_now": true,
+          "trackable_now": true,
+          "qc_status_now": "EXPERIMENTAL_SHADOW_OK"
         }
       ],
       "latest_total": 151.5,
-      "latest_model_total": 149.112519573484,
-      "latest_edge": 2.3874804265159946,
+      "latest_model_total": 149.11245455889258,
+      "latest_edge": 2.3875454411074175,
       "latest_provider": "Draft Kings",
-      "latest_snapshot_pt": "2026-11-08T09:09:09-08:00"
+      "latest_snapshot_pt": "2026-11-08T11:15:33-08:00"
     },
     "372726": {
       "game_id": "372726",
