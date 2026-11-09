@@ -59,7 +59,8 @@ jobs:
 
       - name: Preflight model and code integrity
         run: |
-          python -m py_compile cbb_tierA_scanner.py dashboard_sync.py
+          python -m py_compile cbb_tierA_scanner.py dashboard_sync.py test_cbb_venue_qc.py
+          python -m unittest -v test_cbb_venue_qc
           python - <<'PY'
           import base64, io, json, joblib
           from pathlib import Path
