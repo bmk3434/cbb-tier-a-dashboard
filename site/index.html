@@ -91,7 +91,7 @@ tbody tr:last-child td{border-bottom:0}
   <table><thead><tr><th>Date</th><th>Model</th><th>Matchup</th><th>Pick</th><th>Entry / latest</th><th>Latest edge</th><th>Confidence / test size</th><th>QC / freshness</th></tr></thead><tbody id="plays-rows"></tbody></table>
  </div>
  <div class="empty" id="plays-empty" hidden><strong>No qualified plays currently on the board</strong>Only recorded model entries appear here. Candidate reviews and all shadow forecasts are on the <a href="research.html">Research Lab</a>.</div>
- <p class="note"><strong>Test sizing (to-win basis, 1u = $100):</strong> HIGH TEST = 1.00u ($100 to win), MEDIUM TEST = 0.60u ($60 to win), LOW TEST = 0.30u ($30 to win). At an <em>illustrative</em> -110 price, risk would be $110 / $66 / $33 respectively; actual risk depends on verified sportsbook odds. Grades measure model-edge buffer above frozen qualification thresholds (ATS 1.75 points, Totals v1 2.00 points): LOW &lt; 0.50-point buffer, MEDIUM ≥ 0.50, HIGH ≥ 1.00. A QC failure, stale scan (&gt; 3 hours), or started game makes the play <strong>HOLD</strong> regardless of grade. Grades are not calibrated win probabilities. “Qualified” means a model entry, not a confirmed wager; NBA is paper only. Records and ROI retain the original flat-risk-unit model accounting, independent of suggested real-money sizing.</p>
+ <p class="note"><strong>Test sizing (to-win basis, 1u = $100):</strong> HIGH TEST = 1.00u ($100 to win), MEDIUM TEST = 0.50u ($50 to win), LOW TEST = 0.25u ($25 to win). At an <em>illustrative</em> -110 price, risk would be $110 / $55 / $27.50 respectively; actual risk depends on verified sportsbook odds. Grades measure model-edge buffer above frozen qualification thresholds (ATS 1.75 points, Totals v1 2.00 points): LOW &lt; 0.50-point buffer, MEDIUM ≥ 0.50, HIGH ≥ 1.00. A QC failure, stale scan (&gt; 3 hours), or started game makes the play <strong>HOLD</strong> regardless of grade. Grades are not calibrated win probabilities. “Qualified” means a model entry, not a confirmed wager; NBA is paper only. Records and ROI retain the original flat-risk-unit model accounting, independent of suggested real-money sizing.</p>
 </section>
 
 <section id="recent-results" aria-labelledby="results-title">
@@ -148,7 +148,7 @@ function testPlan(p){
  if(edge===null||Math.abs(edge)+1e-9<floor)return {label:'NOT QUALIFIED',units:0,canBet:false,reason:'Edge below frozen threshold'};
  const buffer=Math.abs(edge)-floor;
  const grade=buffer>=1?'HIGH TEST':buffer>=0.5?'MEDIUM TEST':'LOW TEST';
- const units=grade==='HIGH TEST'?1:grade==='MEDIUM TEST'?0.60:0.30;
+ const units=grade==='HIGH TEST'?1:grade==='MEDIUM TEST'?0.50:0.25;
  const qcOK=!!p.qcStatus&&p.qcStatus.startsWith('OK_')&&(p.type!=='CBB ATS'||p.venueVerified);
  const timestamp=p.latestSnapshot?new Date(p.latestSnapshot).getTime():NaN;
  const elapsed=(Date.now()-timestamp)/3600000;
