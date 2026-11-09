@@ -84,7 +84,16 @@ tbody tr:last-child td{border-bottom:0}
   <article class="card"><div class="card-label">NBA · Qualifying paper plays</div><div class="metric" id="rec-nba">—</div><div class="helper">Separate experimental ledger</div><div class="mini"><span>Paper profit / loss</span><strong id="units-nba">—</strong></div></article>
  </div>
 </section>
-
+<section id="tier-sizing-summary" aria-labelledby="tier-heading">
+ <div class="sectionhead"><h2 id="tier-heading">Confidence-weighted test summary</h2><span class="caption">Hypothetical -110 lines · separate from flat-unit model tracking</span></div>
+ <div class="cards">
+  <article class="card"><div class="card-label">CBB · Combined</div><div class="metric" id="tier-combined">—</div><div class="helper" id="tier-combined-info">—</div><div class="mini"><span>Return on risk</span><strong id="tier-combined-roi">—</strong></div></article>
+  <article class="card"><div class="card-label">CBB · ATS v4</div><div class="metric" id="tier-ats">—</div><div class="helper" id="tier-ats-info">—</div><div class="mini"><span>Return on risk</span><strong id="tier-ats-roi">—</strong></div></article>
+  <article class="card"><div class="card-label">CBB · Totals v1</div><div class="metric" id="tier-totals">—</div><div class="helper" id="tier-totals-info">—</div><div class="mini"><span>Return on risk</span><strong id="tier-totals-roi">—</strong></div></article>
+  <article class="card"><div class="card-label">Fixed target stake</div><div class="metric metric-sm">1 / .50 / .25u</div><div class="helper">High · Medium · Low</div><div class="mini"><span>1.00u to win</span><strong>$100</strong></div></article>
+ </div>
+ <p class="note">Simulated historical outcomes at assumed -110, graded using each model's original entry edge. HIGH = 1u, MEDIUM = .5u, LOW = .25u to win; losing wagers cost 1.1× the target. Actual wager records and prices are not included, so these are NOT verified cash results. Original flat-risk model record above remains unchanged. Totals v2/v3 are excluded.</p>
+</section>
 <section id="qualified-plays" aria-labelledby="qualified-title">
  <div class="sectionhead"><h2 id="qualified-title">Current qualified plays</h2><span class="caption" id="play-count">Awaiting data</span></div>
  <div class="tablewrap" id="plays-wrap" hidden>
@@ -95,9 +104,9 @@ tbody tr:last-child td{border-bottom:0}
 </section>
 
 <section id="recent-results" aria-labelledby="results-title">
- <div class="sectionhead"><h2 id="results-title">Recent results</h2><span class="caption">Latest graded entries · CBB and NBA remain separately tracked</span></div>
+ <div class="sectionhead"><h2 id="results-title">Recent results</h2><span class="caption">Original flat-risk model P/L vs hypothetical confidence-weighted test P/L</span></div>
  <div class="tablewrap" id="results-wrap" hidden>
-  <table><thead><tr><th>Date</th><th>Model</th><th>Matchup</th><th>Pick</th><th>Result</th><th>Units</th></tr></thead><tbody id="results-rows"></tbody></table>
+  <table><thead><tr><th>Date</th><th>Model</th><th>Matchup</th><th>Pick</th><th>Result</th><th>Flat model P/L</th><th>Test grade / size</th><th>Test P/L at -110</th></tr></thead><tbody id="results-rows"></tbody></table>
  </div>
  <div class="empty" id="results-empty" hidden><strong>No graded entries yet</strong>Results will appear when an entered play is settled. Research-model winner predictions do not count as betting results.</div>
 </section>
@@ -141,6 +150,32 @@ function recordCards(cbb,nba){
  write('totals-meta',yes?(tot.entered_plays??0)+' entries · '+(tot.completed_plays??0)+' graded':'Over / Under');
 }
 const TEST_UNIT_DOLLARS=100;
+function entryTier(p){
+ if(p.kind!=='cbb'||p.qcExcluded)return null;
+ const edge=num(p.entryEdge);
+ const minimum=p.type==='CBB ATS'?1.75:2;
+ if(edge===null||Math.abs(edge)<minimum-1e-9||!String(p.qcStatus||'').startsWith('OK_'))return null;
+ if(p.type==='CBB ATS'&&!p.venueVerified)return null;
+ const x=Math.abs(edge)-minimum;
+ const grade=x>=1?'HIGH TEST':x>=0.5?'MEDIUM TEST':'LOW TEST';
+ return {grade,units:x>=1?1:x>=0.5?0.5:0.25};
+}
+function tierOutcome(p){
+ const t=entryTier(p);
+ if(!t||!['W','L','P'].includes(p.result))return null;
+ return {...t,profit:t.units*(p.result==='W'?1:p.result==='L'?-1.1:0),risk:t.units*1.1};
+}
+function renderTierSummary(all){
+ const cbb=all.filter(p=>p.kind==='cbb');
+ for(const [name,plays] of [['combined',cbb],['ats',cbb.filter(p=>p.type==='CBB ATS')],['totals',cbb.filter(p=>p.type==='CBB Totals')]]){
+  const x=plays.map(tierOutcome).filter(Boolean);
+  const profit=x.reduce((v,p)=>v+p.profit,0);
+  const risk=x.reduce((v,p)=>v+p.risk,0);
+  write('tier-'+name,x.length?signed(profit)+'u':'—');
+  write('tier-'+name+'-info',x.length+' graded · '+signed(profit*100)+' dollars simulated');
+  write('tier-'+name+'-roi',risk?ratio(profit/risk*100)+' ROI':'—');
+ }
+}
 function testPlan(p){
  if(p.kind!=='cbb')return null;
  const floor=p.type==='CBB ATS'?1.75:2.00;
@@ -222,7 +257,12 @@ function renderPlays(all){
  }).join('');
  const graded=all.filter(p=>p.result==='W'||p.result==='L'||p.result==='P').slice(0,25);
  $('results-wrap').hidden=!graded.length;$('results-empty').hidden=!!graded.length;
- $('results-rows').innerHTML=graded.map(p=>'<tr><td>'+safe(p.date)+'</td><td>'+pill(p.type,p.kind==='paper'?'gold':'')+'</td><td>'+safe(p.away)+' @ '+safe(p.home)+'</td><td class="bold">'+safe(p.pick)+' <span class="subline">'+safe(p.line)+(p.qcExcluded?' · QC EXCEPTION':'')+'</span></td><td>'+pill(p.result,p.result==='W'?'green':p.result==='L'?'red':'')+'</td><td class="'+(num(p.units)>0?'green':num(p.units)<0?'red':'')+'">'+(num(p.units)==null?'—':signed(p.units)+'u')+'</td></tr>').join('');
+ $('results-rows').innerHTML=graded.map(p=>{
+  const w=tierOutcome(p);
+  const tier=w?pill(w.grade,w.grade==='HIGH TEST'?'green':w.grade==='MEDIUM TEST'?'gold':'')+' <small>'+w.units.toFixed(2)+'u to win</small>':(p.kind==='paper'?'NBA PAPER':'Ungraded / QC');
+  const weighted=w?signed(w.profit)+'u · '+signed(w.profit*TEST_UNIT_DOLLARS)+' dollars':'—';
+  return '<tr><td>'+safe(p.date)+'</td><td>'+pill(p.type,p.kind==='paper'?'gold':'')+'</td><td>'+safe(p.away)+' @ '+safe(p.home)+'</td><td class="bold">'+safe(p.pick)+' <span class="subline">'+safe(p.line)+(p.qcExcluded?' · QC EXCEPTION':'')+'</span></td><td>'+pill(p.result,p.result==='W'?'green':p.result==='L'?'red':'')+'</td><td class="'+(num(p.units)>0?'green':num(p.units)<0?'red':'')+'">'+(num(p.units)==null?'—':signed(p.units)+'u')+'</td><td>'+tier+'</td><td class="'+(w&&w.profit>0?'green':w&&w.profit<0?'red':'')+'">'+safe(weighted)+'</td></tr>';
+ }).join('');
 }
 async function loadJSON(path){
  const response=await fetch(path,{cache:'no-store'});
@@ -238,7 +278,9 @@ async function refresh(){
  $('errors').innerHTML=errors.length?'<div class="error">'+safe(errors.join(' · '))+' — available information is shown below.</div>':'';
  $('feed-status').textContent=errors.length?'Partial feed availability':'Live feeds connected';
  recordCards(cbb,nba);
- renderPlays(gather(cbb,nba));
+ const all=gather(cbb,nba);
+ renderPlays(all);
+ renderTierSummary(all);
  const a=cbb?.last_updated_pt,b=nba?.updated_at;
  const detail=[];
  if(a)detail.push('CBB '+new Date(a).toLocaleString('en-US',{timeZone:'America/Los_Angeles',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}));
