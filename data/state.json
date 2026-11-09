@@ -1,6 +1,6 @@
 {
   "version": 4,
-  "last_updated_pt": "2026-11-08T22:47:06-08:00",
+  "last_updated_pt": "2026-11-08T22:52:45-08:00",
   "status": "OK",
   "plays": {
     "374584": {
@@ -531,7 +531,10 @@
       "latest_provider": "Draft Kings",
       "latest_edge": 3.475740728908929,
       "latest_snapshot_pt": "2026-11-08T14:23:27-08:00",
-      "ats_margin_selected_side": -0.5
+      "ats_margin_selected_side": -0.5,
+      "qc_excluded": true,
+      "qc_exception_reason": "USC at Wichita State on 2026-11-08 was a neutral-site Tahoe game; original CBBD neutralSite=false, KenPom FanMatch Location=Neutral. Exclude from clean ATS model evaluation but retain for audit.",
+      "qc_exception_source": "https://kenpom.com/fanmatch.php?d=2026-11-08"
     }
   },
   "runs": [
@@ -1470,18 +1473,32 @@
       "new_totals_v3_shadow_candidates": 0,
       "newly_settled_totals_v3_shadow": 1,
       "new_regulation_audits": 4
+    },
+    {
+      "timestamp_pt": "2026-11-08T22:52:45-08:00",
+      "date": "2026-11-08",
+      "new_candidates": 0,
+      "newly_settled": 0,
+      "new_totals_candidates": 0,
+      "newly_settled_totals": 0,
+      "new_totals_v2_shadow_candidates": 0,
+      "newly_settled_totals_v2_shadow": 0,
+      "new_totals_v3_shadow_candidates": 0,
+      "newly_settled_totals_v3_shadow": 0,
+      "new_regulation_audits": 0
     }
   ],
   "summary": {
     "tracked_candidates": 8,
-    "entered_plays": 8,
-    "completed_plays": 8,
+    "qc_excluded_entries": 1,
+    "entered_plays": 7,
+    "completed_plays": 7,
     "wins": 3,
-    "losses": 5,
+    "losses": 4,
     "pushes": 0,
-    "win_pct": 0.375,
-    "profit_units": -2.2727,
-    "roi": -0.284090875,
+    "win_pct": 0.42857142857142855,
+    "profit_units": -1.2727,
+    "roi": -0.18181814285714287,
     "avg_clv_proxy": 0.0,
     "positive_clv_proxy_pct": 0.0,
     "today_candidates": 1,
@@ -3075,18 +3092,18 @@
     "today_actionable": 3
   },
   "combined_summary": {
-    "entered_plays": 32,
-    "completed_plays": 32,
+    "entered_plays": 31,
+    "completed_plays": 31,
     "wins": 20,
-    "losses": 12,
+    "losses": 11,
     "pushes": 0,
-    "win_pct": 0.625,
-    "profit_units": 6.1818,
-    "roi": 0.193181875,
+    "win_pct": 0.6451612903225806,
+    "profit_units": 7.1818,
+    "roi": 0.2316716129032258,
     "avg_clv_proxy": 0.0,
     "positive_clv_proxy_pct": 0.0,
-    "today_actionable": 4,
-    "ats_entered": 8,
+    "today_actionable": 3,
+    "ats_entered": 7,
     "totals_entered": 24
   },
   "totals_v2_plays": {
