@@ -1,0 +1,6 @@
+{
+  "374768": {
+    "reason": "USC at Wichita State on 2026-11-08 was a neutral-site Tahoe game; original CBBD neutralSite=false, KenPom FanMatch Location=Neutral. Exclude from clean ATS model evaluation but retain for audit.",
+    "source": "https://kenpom.com/fanmatch.php?d=2026-11-08"
+  }
+}
