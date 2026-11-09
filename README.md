@@ -60,11 +60,18 @@ GitHub Pages will show the published site URL after deployment. It will normally
 
 `https://YOUR-GITHUB-USERNAME.github.io/cbb-tier-a-dashboard/`
 
-## Neutral-site games
+## Game location: KenPom FanMatch is authoritative
 
-Neutral games are intentionally conservative.
+The ATS v4 and Totals v1 scanners determine game location **only from KenPom FanMatch's `Location` field**:
 
-If a neutral Tier A candidate appears, the dashboard marks it **REVIEW** until its team-specific line orientation is verified. To approve one:
+- `Home`: ordinary home venue for the KenPom-designated home team. If its home/away orientation conflicts with the game's team assignment, hold for review.
+- `Neutral`: neutral-site model inputs; a verified team-specific spread orientation is still required before any wager is actionable.
+- `Semi-Home`: hold for review until a validated semi-home adjustment exists.
+- Missing or unknown KenPom location: **PASS / no actionable wager**.
+
+CBBD's `neutralSite` value is **audit-only**: the scanner logs disagreements but never lets CBBD override or veto KenPom's location. This prevents an incorrect CBBD `false` from treating a neutral-site game as ordinary home court.
+
+Neutral-site games are intentionally conservative. If a neutral Tier A candidate appears, the dashboard marks it **REVIEW** until its team-specific line orientation is verified. To approve one:
 
 1. open `neutral_overrides.csv` in GitHub;
 2. click the pencil/edit icon;
