@@ -88,10 +88,10 @@ tbody tr:last-child td{border-bottom:0}
 <section id="qualified-plays" aria-labelledby="qualified-title">
  <div class="sectionhead"><h2 id="qualified-title">Current qualified plays</h2><span class="caption" id="play-count">Awaiting data</span></div>
  <div class="tablewrap" id="plays-wrap" hidden>
-  <table><thead><tr><th>Date</th><th>Model</th><th>Matchup</th><th>Pick</th><th>Recorded line</th><th>State</th></tr></thead><tbody id="plays-rows"></tbody></table>
+  <table><thead><tr><th>Date</th><th>Model</th><th>Matchup</th><th>Pick</th><th>Entry / latest</th><th>Latest edge</th><th>Confidence / test size</th><th>QC / freshness</th></tr></thead><tbody id="plays-rows"></tbody></table>
  </div>
  <div class="empty" id="plays-empty" hidden><strong>No qualified plays currently on the board</strong>Only recorded model entries appear here. Candidate reviews and all shadow forecasts are on the <a href="research.html">Research Lab</a>.</div>
- <p class="note">“Qualified” means the strategy recorded an entry; it does not confirm a real-money wager. NBA plays are paper only. Lines are saved snapshots, not guaranteed currently available prices.</p>
+ <p class="note"><strong>Test sizing (to-win basis, 1u = $100):</strong> HIGH TEST = 1.00u ($100 to win), MEDIUM TEST = 0.66u ($66 to win), LOW TEST = 0.33u ($33 to win). At an <em>illustrative</em> -110 price, risk would be $110 / $72.60 / $36.30 respectively; actual risk depends on verified sportsbook odds. Grades measure model-edge buffer above frozen qualification thresholds (ATS 1.75 points, Totals v1 2.00 points): LOW &lt; 0.50-point buffer, MEDIUM ≥ 0.50, HIGH ≥ 1.00. A QC failure, stale scan (&gt; 3 hours), or started game makes the play <strong>HOLD</strong> regardless of grade. Grades are not calibrated win probabilities. “Qualified” means a model entry, not a confirmed wager; NBA is paper only. Records and ROI retain the original flat-risk-unit model accounting, independent of suggested real-money sizing.</p>
 </section>
 
 <section id="recent-results" aria-labelledby="results-title">
@@ -140,19 +140,54 @@ function recordCards(cbb,nba){
  write('ats-meta',yes?(ats.entered_plays??0)+' entries · '+(ats.completed_plays??0)+' graded':'Frozen ATS strategy');
  write('totals-meta',yes?(tot.entered_plays??0)+' entries · '+(tot.completed_plays??0)+' graded':'Over / Under');
 }
+const TEST_UNIT_DOLLARS=100;
+function testPlan(p){
+ if(p.kind!=='cbb')return null;
+ const floor=p.type==='CBB ATS'?1.75:2.00;
+ const edge=num(p.latestEdge??p.entryEdge);
+ if(edge===null||Math.abs(edge)+1e-9<floor)return {label:'NOT QUALIFIED',units:0,canBet:false,reason:'Edge below frozen threshold'};
+ const buffer=Math.abs(edge)-floor;
+ const grade=buffer>=1?'HIGH TEST':buffer>=0.5?'MEDIUM TEST':'LOW TEST';
+ const units=grade==='HIGH TEST'?1:grade==='MEDIUM TEST'?0.66:0.33;
+ const qcOK=!!p.qcStatus&&p.qcStatus.startsWith('OK_')&&(p.type!=='CBB ATS'||p.venueVerified);
+ const timestamp=p.latestSnapshot?new Date(p.latestSnapshot).getTime():NaN;
+ const elapsed=(Date.now()-timestamp)/3600000;
+ const snapshotDay=Number.isFinite(timestamp)?new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(timestamp)):'';
+ const fresh=Number.isFinite(timestamp)&&elapsed>=-0.1&&elapsed<=3&&snapshotDay===pacificDate();
+ const action=p.latestActionable===true&&(!p.latestBet||p.latestBet===p.pick);
+ const start=p.startUTC?new Date(p.startUTC).getTime():NaN;
+ const started=Number.isFinite(start)&&Date.now()>=start;
+ const canBet=qcOK&&fresh&&action&&!started;
+ const reason=!qcOK?'QC / venue check required':!fresh?'Stale scan — refresh line':!action?'No longer actionable':started?'Game already started':'Verify sportsbook price';
+ return {label:grade,units,canBet,reason,buffer};
+}
 function gather(cbb,nba){
  let all=[];
  const ats=values(cbb?.plays).filter(p=>p&&p.entry_line!=null);
  const totals=values(cbb?.totals_plays).filter(p=>p&&p.entry_total!=null);
- for(const p of ats)all.push({
-  date:p.game_date||'',type:'CBB ATS',away:p.away_team,home:p.home_team,pick:p.bet_team||'—',
-  line:signed(p.entry_line,1),result:p.result||null,units:p.profit_units,kind:'cbb',
-   venueVerified:p.venue_verified===true,qcExcluded:!!p.qc_excluded,qcStatus:p.qc_status||''
- });
- for(const p of totals)all.push({
-  date:p.game_date||'',type:'CBB Totals',away:p.away_team,home:p.home_team,pick:p.bet_side||'—',
-  line:number(p.entry_total,1),result:p.result||null,units:p.profit_units,kind:'cbb'
- });
+ for(const p of ats){
+  const snap=Array.isArray(p.snapshots)?p.snapshots[p.snapshots.length-1]:null;
+  all.push({
+   date:p.game_date||'',type:'CBB ATS',away:p.away_team,home:p.home_team,pick:p.bet_team||'—',
+   line:signed(p.entry_line,1),latestLine:signed(p.latest_line??p.entry_line,1),latestEdge:p.latest_edge??p.entry_edge,
+   entryEdge:p.entry_edge??p.first_edge,result:p.result||null,units:p.profit_units,kind:'cbb',
+   venueVerified:p.venue_verified===true,qcExcluded:!!p.qc_excluded,qcStatus:snap?.qc_status_now||p.qc_status||'',
+   latestSnapshot:p.latest_snapshot_pt||snap?.timestamp_pt,latestProvider:p.latest_provider||p.entry_provider||'',
+   latestActionable:snap?.actionable_now,latestBet:snap?.model_bet_now,startUTC:p.start_utc
+  });
+ }
+ for(const p of totals){
+  const snap=Array.isArray(p.snapshots)?p.snapshots[p.snapshots.length-1]:null;
+  all.push({
+   date:p.game_date||'',type:'CBB Totals',away:p.away_team,home:p.home_team,pick:p.bet_side||'—',
+   line:number(p.entry_total,1),latestLine:number(p.latest_total??p.entry_total,1),
+   latestEdge:p.latest_edge??p.entry_edge,entryEdge:p.entry_edge??p.first_edge,
+   result:p.result||null,units:p.profit_units,kind:'cbb',
+   qcExcluded:!!p.qc_excluded,qcStatus:snap?.qc_status_now||p.qc_status||'',
+   latestSnapshot:p.latest_snapshot_pt||snap?.timestamp_pt,latestProvider:p.latest_provider||p.entry_provider||'',
+   latestActionable:snap?.actionable_now,latestBet:snap?.model_bet_now,startUTC:p.start_utc
+  });
+ }
  for(const p of Array.isArray(nba?.plays)?nba.plays:[]){
   if(!p||p.moneyline==null)continue;
   const ml=num(p.entry_moneyline??p.moneyline);
@@ -160,7 +195,8 @@ function gather(cbb,nba){
   const graded=p.result==='W'||p.result==='L';
   const profit=graded?(p.result==='L'?-1:ml>0?ml/100:100/Math.abs(ml)):null;
   all.push({date:p.game_date||'',type:'NBA ML · Paper',away:p.away_team,home:p.home_team,
-   pick:p.bet_team||'—',line:signed(ml,0),result:graded?p.result:null,units:profit,kind:'paper'});
+   pick:p.bet_team||'—',line:signed(ml,0),latestLine:signed(ml,0),
+   result:graded?p.result:null,units:profit,kind:'paper'});
  }
  return all.sort((a,b)=>b.date.localeCompare(a.date)||a.type.localeCompare(b.type));
 }
@@ -169,10 +205,21 @@ function renderPlays(all){
  const active=all.filter(p=>!p.result&&!p.qcExcluded&&p.date>=now).sort((a,b)=>a.date.localeCompare(b.date)||a.type.localeCompare(b.type));
  write('play-count',active.length+' recorded open '+(active.length===1?'entry':'entries'));
  $('plays-wrap').hidden=!active.length;$('plays-empty').hidden=!!active.length;
- $('plays-rows').innerHTML=active.map(p=>'<tr><td>'+safe(dateLabel(p.date))+'</td><td>'+pill(p.type,p.kind==='paper'?'gold':'')+
- '</td><td><span class="bold">'+safe(p.away)+' @ '+safe(p.home)+'</span></td><td class="bold">'+safe(p.pick)+'</td><td>'+safe(p.line)+'</td><td>'+(p.kind==='paper'?pill('PAPER','gold'):p.type==='CBB ATS'?
-     pill(p.venueVerified?'VENUE VERIFIED':'VENUE UNVERIFIED',p.venueVerified?'green':'gold'):
-     pill('MODEL ENTRY','green'))+'</td></tr>').join('');
+ $('plays-rows').innerHTML=active.map(p=>{
+  const plan=testPlan(p);
+  const when=p.latestSnapshot?new Date(p.latestSnapshot).toLocaleString('en-US',{timeZone:'America/Los_Angeles',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'Not recorded';
+  const edge=plan&&num(p.latestEdge??p.entryEdge)!==null?signed(Math.abs(p.latestEdge??p.entryEdge),2)+' pts':'—';
+  const grade=plan?pill(plan.label,plan.label==='HIGH TEST'?'green':plan.label==='MEDIUM TEST'?'gold':'')+
+   '<div class="subline"><strong>'+plan.units.toFixed(2)+'u</strong> · $'+(TEST_UNIT_DOLLARS*plan.units).toFixed(0)+' to win</div>'+
+   '<div class="subline">-110 example: $'+(TEST_UNIT_DOLLARS*plan.units*1.1).toFixed(2)+' risk</div>':
+   pill('PAPER ONLY','gold');
+  const state=plan?(plan.canBet?pill('QC PASS','green'):pill('HOLD','red'))+
+   '<div class="subline">'+safe(plan.reason)+'</div><div class="subline">'+safe(when)+' PT · '+safe(p.latestProvider||'No provider')+'</div>':pill('NBA PAPER','gold');
+  return '<tr><td>'+safe(dateLabel(p.date))+'</td><td>'+pill(p.type,p.kind==='paper'?'gold':'')+
+   '</td><td><span class="bold">'+safe(p.away)+' @ '+safe(p.home)+'</span></td><td class="bold">'+safe(p.pick)+'</td><td>'+
+   safe(p.line)+(p.latestLine!==p.line?'<div class="subline">Now: '+safe(p.latestLine)+'</div>':'')+
+   '</td><td>'+safe(edge)+'</td><td>'+grade+'</td><td>'+state+'</td></tr>';
+ }).join('');
  const graded=all.filter(p=>p.result==='W'||p.result==='L'||p.result==='P').slice(0,25);
  $('results-wrap').hidden=!graded.length;$('results-empty').hidden=!!graded.length;
  $('results-rows').innerHTML=graded.map(p=>'<tr><td>'+safe(p.date)+'</td><td>'+pill(p.type,p.kind==='paper'?'gold':'')+'</td><td>'+safe(p.away)+' @ '+safe(p.home)+'</td><td class="bold">'+safe(p.pick)+' <span class="subline">'+safe(p.line)+(p.qcExcluded?' · QC EXCEPTION':'')+'</span></td><td>'+pill(p.result,p.result==='W'?'green':p.result==='L'?'red':'')+'</td><td class="'+(num(p.units)>0?'green':num(p.units)<0?'red':'')+'">'+(num(p.units)==null?'—':signed(p.units)+'u')+'</td></tr>').join('');
