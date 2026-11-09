@@ -432,19 +432,23 @@ def kenpom_location(fanmatch_game: Dict[str, Any]) -> Optional[str]:
     return {"home": "Home", "neutral": "Neutral", "semi-home": "Semi-Home"}.get(normalized)
 
 
-def verify_game_venue(game: Dict[str, Any], fanmatch_game: Dict[str, Any]) -> Tuple[bool, Optional[str], str]:
-    """Never infer a home game from absent/contradictory site information."""
+def verify_game_venue(
+    game: Dict[str, Any], fanmatch_game: Dict[str, Any], orientation: Optional[str] = None
+) -> Tuple[bool, Optional[str], str]:
+    """KenPom FanMatch is the sole authority for the site's location.
+
+    CBBD neutralSite may be wrong or missing: retain it for audit, never as a
+    veto. Unknown and semi-home KenPom sites fail closed until reviewed.
+    A reversed real home team also requires review before scoring any bet.
+    """
     kp_site = kenpom_location(fanmatch_game)
-    cbbd_site = game.get("neutralSite")
     if kp_site is None:
         return False, None, "VENUE_KENPOM_LOCATION_MISSING_REVIEW_REQUIRED"
-    if not isinstance(cbbd_site, bool):
-        return False, kp_site, "VENUE_CBBD_LOCATION_MISSING_REVIEW_REQUIRED"
     if kp_site == "Semi-Home":
         return False, kp_site, "VENUE_SEMI_HOME_REVIEW_REQUIRED"
-    if (kp_site == "Neutral") != cbbd_site:
-        return False, kp_site, "VENUE_SOURCE_CONFLICT_REVIEW_REQUIRED"
-    return True, kp_site, "VENUE_VERIFIED"
+    if kp_site == "Home" and orientation == "REVERSED":
+        return False, kp_site, "VENUE_HOME_TEAM_ORIENTATION_REVIEW_REQUIRED"
+    return True, kp_site, "VENUE_KENPOM_VERIFIED"
 
 
 def venue_qc_allows_bet(venue_verified: bool, qc_status: str) -> bool:
@@ -907,22 +911,33 @@ def main() -> int:
             audit.append(f"FanMatch unmatched: {game.get('gameId')} {game.get('awayTeam')} @ {game.get('homeTeam')} ({orientation})")
             continue
 
-        venue_verified, kp_location, venue_status = verify_game_venue(game, fm)
-        # Use the known KenPom site in feature construction while holding any
-        # conflicting/missing/semi-home venue from wagering.
+        venue_verified, kp_location, venue_status = verify_game_venue(game, fm, orientation)
+        # KenPom alone determines the venue for all model and QC calculations.
+        # CBBD neutralSite is retained for audits but never overrides KenPom.
         effective_game = dict(game)
-        if kp_location in ("Neutral", "Semi-Home"):
-            effective_game["neutralSite"] = True
+        effective_game["neutralSite"] = (
+            True if kp_location in ("Neutral", "Semi-Home")
+            else False if kp_location == "Home" else None
+        )
+        cbbd_site = game.get("neutralSite")
+        if isinstance(cbbd_site, bool) and kp_location in ("Home", "Neutral"):
+            if cbbd_site != (kp_location == "Neutral"):
+                counts["venue_source_disagreement"] += 1
+                audit.append(
+                    f"Venue source disagreement (KenPom authoritative): {game.get('gameId')} "
+                    f"{game.get('awayTeam')} @ {game.get('homeTeam')} "
+                    f"KenPom={kp_location} CBBD={cbbd_site}"
+                )
         if venue_verified:
             selected, qc_status, override_source = apply_neutral_override(effective_game, selected, overrides)
-            qc_source = override_source or "KenPom FanMatch Location + CBBD neutralSite"
+            qc_source = override_source or "KenPom FanMatch Location"
         else:
             qc_status = venue_status
-            qc_source = "KenPom FanMatch Location + CBBD neutralSite"
+            qc_source = "KenPom FanMatch Location"
             counts["venue_qc_held"] += 1
             audit.append(
                 f"Venue QC held: {game.get('gameId')} {game.get('awayTeam')} @ {game.get('homeTeam')} "
-                f"KenPom={kp_location or 'MISSING'} CBBD={game.get('neutralSite')!r} QC={qc_status}"
+                f"KenPom={kp_location or 'MISSING'} QC={qc_status}"
             )
         if provider_status != "FROZEN_PRIORITY":
             qc_status = qc_status + "; REVIEW_PROVIDER"
@@ -1021,7 +1036,7 @@ def main() -> int:
             "Start_UTC": game.get("startDate"),
             "Away_Team": game.get("awayTeam"),
             "Home_Team": game.get("homeTeam"),
-            "Neutral_Site": bool(effective_game.get("neutralSite")),
+            "Neutral_Site": effective_game.get("neutralSite"),
             "CBBD_Neutral_Site": game.get("neutralSite"),
             "KP_Location": kp_location or "MISSING",
             "Venue_Verified": venue_verified,
@@ -1136,7 +1151,7 @@ def main() -> int:
         f.write("2026-27 TIER A SCANNER AUDIT\n")
         f.write("=" * 40 + "\n")
         f.write(f"Date: {target_date.isoformat()}\n")
-        for key in ["line_games", "already_started", "missing_start", "non_d1_proxy", "no_spread", "fanmatch_unmatched", "archive_unmatched", "venue_qc_held", "scored", "tier_a", "actionable", "neutral_review", "totals_qualified", "totals_actionable", "totals_v2_shadow", "totals_v2_trackable", "totals_v3_shadow", "totals_v3_trackable"]:
+        for key in ["line_games", "already_started", "missing_start", "non_d1_proxy", "no_spread", "fanmatch_unmatched", "archive_unmatched", "venue_qc_held", "venue_source_disagreement", "scored", "tier_a", "actionable", "neutral_review", "totals_qualified", "totals_actionable", "totals_v2_shadow", "totals_v2_trackable", "totals_v3_shadow", "totals_v3_trackable"]:
             f.write(f"{key}: {counts[key]}\n")
         if audit:
             f.write("\nDETAILS\n")
@@ -1155,6 +1170,7 @@ def main() -> int:
     print(f"Actionable Tier A:         {counts['actionable']}")
     print(f"Neutral review required:   {counts['neutral_review']}")
     print(f"Venue QC holds:            {counts['venue_qc_held']}")
+    print(f"KenPom/CBBD differences:   {counts['venue_source_disagreement']} (KenPom used)")
     print(f"Totals qualified:          {counts['totals_qualified']}")
     print(f"Totals v1 actionable:      {counts['totals_actionable']}")
     print(f"Totals v2 shadow:          {counts['totals_v2_shadow']}")
