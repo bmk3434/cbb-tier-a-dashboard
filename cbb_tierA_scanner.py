@@ -423,6 +423,37 @@ def match_fanmatch(game: Dict[str, Any], aliases: Dict[str, str], idx: Dict[froz
     return None, "FanMatch orientation unresolved"
 
 
+def kenpom_location(fanmatch_game: Dict[str, Any]) -> Optional[str]:
+    """Normalize documented FanMatch Location values; unknown values fail closed."""
+    raw = fanmatch_game.get("Location")
+    if not isinstance(raw, str):
+        return None
+    normalized = re.sub(r"[\s_]+", "-", raw.strip().lower())
+    return {"home": "Home", "neutral": "Neutral", "semi-home": "Semi-Home"}.get(normalized)
+
+
+def verify_game_venue(game: Dict[str, Any], fanmatch_game: Dict[str, Any]) -> Tuple[bool, Optional[str], str]:
+    """Never infer a home game from absent/contradictory site information."""
+    kp_site = kenpom_location(fanmatch_game)
+    cbbd_site = game.get("neutralSite")
+    if kp_site is None:
+        return False, None, "VENUE_KENPOM_LOCATION_MISSING_REVIEW_REQUIRED"
+    if not isinstance(cbbd_site, bool):
+        return False, kp_site, "VENUE_CBBD_LOCATION_MISSING_REVIEW_REQUIRED"
+    if kp_site == "Semi-Home":
+        return False, kp_site, "VENUE_SEMI_HOME_REVIEW_REQUIRED"
+    if (kp_site == "Neutral") != cbbd_site:
+        return False, kp_site, "VENUE_SOURCE_CONFLICT_REVIEW_REQUIRED"
+    return True, kp_site, "VENUE_VERIFIED"
+
+
+def venue_qc_allows_bet(venue_verified: bool, qc_status: str) -> bool:
+    """Single fail-closed QC gate used by ATS v4 and Totals v1."""
+    return venue_verified and not any(
+        token in qc_status for token in ("REVIEW", "REQUIRED", "MISSING", "CONFLICT")
+    )
+
+
 def get_archive_team(name: str, aliases: Dict[str, str], lookup: Dict[str, Dict[str, Any]]) -> Optional[Dict[str, Any]]:
     kp_name = kp_name_for_cbbd(name, aliases)
     return lookup.get(norm_name(kp_name))
@@ -701,6 +732,7 @@ def append_snapshots(rows: List[Dict[str, Any]]) -> None:
     path = OUTPUT_DIR / "line_snapshots.csv"
     fields = [
         "Run_Timestamp_PT", "Game_Date", "Game_ID", "Away_Team", "Home_Team", "Neutral_Site",
+        "CBBD_Neutral_Site", "KP_Location", "Venue_Verified",
         "Provider", "Home_Spread", "Market_Total", "Model_Bet", "Bet_Spread", "V4_Edge", "V4_Confidence",
         "Tier", "Profile_Tag", "Actionable", "QC_Status", "Totals_Bet", "Totals_Model_Total",
         "Totals_Predicted_Edge", "Totals_Edge", "Totals_Qualified", "Totals_Actionable", "Totals_QC_Status",
@@ -869,15 +901,31 @@ def main() -> int:
             counts["no_spread"] += 1
             continue
 
-        selected, qc_status, qc_source = apply_neutral_override(game, selected, overrides)
-        if provider_status != "FROZEN_PRIORITY":
-            qc_status = qc_status + "; REVIEW_PROVIDER"
-
         fm, orientation = match_fanmatch(game, aliases, fm_idx)
         if fm is None:
             counts["fanmatch_unmatched"] += 1
             audit.append(f"FanMatch unmatched: {game.get('gameId')} {game.get('awayTeam')} @ {game.get('homeTeam')} ({orientation})")
             continue
+
+        venue_verified, kp_location, venue_status = verify_game_venue(game, fm)
+        # Use the known KenPom site in feature construction while holding any
+        # conflicting/missing/semi-home venue from wagering.
+        effective_game = dict(game)
+        if kp_location in ("Neutral", "Semi-Home"):
+            effective_game["neutralSite"] = True
+        if venue_verified:
+            selected, qc_status, override_source = apply_neutral_override(effective_game, selected, overrides)
+            qc_source = override_source or "KenPom FanMatch Location + CBBD neutralSite"
+        else:
+            qc_status = venue_status
+            qc_source = "KenPom FanMatch Location + CBBD neutralSite"
+            counts["venue_qc_held"] += 1
+            audit.append(
+                f"Venue QC held: {game.get('gameId')} {game.get('awayTeam')} @ {game.get('homeTeam')} "
+                f"KenPom={kp_location or 'MISSING'} CBBD={game.get('neutralSite')!r} QC={qc_status}"
+            )
+        if provider_status != "FROZEN_PRIORITY":
+            qc_status = qc_status + "; REVIEW_PROVIDER"
 
         harch = get_archive_team(game.get("homeTeam", ""), aliases, arch_idx)
         aarch = get_archive_team(game.get("awayTeam", ""), aliases, arch_idx)
@@ -889,7 +937,7 @@ def main() -> int:
         hsnap = snapshots.get(str(game.get("homeTeamId")), empty_snapshot())
         asnap = snapshots.get(str(game.get("awayTeamId")), empty_snapshot())
 
-        fv = derive_features(game, selected, fm, orientation, harch, aarch, hsnap, asnap, target_date)
+        fv = derive_features(effective_game, selected, fm, orientation, harch, aarch, hsnap, asnap, target_date)
         X = np.array([[fv.get(feat, math.nan) for feat in features]], dtype=float)
         mu = float(model.predict(X)[0])
         p_home = float(norm.cdf(mu / sigma))
@@ -908,11 +956,10 @@ def main() -> int:
         is_underdog = bet_spread > 0
         edge = abs(mu)
         tier_a = edge >= 1.75 and is_underdog and bet_spread >= 4.0
-        profile_tag = "AWAY_4_TO_6_5" if (tier_a and bet_side == "Away" and 4.0 <= bet_spread <= 6.5 and not bool(game.get("neutralSite"))) else ""
+        profile_tag = "AWAY_4_TO_6_5" if (tier_a and bet_side == "Away" and 4.0 <= bet_spread <= 6.5 and venue_verified and kp_location == "Home") else ""
 
-        actionable = tier_a
-        if "REVIEW" in qc_status or "REQUIRED" in qc_status or "MISSING" in qc_status:
-            actionable = False
+        venue_actionable = venue_qc_allows_bet(venue_verified, qc_status)
+        actionable = tier_a and venue_actionable
 
         tier = "A" if tier_a else ""
         if tier_a and not actionable:
@@ -941,31 +988,31 @@ def main() -> int:
         totals_v3_trackable = False
         totals_v3_qc_status = "NO_MARKET_TOTAL"
         if not math.isnan(market_total):
-            tfv = derive_total_features(game, selected, fv, hsnap, asnap, target_date)
+            tfv = derive_total_features(effective_game, selected, fv, hsnap, asnap, target_date)
             TX = np.array([[tfv.get(feat, math.nan) for feat in totals_features]], dtype=float)
             totals_pred_edge = float(totals_model.predict(TX)[0])
             totals_model_total = market_total + totals_pred_edge
             totals_side = "Over" if totals_pred_edge > 0 else ("Under" if totals_pred_edge < 0 else "Pass")
             totals_edge = abs(totals_pred_edge)
             totals_qualified = totals_edge >= 2.0
-            totals_actionable = totals_qualified and provider_status == "FROZEN_PRIORITY"
-            totals_qc_status = "OK_TOTAL" if provider_status == "FROZEN_PRIORITY" else "REVIEW_PROVIDER"
+            totals_actionable = totals_qualified and provider_status == "FROZEN_PRIORITY" and venue_actionable
+            totals_qc_status = ("OK_TOTAL" if provider_status == "FROZEN_PRIORITY" else "REVIEW_PROVIDER") if venue_actionable else qc_status
 
             totals_v2_pred_edge = predict_totals_v2(tfv, totals_v2_spec)
             totals_v2_model_total = market_total + totals_v2_pred_edge
             totals_v2_side = "Over" if totals_v2_pred_edge > 0 else ("Under" if totals_v2_pred_edge < 0 else "Pass")
             totals_v2_edge = abs(totals_v2_pred_edge)
             totals_v2_qualified = totals_v2_edge >= 2.0
-            totals_v2_trackable = totals_v2_qualified and provider_status == "FROZEN_PRIORITY"
-            totals_v2_qc_status = "SHADOW_OK" if provider_status == "FROZEN_PRIORITY" else "SHADOW_REVIEW_PROVIDER"
+            totals_v2_trackable = totals_v2_qualified and provider_status == "FROZEN_PRIORITY" and venue_actionable
+            totals_v2_qc_status = ("SHADOW_OK" if provider_status == "FROZEN_PRIORITY" else "SHADOW_REVIEW_PROVIDER") if venue_actionable else qc_status
 
             totals_v3_pred_edge = predict_totals_v3(tfv, totals_v3_spec)
             totals_v3_model_total = market_total + totals_v3_pred_edge
             totals_v3_side = "Over" if totals_v3_pred_edge > 0 else ("Under" if totals_v3_pred_edge < 0 else "Pass")
             totals_v3_edge = abs(totals_v3_pred_edge)
             totals_v3_qualified = totals_v3_edge >= 2.0
-            totals_v3_trackable = totals_v3_qualified and provider_status == "FROZEN_PRIORITY"
-            totals_v3_qc_status = "EXPERIMENTAL_SHADOW_OK" if provider_status == "FROZEN_PRIORITY" else "EXPERIMENTAL_SHADOW_REVIEW_PROVIDER"
+            totals_v3_trackable = totals_v3_qualified and provider_status == "FROZEN_PRIORITY" and venue_actionable
+            totals_v3_qc_status = ("EXPERIMENTAL_SHADOW_OK" if provider_status == "FROZEN_PRIORITY" else "EXPERIMENTAL_SHADOW_REVIEW_PROVIDER") if venue_actionable else qc_status
 
         result = {
             "Run_Timestamp_PT": datetime.now(LOCAL_TZ).isoformat(timespec="seconds"),
@@ -974,7 +1021,10 @@ def main() -> int:
             "Start_UTC": game.get("startDate"),
             "Away_Team": game.get("awayTeam"),
             "Home_Team": game.get("homeTeam"),
-            "Neutral_Site": bool(game.get("neutralSite")),
+            "Neutral_Site": bool(effective_game.get("neutralSite")),
+            "CBBD_Neutral_Site": game.get("neutralSite"),
+            "KP_Location": kp_location or "MISSING",
+            "Venue_Verified": venue_verified,
             "Provider": selected.get("provider"),
             "Provider_Status": provider_status,
             "Home_Spread": home_spread,
@@ -1028,7 +1078,7 @@ def main() -> int:
             counts["tier_a"] += 1
             if actionable:
                 counts["actionable"] += 1
-            if bool(game.get("neutralSite")) and not actionable:
+            if bool(effective_game.get("neutralSite")) and not actionable:
                 counts["neutral_review"] += 1
         if totals_qualified:
             totals_candidates.append(result)
@@ -1054,7 +1104,7 @@ def main() -> int:
 
     fields = [
         "Run_Timestamp_PT", "Game_Date", "Game_ID", "Start_UTC", "Away_Team", "Home_Team",
-        "Neutral_Site", "Provider", "Provider_Status", "Home_Spread", "Market_Total",
+        "Neutral_Site", "CBBD_Neutral_Site", "KP_Location", "Venue_Verified", "Provider", "Provider_Status", "Home_Spread", "Market_Total",
         "Home_Moneyline", "Away_Moneyline", "Model_Bet", "Bet_Side", "Bet_Spread",
         "V4_Predicted_ATS_Edge", "V4_Edge", "V4_Home_Cover_Prob", "V4_Confidence",
         "Tier", "Profile_Tag", "Actionable", "QC_Status", "QC_Source", "Home_Prior_Games", "Away_Prior_Games",
@@ -1086,7 +1136,7 @@ def main() -> int:
         f.write("2026-27 TIER A SCANNER AUDIT\n")
         f.write("=" * 40 + "\n")
         f.write(f"Date: {target_date.isoformat()}\n")
-        for key in ["line_games", "already_started", "missing_start", "non_d1_proxy", "no_spread", "fanmatch_unmatched", "archive_unmatched", "scored", "tier_a", "actionable", "neutral_review", "totals_qualified", "totals_actionable", "totals_v2_shadow", "totals_v2_trackable", "totals_v3_shadow", "totals_v3_trackable"]:
+        for key in ["line_games", "already_started", "missing_start", "non_d1_proxy", "no_spread", "fanmatch_unmatched", "archive_unmatched", "venue_qc_held", "scored", "tier_a", "actionable", "neutral_review", "totals_qualified", "totals_actionable", "totals_v2_shadow", "totals_v2_trackable", "totals_v3_shadow", "totals_v3_trackable"]:
             f.write(f"{key}: {counts[key]}\n")
         if audit:
             f.write("\nDETAILS\n")
@@ -1104,6 +1154,7 @@ def main() -> int:
     print(f"Tier A candidates:         {counts['tier_a']}")
     print(f"Actionable Tier A:         {counts['actionable']}")
     print(f"Neutral review required:   {counts['neutral_review']}")
+    print(f"Venue QC holds:            {counts['venue_qc_held']}")
     print(f"Totals qualified:          {counts['totals_qualified']}")
     print(f"Totals v1 actionable:      {counts['totals_actionable']}")
     print(f"Totals v2 shadow:          {counts['totals_v2_shadow']}")
