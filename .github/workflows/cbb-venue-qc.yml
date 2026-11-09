@@ -6,6 +6,10 @@ on:
       - 'cbb_tierA_scanner.py'
       - 'test_cbb_venue_qc.py'
       - 'test_cbb_venue_live.py'
+      - 'dashboard_sync.py'
+      - 'test_dashboard_venue_qc.py'
+      - 'venue_qc_exceptions.json'
+      - 'site/index.html'
       - '.github/workflows/cbb-venue-qc.yml'
   workflow_dispatch:
 
@@ -24,8 +28,18 @@ jobs:
         run: python -m pip install -r requirements.txt
       - name: Compile and test venue gating
         run: |
-          python -m py_compile cbb_tierA_scanner.py test_cbb_venue_qc.py test_cbb_venue_live.py
-          python -m unittest -v test_cbb_venue_qc
+          python -m py_compile cbb_tierA_scanner.py test_cbb_venue_qc.py test_cbb_venue_live.py dashboard_sync.py test_dashboard_venue_qc.py
+          python -m unittest -v test_cbb_venue_qc test_dashboard_venue_qc
+      - name: Check dashboard JavaScript syntax
+        run: |
+          python - <<'PY'
+          import re, subprocess
+          from pathlib import Path
+          html = Path('site/index.html').read_text(encoding='utf-8')
+          match = re.search(r'<script>(.*?)</script>', html, re.S)
+          assert match, 'dashboard script not found'
+          subprocess.run(['node', '--check'], input=match.group(1), text=True, check=True)
+          PY
       - name: Check real KenPom FanMatch site classification
         env:
           KENPOM_API_KEY: ${{ secrets.KENPOM_API_KEY }}

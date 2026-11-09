@@ -146,7 +146,8 @@ function gather(cbb,nba){
  const totals=values(cbb?.totals_plays).filter(p=>p&&p.entry_total!=null);
  for(const p of ats)all.push({
   date:p.game_date||'',type:'CBB ATS',away:p.away_team,home:p.home_team,pick:p.bet_team||'—',
-  line:signed(p.entry_line,1),result:p.result||null,units:p.profit_units,kind:'cbb'
+  line:signed(p.entry_line,1),result:p.result||null,units:p.profit_units,kind:'cbb',
+   venueVerified:p.venue_verified===true,qcExcluded:!!p.qc_excluded,qcStatus:p.qc_status||''
  });
  for(const p of totals)all.push({
   date:p.game_date||'',type:'CBB Totals',away:p.away_team,home:p.home_team,pick:p.bet_side||'—',
@@ -165,14 +166,16 @@ function gather(cbb,nba){
 }
 function renderPlays(all){
  const now=pacificDate();
- const active=all.filter(p=>!p.result&&p.date>=now).sort((a,b)=>a.date.localeCompare(b.date)||a.type.localeCompare(b.type));
+ const active=all.filter(p=>!p.result&&!p.qcExcluded&&p.date>=now).sort((a,b)=>a.date.localeCompare(b.date)||a.type.localeCompare(b.type));
  write('play-count',active.length+' recorded open '+(active.length===1?'entry':'entries'));
  $('plays-wrap').hidden=!active.length;$('plays-empty').hidden=!!active.length;
  $('plays-rows').innerHTML=active.map(p=>'<tr><td>'+safe(dateLabel(p.date))+'</td><td>'+pill(p.type,p.kind==='paper'?'gold':'')+
- '</td><td><span class="bold">'+safe(p.away)+' @ '+safe(p.home)+'</span></td><td class="bold">'+safe(p.pick)+'</td><td>'+safe(p.line)+'</td><td>'+pill(p.kind==='paper'?'PAPER':'MODEL ENTRY',p.kind==='paper'?'gold':'green')+'</td></tr>').join('');
+ '</td><td><span class="bold">'+safe(p.away)+' @ '+safe(p.home)+'</span></td><td class="bold">'+safe(p.pick)+'</td><td>'+safe(p.line)+'</td><td>'+(p.kind==='paper'?pill('PAPER','gold'):p.type==='CBB ATS'?
+     pill(p.venueVerified?'VENUE VERIFIED':'VENUE UNVERIFIED',p.venueVerified?'green':'gold'):
+     pill('MODEL ENTRY','green'))+'</td></tr>').join('');
  const graded=all.filter(p=>p.result==='W'||p.result==='L'||p.result==='P').slice(0,25);
  $('results-wrap').hidden=!graded.length;$('results-empty').hidden=!!graded.length;
- $('results-rows').innerHTML=graded.map(p=>'<tr><td>'+safe(p.date)+'</td><td>'+pill(p.type,p.kind==='paper'?'gold':'')+'</td><td>'+safe(p.away)+' @ '+safe(p.home)+'</td><td class="bold">'+safe(p.pick)+' <span class="subline">'+safe(p.line)+'</span></td><td>'+pill(p.result,p.result==='W'?'green':p.result==='L'?'red':'')+'</td><td class="'+(num(p.units)>0?'green':num(p.units)<0?'red':'')+'">'+(num(p.units)==null?'—':signed(p.units)+'u')+'</td></tr>').join('');
+ $('results-rows').innerHTML=graded.map(p=>'<tr><td>'+safe(p.date)+'</td><td>'+pill(p.type,p.kind==='paper'?'gold':'')+'</td><td>'+safe(p.away)+' @ '+safe(p.home)+'</td><td class="bold">'+safe(p.pick)+' <span class="subline">'+safe(p.line)+(p.qcExcluded?' · QC EXCEPTION':'')+'</span></td><td>'+pill(p.result,p.result==='W'?'green':p.result==='L'?'red':'')+'</td><td class="'+(num(p.units)>0?'green':num(p.units)<0?'red':'')+'">'+(num(p.units)==null?'—':signed(p.units)+'u')+'</td></tr>').join('');
 }
 async function loadJSON(path){
  const response=await fetch(path,{cache:'no-store'});

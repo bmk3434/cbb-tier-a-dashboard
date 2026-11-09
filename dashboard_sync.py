@@ -26,6 +26,7 @@ SITE_DATA = ROOT / "site" / "data"
 STATE_PATH = DATA / "state.json"
 SITE_STATE_PATH = SITE_DATA / "state.json"
 INVALID_PLAYS_PATH = ROOT / "invalid_plays.csv"
+VENUE_QC_EXCEPTIONS_PATH = ROOT / "venue_qc_exceptions.json"
 LOCAL_TZ = ZoneInfo("America/Los_Angeles")
 CBBD_BASE = "https://api.collegebasketballdata.com"
 SEASON = 2027
@@ -83,6 +84,23 @@ def load_invalid_play_ids() -> set[str]:
     return {str(r.get("Game_ID") or "").strip() for r in rows if str(r.get("Game_ID") or "").strip()}
 
 
+def mark_venue_qc_exceptions(state: Dict[str, Any]) -> int:
+    """Retain flagged legacy plays, but exclude them from clean model statistics."""
+    if not VENUE_QC_EXCEPTIONS_PATH.exists():
+        return 0
+    exceptions = json.loads(VENUE_QC_EXCEPTIONS_PATH.read_text(encoding="utf-8"))
+    count = 0
+    for gid, details in exceptions.items():
+        play = state.get("plays", {}).get(str(gid))
+        if not play:
+            continue
+        play["qc_excluded"] = True
+        play["qc_exception_reason"] = str(details.get("reason") or "Venue QC exception")
+        play["qc_exception_source"] = str(details.get("source") or "")
+        count += 1
+    return count
+
+
 def candidate_row_is_post_tip(row: Dict[str, Any]) -> bool:
     """Reject scanner rows first observed at or after scheduled tipoff."""
     scan_ts = parse_iso(str(row.get("Run_Timestamp_PT") or ""))
@@ -134,6 +152,8 @@ def append_snapshot(play: Dict[str, Any], row: Dict[str, Any]) -> None:
         "tier_now": row.get("Tier") or "",
         "actionable_now": as_bool(row.get("Actionable")),
         "qc_status_now": row.get("QC_Status") or "",
+        "kp_location_now": row.get("KP_Location") or "",
+        "venue_verified_now": as_bool(row.get("Venue_Verified")),
     }
     snaps.append(snap)
     snaps.sort(key=lambda s: s["timestamp_pt"])
@@ -166,6 +186,8 @@ def create_or_update_candidates(state: Dict[str, Any], target_date: str, invalid
                 "away_team": r.get("Away_Team") or "",
                 "home_team": r.get("Home_Team") or "",
                 "neutral_site": as_bool(r.get("Neutral_Site")),
+                "kp_location": r.get("KP_Location") or "",
+                "venue_verified": as_bool(r.get("Venue_Verified")),
                 "bet_team": r.get("Model_Bet") or "",
                 "bet_side": r.get("Bet_Side") or "",
                 "first_seen_pt": r.get("Run_Timestamp_PT") or now_pt().isoformat(timespec="seconds"),
@@ -196,6 +218,9 @@ def create_or_update_candidates(state: Dict[str, Any], target_date: str, invalid
         play["tier"] = r.get("Tier") or play.get("tier") or ""
         play["qc_status"] = r.get("QC_Status") or play.get("qc_status") or ""
         play["qc_source"] = r.get("QC_Source") or play.get("qc_source") or ""
+        play["neutral_site"] = as_bool(r.get("Neutral_Site"))
+        play["kp_location"] = r.get("KP_Location") or ""
+        play["venue_verified"] = as_bool(r.get("Venue_Verified"))
         if actionable and play.get("entry_line") is None:
             play["first_actionable_pt"] = r.get("Run_Timestamp_PT") or now_pt().isoformat(timespec="seconds")
             play["entry_line"] = safe_float(r.get("Bet_Spread"))
@@ -791,7 +816,8 @@ def settle_unresolved(state: Dict[str, Any], key: str) -> tuple[int, int, int, i
 
 def summarize(state: Dict[str, Any]) -> Dict[str, Any]:
     plays = list(state["plays"].values())
-    entered = [p for p in plays if p.get("entry_line") is not None]
+    all_entered = [p for p in plays if p.get("entry_line") is not None]
+    entered = [p for p in all_entered if not p.get("qc_excluded")]
     done = [p for p in entered if p.get("result") in {"W", "L", "P"}]
     w = sum(p.get("result") == "W" for p in done)
     l = sum(p.get("result") == "L" for p in done)
@@ -807,6 +833,7 @@ def summarize(state: Dict[str, Any]) -> Dict[str, Any]:
     today_plays = [p for p in plays if p.get("game_date") == today]
     return {
         "tracked_candidates": len(plays),
+        "qc_excluded_entries": len(all_entered) - len(entered),
         "entered_plays": len(entered),
         "completed_plays": len(done),
         "wins": w,
@@ -975,7 +1002,7 @@ def summarize_totals_v3(state: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def summarize_combined(state: Dict[str, Any]) -> Dict[str, Any]:
-    ats_entered = [p for p in state["plays"].values() if p.get("entry_line") is not None]
+    ats_entered = [p for p in state["plays"].values() if p.get("entry_line") is not None and not p.get("qc_excluded")]
     totals_entered = [p for p in state["totals_plays"].values() if p.get("entry_total") is not None]
     entered = ats_entered + totals_entered
     done = [p for p in entered if p.get("result") in {"W", "L", "P"}]
@@ -1029,6 +1056,9 @@ def main() -> int:
     totals_v2_created = create_or_update_totals_v2_candidates(state, target)
     totals_v3_created = create_or_update_totals_v3_candidates(state, target)
     merge_current_snapshots(state)
+    qc_exceptions = mark_venue_qc_exceptions(state)
+    if qc_exceptions:
+        print(f"Venue QC exceptions excluded from clean ATS record: {qc_exceptions}")
     merge_current_totals_snapshots(state)
     merge_current_totals_v2_snapshots(state)
     merge_current_totals_v3_snapshots(state)
