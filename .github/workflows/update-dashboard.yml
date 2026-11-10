@@ -38,6 +38,7 @@ permissions:
   id-token: write
   issues: write
   actions: read
+  pull-requests: write
 
 jobs:
   update-and-deploy:
@@ -238,7 +239,14 @@ jobs:
               '',
               `<!-- cbb-bridge-run-${context.runId} -->`
             ].filter(Boolean);
-            await github.rest.issues.createComment({
-              owner, repo, issue_number, body: lines.join('\n')
-            });
-            core.info(`CBB scan ${result}; data ${dataCheck}; notified PR #${issue_number}`);
+            try {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number, body: lines.join('\n')
+              });
+              core.info(`CBB scan ${result}; data ${dataCheck}; notified PR #${issue_number}`);
+            } catch (err) {
+              const accepted = err.response?.headers?.['x-accepted-github-permissions'] || 'not provided';
+              core.error(`CBB_BRIDGE_POST_FAILED: HTTP ${err.status || 'unknown'}; ${err.message}; accepted permissions: ${accepted}`);
+              core.error('Inspect Set up job > GITHUB_TOKEN Permissions and Settings > Actions > General > Workflow permissions.');
+              throw err;
+            }
