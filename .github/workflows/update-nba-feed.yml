@@ -20,9 +20,11 @@ on:
     # Six times daily, UTC. Limits optional odds API usage to roughly 180 calls/month.
     - cron: '23 1,5,9,13,17,21 * * *'
 
-# Share deployment / git-push queue with the existing CBB update workflow.
+# Use a distinct NBA queue: GitHub permits only one pending run per
+# concurrency group. Sharing with CBB could cancel an NBA scan while an
+# unrelated CBB retry is waiting. Repository writes still rebase safely.
 concurrency:
-  group: cbb-tier-a-dashboard
+  group: nba-confidence-feed
   cancel-in-progress: false
 
 permissions:
