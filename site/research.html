@@ -32,7 +32,7 @@
     </div>
     <div class="pill" id="updated">Loading…</div>
   </div>
-  <nav class="nba-jump" aria-label="Research navigation"><a href="index.html">← Plays &amp; Records</a><a href="research.html" aria-current="page" style="border-color:var(--blue);color:var(--blue)">Research Lab</a><a href="#ats-kpis">CBB ATS</a><a href="#totals-kpis">CBB Totals</a><a href="#totals-v2-kpis">Totals v2</a><a href="#nba-live-trial">NBA live test</a><a href="#nba-scanner">NBA scanner</a></nav>
+  <nav class="nba-jump" aria-label="Research navigation"><a href="index.html">← Plays &amp; Records</a><a href="research.html" aria-current="page" style="border-color:var(--blue);color:var(--blue)">Research Lab</a><a href="#line-shopping-watchlist">Near-miss watch</a><a href="#ats-kpis">CBB ATS</a><a href="#totals-kpis">CBB Totals</a><a href="#totals-v2-kpis">Totals v2</a><a href="#nba-live-trial">NBA live test</a><a href="#nba-scanner">NBA scanner</a></nav>
   <div id="error"></div>
 
   <div class="model-head" style="margin-top:18px">
@@ -43,6 +43,17 @@
     <div class="tag">ATS + Totals</div>
   </div>
   <div class="grid" id="combined-kpis"></div>
+
+  <div class="section" id="line-shopping-watchlist">
+    <h3>Line-Shopping Near-Miss Watchlist</h3>
+    <div class="desc">Research only. Games just short of the frozen ATS v4 or Totals v1 criteria, plus qualified lower-edge totals worth shopping. A better line does not automatically qualify or upgrade a play: the model uses market inputs and must be rerun at the actual offered price. No bets or model results are added here.</div>
+    <div class="desc" id="near-miss-meta">Waiting for next committed CBB scan.</div>
+    <div class="card table-card"><div class="scroll"><table class="table">
+      <thead><tr><th>Status</th><th>Game / Tip PT</th><th>Watch side</th><th>Scanner line</th><th>Frozen edge</th><th>Gap to frozen rule</th><th>Better-line examples (not playable-to)</th><th>Scanner source / age</th></tr></thead>
+      <tbody id="near-miss-rows"></tbody>
+    </table></div><div id="near-miss-empty" class="empty" hidden>No pre-tip watchlist candidates from this scan.</div></div>
+    <div class="desc" style="margin-top:12px">WATCH ONLY · Requires same-day KenPom location, neutral spread orientation, valid market-side, fresh executable sportsbook line and price, frozen-model rescore, and tip-time QC. HIGH / MEDIUM / LOW grades are not automatically assigned. Never treat example numbers as available offers.</div>
+  </div>
 
   <div class="divider"></div>
 
@@ -370,6 +381,41 @@ function totalsV2Cards(m){
  ];
  document.getElementById('totals-v2-kpis').innerHTML=arr.map(c=>`<div class="card kpi"><div class="label">${c[0]}</div><div class="value">${c[1]}</div><div class="hint">${c[2]}</div></div>`).join('');
 }
+function renderLineShoppingWatchlist(s,today){
+ const data=s.line_shopping_watchlist||null;
+ const body=document.getElementById('near-miss-rows');
+ const empty=document.getElementById('near-miss-empty');
+ const meta=document.getElementById('near-miss-meta');
+ if(!data||data.status!=='OK'||data.scan_date!==today){
+  body.innerHTML='';empty.hidden=false;
+  meta.textContent=data&&data.status!=='OK'?'Near-miss scanner output not available (no watchlist can be verified).':'Awaiting today’s committed scanner watchlist.';
+  return;
+ }
+ const list=[
+   ...(data.near_miss_ats||[]).map(x=>({...x,kind:'NEAR QUAL'})),
+   ...(data.near_miss_totals||[]).map(x=>({...x,kind:'NEAR QUAL'})),
+   ...(data.qualified_line_shop_totals||[]).map(x=>({...x,kind:'QUALIFIED · SHOP'}))
+ ].filter(p=>p.start_utc&&Date.parse(p.start_utc)>Date.now())
+  .sort((a,b)=>a.start_utc.localeCompare(b.start_utc)||a.kind.localeCompare(b.kind)||a.game_id.localeCompare(b.game_id));
+ const count=(data.near_miss_ats||[]).length+(data.near_miss_totals||[]).length;
+ meta.textContent='Scanner '+(data.scanner_timestamp_pt||'unknown')+' · '+count+' near frozen qualification · '+(data.qualified_line_shop_totals||[]).length+' already-qualified lower-edge totals · '+list.length+' pre-tip rows.';
+ empty.hidden=list.length>0;
+ if(!list.length){body.innerHTML='';return;}
+ const tipFmt=new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',hour:'numeric',minute:'2-digit',hour12:true});
+ body.innerHTML=list.map(p=>{
+  const spread=p.model==='ATS v4';
+  const line=spread?signed(p.scanner_line):f(p.scanner_line,1);
+  const examples=spread?('1pt better: '+signed(p.one_point_better_example)):
+      ('0.5pt: '+f(p.half_point_better_example,1)+' · 1pt: '+f(p.one_point_better_example,1));
+  const gap=p.edge_gap_pts>0?f(p.edge_gap_pts,2)+' pts':(p.underdog_gap_pts>0?f(p.underdog_gap_pts,2)+' pts to +4':'Already qualified');
+  const age=Math.max(0,Math.floor((Date.now()-Date.parse(p.snapshot_pt||''))/60000));
+  const ageLabel=Number.isFinite(age)?age+'m':'unknown';
+  return '<tr><td><span class="badge '+(p.kind==='NEAR QUAL'?'review':'')+'">'+esc(p.kind)+'</span></td>'+
+   '<td><span class="team">'+esc(p.away_team)+' @ '+esc(p.home_team)+'</span><div class="nba-small">'+esc(tipFmt.format(new Date(p.start_utc)))+' PT</div></td>'+
+   '<td>'+esc(p.model)+' · <strong>'+esc(p.side)+'</strong></td><td>'+line+'</td><td>'+f(p.frozen_edge,2)+'</td>'+
+   '<td>'+gap+'</td><td>'+esc(examples)+'</td><td>'+esc(p.provider)+' · '+ageLabel+'<div class="nba-small">'+esc(p.qc_status)+'</div></td></tr>';
+ }).join('');
+}
 async function boot(){
  try{
   const res=await fetch('data/state.json',{cache:'no-store'});if(!res.ok)throw new Error('State file unavailable');const s=await res.json();
@@ -377,6 +423,7 @@ async function boot(){
   cards('combined-kpis',s.combined_summary||{},'COMBINED');cards('ats-kpis',s.summary||{},'ATS');cards('totals-kpis',s.totals_summary||{},'TOTALS');totalsRegCards(s.totals_summary||{});totalsV2Cards(s.totals_v2_summary||{});
 
   const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+  renderLineShoppingWatchlist(s,today);
 
   const ats=Object.values(s.plays||{}).sort((a,b)=>(b.game_date||'').localeCompare(a.game_date||'')||(b.first_seen_pt||'').localeCompare(a.first_seen_pt||''));
   const atsToday=ats.filter(p=>p.game_date===today);const atb=document.getElementById('ats-today');

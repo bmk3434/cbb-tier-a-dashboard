@@ -814,6 +814,119 @@ def settle_unresolved(state: Dict[str, Any], key: str) -> tuple[int, int, int, i
                     settled_totals += 1
     return settled_ats, settled_totals, settled_totals_v2, settled_totals_v3
 
+def build_line_shopping_watchlist(target_date: str) -> Dict[str, Any]:
+    """Watch-only research from the current scanner's already scored pretip games.
+
+    Never enters the ATS/Totals forward-test ledgers. A favorable sportsbook
+    number is NOT assumed to add 1:1 to the frozen model prediction: both
+    frozen models use market inputs and must be rescored at any offered line.
+    """
+    path = OUTPUT / f"all_scored_{target_date}.csv"
+    watch: Dict[str, Any] = {
+        "scan_date": target_date,
+        "status": "MISSING_SCANNER_OUTPUT",
+        "scanner_timestamp_pt": None,
+        "near_miss_ats": [],
+        "near_miss_totals": [],
+        "qualified_line_shop_totals": [],
+        "disclaimer": "WATCH ONLY. Indicative better lines, not playable-to prices. A real offered line requires fresh source/price, a frozen-model rescore, and independent QC. No automatic HIGH/MEDIUM promotion.",
+    }
+    if not path.exists():
+        return watch
+
+    watch["status"] = "OK"
+    rows = read_csv(path)
+    for row in rows:
+        if row.get("Game_Date") != target_date or candidate_row_is_post_tip(row):
+            continue
+        if not as_bool(row.get("Venue_Verified")):
+            continue
+        if row.get("Provider_Status") != "FROZEN_PRIORITY":
+            continue
+        if row.get("KP_Location") in ("", None, "MISSING"):
+            continue
+        if not row.get("Game_ID") or not row.get("Start_UTC"):
+            continue
+        ts = row.get("Run_Timestamp_PT") or ""
+        if not watch["scanner_timestamp_pt"] or ts > watch["scanner_timestamp_pt"]:
+            watch["scanner_timestamp_pt"] = ts
+
+        base = {
+            "game_id": str(row["Game_ID"]),
+            "game_date": target_date,
+            "start_utc": row["Start_UTC"],
+            "away_team": row.get("Away_Team") or "",
+            "home_team": row.get("Home_Team") or "",
+            "neutral_site": as_bool(row.get("Neutral_Site")),
+            "kp_location": row.get("KP_Location") or "",
+            "venue_verified": True,
+            "provider": row.get("Provider") or "",
+            "snapshot_pt": ts,
+            "actual_price_verified": False,
+            "watch_only": True,
+            "rescore_required": True,
+        }
+
+        ats_edge = safe_float(row.get("V4_Edge"))
+        team_spread = safe_float(row.get("Bet_Spread"))
+        if (row.get("QC_Status") in {"OK_NON_NEUTRAL", "NEUTRAL_VERIFIED_OVERRIDE"}
+                and ats_edge is not None and math.isfinite(ats_edge)
+                and team_spread is not None and math.isfinite(team_spread)
+                and team_spread > 0):
+            edge_gap = max(0.0, 1.75 - ats_edge)
+            spread_gap = max(0.0, 4.0 - team_spread)
+            gap = max(edge_gap, spread_gap)
+            if 0.0 < gap <= 1.0:
+                watch["near_miss_ats"].append({
+                    **base,
+                    "model": "ATS v4",
+                    "side": row.get("Model_Bet") or "",
+                    "scanner_line": team_spread,
+                    "frozen_edge": round(ats_edge, 3),
+                    "edge_gap_pts": round(edge_gap, 3),
+                    "underdog_gap_pts": round(spread_gap, 3),
+                    "one_point_better_example": round(team_spread + 1.0, 1),
+                    "qc_status": row["QC_Status"],
+                })
+
+        totals_edge = safe_float(row.get("Totals_Edge"))
+        total = safe_float(row.get("Market_Total"))
+        side = row.get("Totals_Bet")
+        if (row.get("Totals_QC_Status") == "OK_TOTAL"
+                and totals_edge is not None and math.isfinite(totals_edge)
+                and total is not None and math.isfinite(total)
+                and side in {"Over", "Under"}):
+            sign = -1.0 if side == "Over" else 1.0
+            total_watch = {
+                **base,
+                "model": "Totals v1",
+                "side": side,
+                "scanner_line": total,
+                "frozen_edge": round(totals_edge, 3),
+                "half_point_better_example": round(total + 0.5 * sign, 1),
+                "one_point_better_example": round(total + sign, 1),
+                "qc_status": row["Totals_QC_Status"],
+            }
+            if 1.0 <= totals_edge < 2.0:
+                watch["near_miss_totals"].append({
+                    **total_watch,
+                    "edge_gap_pts": round(2.0 - totals_edge, 3),
+                })
+            elif 2.0 <= totals_edge < 2.5:
+                # Descriptive, not a new grading rule; stays in the official
+                # qualified ledger only if that ledger's frozen checks pass.
+                watch["qualified_line_shop_totals"].append({
+                    **total_watch,
+                    "edge_gap_pts": 0.0,
+                })
+
+    for key in ("near_miss_ats", "near_miss_totals", "qualified_line_shop_totals"):
+        watch[key].sort(key=lambda r: (r["edge_gap_pts"], r["start_utc"], r["game_id"]))
+    watch["counts"] = {key: len(watch[key]) for key in
+                       ("near_miss_ats", "near_miss_totals", "qualified_line_shop_totals")}
+    return watch
+
+
 def summarize(state: Dict[str, Any]) -> Dict[str, Any]:
     plays = list(state["plays"].values())
     all_entered = [p for p in plays if p.get("entry_line") is not None]
@@ -1101,10 +1214,13 @@ def main() -> int:
     state["totals_v2_summary"] = summarize_totals_v2(state)
     state["totals_v3_summary"] = summarize_totals_v3(state)
     state["combined_summary"] = summarize_combined(state)
+    state["line_shopping_watchlist"] = build_line_shopping_watchlist(target)
     state["runs"].append({
         "timestamp_pt": stamp,
         "date": target,
         "new_candidates": created,
+        "near_miss_ats": len(state["line_shopping_watchlist"]["near_miss_ats"]),
+        "near_miss_totals": len(state["line_shopping_watchlist"]["near_miss_totals"]),
         "newly_settled": settled,
         "new_totals_candidates": totals_created,
         "newly_settled_totals": totals_settled,
