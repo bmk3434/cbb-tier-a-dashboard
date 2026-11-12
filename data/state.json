@@ -1,6 +1,6 @@
 {
   "version": 4,
-  "last_updated_pt": "2026-11-12T08:01:57-08:00",
+  "last_updated_pt": "2026-11-12T08:14:13-08:00",
   "status": "OK",
   "plays": {
     "374584": {
@@ -2454,6 +2454,21 @@
       "new_totals_v3_shadow_candidates": 2,
       "newly_settled_totals_v3_shadow": 3,
       "new_regulation_audits": 8
+    },
+    {
+      "timestamp_pt": "2026-11-12T08:14:13-08:00",
+      "date": "2026-11-12",
+      "new_candidates": 0,
+      "near_miss_ats": 0,
+      "near_miss_totals": 8,
+      "newly_settled": 0,
+      "new_totals_candidates": 0,
+      "newly_settled_totals": 0,
+      "new_totals_v2_shadow_candidates": 0,
+      "newly_settled_totals_v2_shadow": 0,
+      "new_totals_v3_shadow_candidates": 0,
+      "newly_settled_totals_v3_shadow": 0,
+      "new_regulation_audits": 0
     }
   ],
   "summary": {
@@ -6210,13 +6225,24 @@
           "qualified_now": true,
           "actionable_now": true,
           "qc_status_now": "OK_TOTAL"
+        },
+        {
+          "timestamp_pt": "2026-11-12T08:14:12-08:00",
+          "market_total": 164.5,
+          "provider": "Draft Kings",
+          "model_bet_now": "Over",
+          "model_total_now": 167.09998720384175,
+          "edge_now": 2.5999872038417444,
+          "qualified_now": true,
+          "actionable_now": true,
+          "qc_status_now": "OK_TOTAL"
         }
       ],
       "latest_total": 164.5,
       "latest_model_total": 167.09998720384175,
       "latest_edge": 2.5999872038417444,
       "latest_provider": "Draft Kings",
-      "latest_snapshot_pt": "2026-11-12T08:01:54-08:00"
+      "latest_snapshot_pt": "2026-11-12T08:14:12-08:00"
     }
   },
   "totals_summary": {
@@ -8473,13 +8499,24 @@
           "qualified_now": true,
           "trackable_now": true,
           "qc_status_now": "SHADOW_OK"
+        },
+        {
+          "timestamp_pt": "2026-11-12T08:14:12-08:00",
+          "market_total": 164.5,
+          "provider": "Draft Kings",
+          "model_bet_now": "Over",
+          "model_total_now": 166.57272952724944,
+          "edge_now": 2.0727295272494475,
+          "qualified_now": true,
+          "trackable_now": true,
+          "qc_status_now": "SHADOW_OK"
         }
       ],
       "latest_total": 164.5,
       "latest_model_total": 166.57272952724944,
       "latest_edge": 2.0727295272494475,
       "latest_provider": "Draft Kings",
-      "latest_snapshot_pt": "2026-11-12T08:01:54-08:00"
+      "latest_snapshot_pt": "2026-11-12T08:14:12-08:00"
     }
   },
   "totals_v2_summary": {
@@ -12222,13 +12259,24 @@
           "qualified_now": true,
           "trackable_now": true,
           "qc_status_now": "EXPERIMENTAL_SHADOW_OK"
+        },
+        {
+          "timestamp_pt": "2026-11-12T08:14:12-08:00",
+          "market_total": 164.5,
+          "provider": "Draft Kings",
+          "model_bet_now": "Over",
+          "model_total_now": 167.55520575767792,
+          "edge_now": 3.055205757677911,
+          "qualified_now": true,
+          "trackable_now": true,
+          "qc_status_now": "EXPERIMENTAL_SHADOW_OK"
         }
       ],
       "latest_total": 164.5,
       "latest_model_total": 167.55520575767792,
       "latest_edge": 3.055205757677911,
       "latest_provider": "Draft Kings",
-      "latest_snapshot_pt": "2026-11-12T08:01:54-08:00"
+      "latest_snapshot_pt": "2026-11-12T08:14:12-08:00"
     },
     "374910": {
       "game_id": "374910",
@@ -12278,13 +12326,24 @@
           "qualified_now": true,
           "trackable_now": true,
           "qc_status_now": "EXPERIMENTAL_SHADOW_OK"
+        },
+        {
+          "timestamp_pt": "2026-11-12T08:14:12-08:00",
+          "market_total": 149.5,
+          "provider": "Draft Kings",
+          "model_bet_now": "Over",
+          "model_total_now": 152.03761502336184,
+          "edge_now": 2.537615023361848,
+          "qualified_now": true,
+          "trackable_now": true,
+          "qc_status_now": "EXPERIMENTAL_SHADOW_OK"
         }
       ],
       "latest_total": 149.5,
       "latest_model_total": 152.03761502336184,
       "latest_edge": 2.537615023361848,
       "latest_provider": "Draft Kings",
-      "latest_snapshot_pt": "2026-11-12T08:01:54-08:00"
+      "latest_snapshot_pt": "2026-11-12T08:14:12-08:00"
     }
   },
   "totals_v3_summary": {
@@ -12313,32 +12372,8 @@
   "line_shopping_watchlist": {
     "scan_date": "2026-11-12",
     "status": "OK",
-    "scanner_timestamp_pt": "2026-11-12T08:01:54-08:00",
-    "near_miss_ats": [
-      {
-        "game_id": "372776",
-        "game_date": "2026-11-12",
-        "start_utc": "2026-11-13T01:00:00.000Z",
-        "away_team": "Richmond",
-        "home_team": "Southern Illinois",
-        "neutral_site": false,
-        "kp_location": "Home",
-        "venue_verified": true,
-        "provider": "Draft Kings",
-        "snapshot_pt": "2026-11-12T08:01:54-08:00",
-        "actual_price_verified": false,
-        "watch_only": true,
-        "rescore_required": true,
-        "model": "ATS v4",
-        "side": "Southern Illinois",
-        "scanner_line": 3.5,
-        "frozen_edge": 1.146,
-        "edge_gap_pts": 0.604,
-        "underdog_gap_pts": 0.5,
-        "one_point_better_example": 4.5,
-        "qc_status": "OK_NON_NEUTRAL"
-      }
-    ],
+    "scanner_timestamp_pt": "2026-11-12T08:14:12-08:00",
+    "near_miss_ats": [],
     "near_miss_totals": [
       {
         "game_id": "374910",
@@ -12350,7 +12385,7 @@
         "kp_location": "Home",
         "venue_verified": true,
         "provider": "Draft Kings",
-        "snapshot_pt": "2026-11-12T08:01:54-08:00",
+        "snapshot_pt": "2026-11-12T08:14:12-08:00",
         "actual_price_verified": false,
         "watch_only": true,
         "rescore_required": true,
@@ -12373,7 +12408,7 @@
         "kp_location": "Home",
         "venue_verified": true,
         "provider": "Draft Kings",
-        "snapshot_pt": "2026-11-12T08:01:54-08:00",
+        "snapshot_pt": "2026-11-12T08:14:12-08:00",
         "actual_price_verified": false,
         "watch_only": true,
         "rescore_required": true,
@@ -12396,7 +12431,7 @@
         "kp_location": "Home",
         "venue_verified": true,
         "provider": "Draft Kings",
-        "snapshot_pt": "2026-11-12T08:01:54-08:00",
+        "snapshot_pt": "2026-11-12T08:14:12-08:00",
         "actual_price_verified": false,
         "watch_only": true,
         "rescore_required": true,
@@ -12419,18 +12454,18 @@
         "kp_location": "Home",
         "venue_verified": true,
         "provider": "Draft Kings",
-        "snapshot_pt": "2026-11-12T08:01:54-08:00",
+        "snapshot_pt": "2026-11-12T08:14:12-08:00",
         "actual_price_verified": false,
         "watch_only": true,
         "rescore_required": true,
         "model": "Totals v1",
         "side": "Over",
         "scanner_line": 152.5,
-        "frozen_edge": 1.551,
+        "frozen_edge": 1.554,
         "half_point_better_example": 152.0,
         "one_point_better_example": 151.5,
         "qc_status": "OK_TOTAL",
-        "edge_gap_pts": 0.449
+        "edge_gap_pts": 0.446
       },
       {
         "game_id": "374914",
@@ -12442,18 +12477,18 @@
         "kp_location": "Home",
         "venue_verified": true,
         "provider": "Draft Kings",
-        "snapshot_pt": "2026-11-12T08:01:54-08:00",
+        "snapshot_pt": "2026-11-12T08:14:12-08:00",
         "actual_price_verified": false,
         "watch_only": true,
         "rescore_required": true,
         "model": "Totals v1",
         "side": "Over",
         "scanner_line": 146.5,
-        "frozen_edge": 1.415,
+        "frozen_edge": 1.412,
         "half_point_better_example": 146.0,
         "one_point_better_example": 145.5,
         "qc_status": "OK_TOTAL",
-        "edge_gap_pts": 0.585
+        "edge_gap_pts": 0.588
       },
       {
         "game_id": "374904",
@@ -12465,7 +12500,7 @@
         "kp_location": "Home",
         "venue_verified": true,
         "provider": "Draft Kings",
-        "snapshot_pt": "2026-11-12T08:01:54-08:00",
+        "snapshot_pt": "2026-11-12T08:14:12-08:00",
         "actual_price_verified": false,
         "watch_only": true,
         "rescore_required": true,
@@ -12488,7 +12523,7 @@
         "kp_location": "Home",
         "venue_verified": true,
         "provider": "Draft Kings",
-        "snapshot_pt": "2026-11-12T08:01:54-08:00",
+        "snapshot_pt": "2026-11-12T08:14:12-08:00",
         "actual_price_verified": false,
         "watch_only": true,
         "rescore_required": true,
@@ -12511,7 +12546,7 @@
         "kp_location": "Home",
         "venue_verified": true,
         "provider": "Draft Kings",
-        "snapshot_pt": "2026-11-12T08:01:54-08:00",
+        "snapshot_pt": "2026-11-12T08:14:12-08:00",
         "actual_price_verified": false,
         "watch_only": true,
         "rescore_required": true,
@@ -12528,7 +12563,7 @@
     "qualified_line_shop_totals": [],
     "disclaimer": "WATCH ONLY. Indicative better lines, not playable-to prices. A real offered line requires fresh source/price, a frozen-model rescore, and independent QC. No automatic HIGH/MEDIUM promotion.",
     "counts": {
-      "near_miss_ats": 1,
+      "near_miss_ats": 0,
       "near_miss_totals": 8,
       "qualified_line_shop_totals": 0
     }
