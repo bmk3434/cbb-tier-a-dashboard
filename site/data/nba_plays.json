@@ -38,7 +38,6 @@
     },
     {
       "away_b2b": false,
-      "away_moneyline": -467,
       "away_previous_date": null,
       "away_previous_result": null,
       "away_score": 0,
@@ -66,8 +65,6 @@
       "model_v2_min_prior_games": 10,
       "model_v2_source": "Free BoxScore Lab game logs; estimated possession/ratings proxies",
       "model_v2_status": "EARLY PROSPECTIVE SHADOW - UNVALIDATED VS ODDS",
-      "moneyline_bookmaker": "draftkings",
-      "moneyline_last_update": "2026-11-12T14:28:00Z",
       "research_confidence": 24,
       "research_confidence_label": "LOW / IN-SAMPLE",
       "setup_qualified": true,
@@ -875,7 +872,7 @@
       "last_run_graded": 0,
       "last_run_new": 0,
       "last_run_new_v2_on_existing": 0,
-      "odds_status": "CONNECTED",
+      "odds_status": "SKIPPED_NO_READY_SETUP",
       "paired": {
         "same_games": 92,
         "v1": {
@@ -937,7 +934,7 @@
     "provider_used": 10
   },
   "odds_source": "The Odds API v4 (optional)",
-  "odds_status": "CONNECTED",
+  "odds_status": "SKIPPED_NO_READY_SETUP",
   "plays": [
     {
       "away_team": "Detroit Pistons",
@@ -1038,10 +1035,10 @@
     "roi": 21.21,
     "scheduled_games": 18,
     "settled_plays": 2,
-    "setups_with_moneyline": 1,
+    "setups_with_moneyline": 0,
     "tracked_plays": 3,
     "units": 0.4242,
     "wins": 2
   },
-  "updated_at": "2026-11-12T14:28:04.713362Z"
+  "updated_at": "2026-11-12T18:08:07.727104Z"
 }
