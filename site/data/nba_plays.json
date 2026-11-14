@@ -2,6 +2,7 @@
   "games": [
     {
       "away_b2b": false,
+      "away_moneyline": -597,
       "away_previous_date": null,
       "away_previous_result": null,
       "away_score": 0,
@@ -29,6 +30,8 @@
       "model_v2_min_prior_games": 10,
       "model_v2_source": "Free BoxScore Lab game logs; estimated possession/ratings proxies",
       "model_v2_status": "EARLY PROSPECTIVE SHADOW - UNVALIDATED VS ODDS",
+      "moneyline_bookmaker": "draftkings",
+      "moneyline_last_update": "2026-11-14T14:04:54Z",
       "research_confidence": 24,
       "research_confidence_label": "LOW / IN-SAMPLE",
       "setup_qualified": true,
@@ -1029,7 +1032,7 @@
       "last_run_graded": 0,
       "last_run_new": 0,
       "last_run_new_v2_on_existing": 0,
-      "odds_status": "SKIPPED_NO_READY_SETUP",
+      "odds_status": "CONNECTED",
       "paired": {
         "same_games": 105,
         "v1": {
@@ -1082,17 +1085,44 @@
     "status": "OK"
   },
   "odds_budget": {
-    "calls_today": 0,
-    "credits_this_month": 10,
+    "calls_today": 1,
+    "credits_this_month": 11,
     "day": "2026-11-14",
     "last_call_cost": 1,
     "month": "2026-11",
-    "provider_remaining": 490,
-    "provider_used": 10
+    "provider_remaining": 489,
+    "provider_used": 11
   },
   "odds_source": "The Odds API v4 (optional)",
-  "odds_status": "SKIPPED_NO_READY_SETUP",
+  "odds_status": "CONNECTED",
   "plays": [
+    {
+      "away_team": "Denver Nuggets",
+      "bet_team": "Denver Nuggets",
+      "entry_moneyline": -597,
+      "first_seen_utc": "2026-11-14T14:05:31.241360+00:00",
+      "game_date": "2026-11-14",
+      "game_id": "401909980",
+      "historical_bets": 1225,
+      "historical_out_of_sample": true,
+      "historical_profitable_seasons": 0,
+      "historical_seasons": 1,
+      "home_team": "New Orleans Pelicans",
+      "injuries_verified": false,
+      "model_confidence": 35,
+      "model_id": "nba-elo-logistic-v1-2026-10-25",
+      "model_market_validated": false,
+      "model_v2_id": "nba-log-rolling-four-factors-v2-2026-10-26",
+      "model_v2_market_validated": false,
+      "model_v2_win_probability": 0.78058,
+      "model_win_probability": 0.76531,
+      "moneyline": -597,
+      "odds_source": "draftkings",
+      "price_verified": true,
+      "rest_context_score": 65,
+      "result": null,
+      "status": "PAPER_TRACK"
+    },
     {
       "away_score": 144,
       "away_team": "Detroit Pistons",
@@ -1194,10 +1224,10 @@
     "roi": 21.278,
     "scheduled_games": 22,
     "settled_plays": 3,
-    "setups_with_moneyline": 0,
-    "tracked_plays": 3,
+    "setups_with_moneyline": 1,
+    "tracked_plays": 4,
     "units": 0.6383,
     "wins": 3
   },
-  "updated_at": "2026-11-14T10:04:57.268691Z"
+  "updated_at": "2026-11-14T14:05:31.241360Z"
 }
