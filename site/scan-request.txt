@@ -1,4 +1,4 @@
 CBB scan request
-Requested in ChatGPT conversation on 2026-11-12 at approximately 7:40 AM Pacific.
-Purpose: trigger the existing CBB dashboard GitHub Actions workflow via its site/** push rule.
-This file has no effect on ATS v4, Totals v1, betting thresholds, scanner logic, or model data.
+Requested in ChatGPT conversation on 2026-11-14 at approximately 12:40 AM Pacific.
+Purpose: run an early November 14 ATS v4 / Totals v1 lookahead scan using the existing workflow and site/** push trigger.
+Model source, weights, qualification thresholds and wager policies are unchanged.
