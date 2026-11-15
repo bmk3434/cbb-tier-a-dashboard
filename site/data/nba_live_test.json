@@ -424,24 +424,24 @@
       "winner": null
     },
     {
-      "away_score": null,
+      "away_score": 124,
       "away_team": "Indiana Pacers",
-      "away_won": null,
+      "away_won": false,
       "betting_status": "NO BET - PAPER MODEL EVALUATION",
       "first_seen_utc": "2026-11-13T06:18:42.518980Z",
       "game_date": "2026-11-15",
       "game_id": "401909985",
-      "home_score": null,
+      "home_score": 131,
       "home_team": "Philadelphia 76ers",
       "start_utc": "2026-11-15T18:00:00Z",
-      "status": "OPEN",
+      "status": "FINAL",
       "v1_away_win_probability": 0.19123,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
       "v2_away_win_probability": 0.25384,
       "v2_eligible_at_snapshot": true,
       "v2_first_seen_utc": "2026-11-13T06:18:42.518980Z",
       "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
-      "winner": null
+      "winner": "Philadelphia 76ers"
     },
     {
       "away_score": 117,
@@ -3315,44 +3315,44 @@
   "status": "ACTIVE",
   "summary": {
     "betting_plays": 0,
-    "games_final": 145,
-    "games_open": 22,
+    "games_final": 146,
+    "games_open": 21,
     "games_recorded": 167,
-    "last_run_graded": 0,
+    "last_run_graded": 1,
     "last_run_new": 0,
     "last_run_new_v2_on_existing": 0,
     "odds_status": "SKIPPED_NO_READY_SETUP",
     "paired": {
-      "same_games": 110,
+      "same_games": 111,
       "v1": {
-        "accuracy_pct": 66.36,
-        "brier": 0.20462,
-        "graded": 110,
-        "log_loss": 0.59416,
-        "predictions": 110
+        "accuracy_pct": 66.67,
+        "brier": 0.2031,
+        "graded": 111,
+        "log_loss": 0.59072,
+        "predictions": 111
       },
       "v2": {
-        "accuracy_pct": 69.09,
-        "brier": 0.19632,
-        "graded": 110,
-        "log_loss": 0.57707,
-        "predictions": 110
+        "accuracy_pct": 69.37,
+        "brier": 0.19513,
+        "graded": 111,
+        "log_loss": 0.57451,
+        "predictions": 111
       }
     },
     "v1": {
-      "accuracy_pct": 66.21,
-      "brier": 0.2071,
-      "graded": 145,
-      "log_loss": 0.59971,
+      "accuracy_pct": 66.44,
+      "brier": 0.20593,
+      "graded": 146,
+      "log_loss": 0.59705,
       "predictions": 167
     },
     "v2": {
-      "accuracy_pct": 69.09,
-      "brier": 0.19632,
-      "graded": 110,
-      "log_loss": 0.57707,
+      "accuracy_pct": 69.37,
+      "brier": 0.19513,
+      "graded": 111,
+      "log_loss": 0.57451,
       "predictions": 132
     }
   },
-  "updated_at": "2026-11-15T17:54:17.388210Z"
+  "updated_at": "2026-11-15T21:56:16.508899Z"
 }
