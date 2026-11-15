@@ -1,4 +1,4 @@
 CBB scan request
-Requested in ChatGPT conversation on 2026-11-14 at approximately 12:40 AM Pacific.
-Purpose: run an early November 14 ATS v4 / Totals v1 lookahead scan using the existing workflow and site/** push trigger.
-Model source, weights, qualification thresholds and wager policies are unchanged.
+Requested in ChatGPT conversation on Sunday 2026-11-15 at approximately 12:13 AM Pacific.
+Purpose: trigger the existing workflow for early November 15 ATS v4 and Totals v1 analysis with KenPom venue QC and line-shopping watchlist.
+No changes to frozen model code, thresholds, units, or betting rules.
