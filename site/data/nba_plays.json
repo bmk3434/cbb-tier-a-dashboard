@@ -103,7 +103,7 @@
       "model_v2_source": "Free BoxScore Lab game logs; estimated possession/ratings proxies",
       "model_v2_status": "EARLY PROSPECTIVE SHADOW - UNVALIDATED VS ODDS",
       "moneyline_bookmaker": "draftkings",
-      "moneyline_last_update": "2026-11-16T15:54:24Z",
+      "moneyline_last_update": "2026-11-16T18:14:43Z",
       "research_confidence": 24,
       "research_confidence_label": "LOW / IN-SAMPLE",
       "setup_qualified": true,
@@ -1207,13 +1207,13 @@
     "status": "OK"
   },
   "odds_budget": {
-    "calls_today": 1,
-    "credits_this_month": 14,
+    "calls_today": 2,
+    "credits_this_month": 15,
     "day": "2026-11-16",
     "last_call_cost": 1,
     "month": "2026-11",
-    "provider_remaining": 486,
-    "provider_used": 14
+    "provider_remaining": 485,
+    "provider_used": 15
   },
   "odds_source": "The Odds API v4 (optional)",
   "odds_status": "CONNECTED",
@@ -1353,5 +1353,5 @@
     "units": 0.8058,
     "wins": 4
   },
-  "updated_at": "2026-11-16T15:54:58.956173Z"
+  "updated_at": "2026-11-16T18:15:11.812940Z"
 }
