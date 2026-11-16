@@ -74,7 +74,7 @@
     },
     {
       "away_b2b": false,
-      "away_moneyline": -161,
+      "away_moneyline": -155,
       "away_previous_date": null,
       "away_previous_result": null,
       "away_score": 0,
@@ -103,7 +103,7 @@
       "model_v2_source": "Free BoxScore Lab game logs; estimated possession/ratings proxies",
       "model_v2_status": "EARLY PROSPECTIVE SHADOW - UNVALIDATED VS ODDS",
       "moneyline_bookmaker": "draftkings",
-      "moneyline_last_update": "2026-11-16T18:14:43Z",
+      "moneyline_last_update": "2026-11-16T22:06:32Z",
       "research_confidence": 24,
       "research_confidence_label": "LOW / IN-SAMPLE",
       "setup_qualified": true,
@@ -1207,13 +1207,13 @@
     "status": "OK"
   },
   "odds_budget": {
-    "calls_today": 2,
-    "credits_this_month": 15,
+    "calls_today": 3,
+    "credits_this_month": 16,
     "day": "2026-11-16",
     "last_call_cost": 1,
     "month": "2026-11",
-    "provider_remaining": 485,
-    "provider_used": 15
+    "provider_remaining": 484,
+    "provider_used": 16
   },
   "odds_source": "The Odds API v4 (optional)",
   "odds_status": "CONNECTED",
@@ -1353,5 +1353,5 @@
     "units": 0.8058,
     "wins": 4
   },
-  "updated_at": "2026-11-16T18:15:11.812940Z"
+  "updated_at": "2026-11-16T22:07:27.565948Z"
 }
