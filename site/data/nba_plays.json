@@ -182,6 +182,7 @@
     },
     {
       "away_b2b": false,
+      "away_moneyline": 152,
       "away_previous_date": null,
       "away_previous_result": null,
       "away_score": 0,
@@ -209,6 +210,8 @@
       "model_v2_min_prior_games": 10,
       "model_v2_source": "Free BoxScore Lab game logs; estimated possession/ratings proxies",
       "model_v2_status": "EARLY PROSPECTIVE SHADOW - UNVALIDATED VS ODDS",
+      "moneyline_bookmaker": "draftkings",
+      "moneyline_last_update": "2026-11-18T18:08:29Z",
       "research_confidence": 24,
       "research_confidence_label": "LOW / IN-SAMPLE",
       "setup_qualified": true,
@@ -1164,7 +1167,7 @@
       "last_run_graded": 0,
       "last_run_new": 0,
       "last_run_new_v2_on_existing": 0,
-      "odds_status": "SKIPPED_NO_READY_SETUP",
+      "odds_status": "CONNECTED",
       "paired": {
         "same_games": 132,
         "v1": {
@@ -1217,16 +1220,16 @@
     "status": "OK"
   },
   "odds_budget": {
-    "calls_today": 0,
-    "credits_this_month": 16,
+    "calls_today": 1,
+    "credits_this_month": 17,
     "day": "2026-11-18",
     "last_call_cost": 1,
     "month": "2026-11",
-    "provider_remaining": 484,
-    "provider_used": 16
+    "provider_remaining": 483,
+    "provider_used": 17
   },
   "odds_source": "The Odds API v4 (optional)",
-  "odds_status": "SKIPPED_NO_READY_SETUP",
+  "odds_status": "CONNECTED",
   "plays": [
     {
       "away_score": 116,
@@ -1358,10 +1361,10 @@
     "roi": 20.146,
     "scheduled_games": 25,
     "settled_plays": 4,
-    "setups_with_moneyline": 0,
+    "setups_with_moneyline": 1,
     "tracked_plays": 4,
     "units": 0.8058,
     "wins": 4
   },
-  "updated_at": "2026-11-18T14:26:34.985137Z"
+  "updated_at": "2026-11-18T18:08:38.297100Z"
 }
