@@ -1,4 +1,4 @@
 CBB scan request
-Requested in ChatGPT conversation on Thursday 2026-11-19 at approximately 12:23 AM Pacific.
-Purpose: trigger the existing CBB workflow to scan November 19 ATS v4 and Totals v1, including venue QC, sportsbook freshness and watchlist.
-Frozen model code, rules, thresholds and wager sizing remain unchanged.
+Requested in ChatGPT conversation on Friday 2026-11-20 at approximately 12:06 AM Pacific.
+Purpose: trigger the existing frozen ATS v4 and Totals v1 scanner for November 20, including KenPom location QC, sportsbook data freshness, and line-shopping watchlist.
+Do not change model code, thresholds, or betting rules.
