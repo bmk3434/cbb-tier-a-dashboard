@@ -1,6 +1,6 @@
 {
   "version": 4,
-  "last_updated_pt": "2026-11-21T13:11:56-08:00",
+  "last_updated_pt": "2026-11-21T14:26:07-08:00",
   "status": "OK",
   "plays": {
     "374584": {
@@ -3633,6 +3633,21 @@
       "date": "2026-11-21",
       "new_candidates": 0,
       "near_miss_ats": 1,
+      "near_miss_totals": 2,
+      "newly_settled": 0,
+      "new_totals_candidates": 0,
+      "newly_settled_totals": 0,
+      "new_totals_v2_shadow_candidates": 0,
+      "newly_settled_totals_v2_shadow": 0,
+      "new_totals_v3_shadow_candidates": 0,
+      "newly_settled_totals_v3_shadow": 0,
+      "new_regulation_audits": 0
+    },
+    {
+      "timestamp_pt": "2026-11-21T14:26:07-08:00",
+      "date": "2026-11-21",
+      "new_candidates": 0,
+      "near_miss_ats": 0,
       "near_miss_totals": 2,
       "newly_settled": 0,
       "new_totals_candidates": 0,
@@ -18500,32 +18515,8 @@
   "line_shopping_watchlist": {
     "scan_date": "2026-11-21",
     "status": "OK",
-    "scanner_timestamp_pt": "2026-11-21T13:11:56-08:00",
-    "near_miss_ats": [
-      {
-        "game_id": "375210",
-        "game_date": "2026-11-21",
-        "start_utc": "2026-11-21T22:00:00.000Z",
-        "away_team": "Northeastern",
-        "home_team": "Stonehill",
-        "neutral_site": false,
-        "kp_location": "Home",
-        "venue_verified": true,
-        "provider": "Draft Kings",
-        "snapshot_pt": "2026-11-21T13:11:56-08:00",
-        "actual_price_verified": false,
-        "watch_only": true,
-        "rescore_required": true,
-        "model": "ATS v4",
-        "side": "Stonehill",
-        "scanner_line": 9.5,
-        "frozen_edge": 1.402,
-        "edge_gap_pts": 0.348,
-        "underdog_gap_pts": 0.0,
-        "one_point_better_example": 10.5,
-        "qc_status": "OK_NON_NEUTRAL"
-      }
-    ],
+    "scanner_timestamp_pt": "2026-11-21T14:26:07-08:00",
+    "near_miss_ats": [],
     "near_miss_totals": [
       {
         "game_id": "372886",
@@ -18537,7 +18528,7 @@
         "kp_location": "Home",
         "venue_verified": true,
         "provider": "Draft Kings",
-        "snapshot_pt": "2026-11-21T13:11:56-08:00",
+        "snapshot_pt": "2026-11-21T14:26:07-08:00",
         "actual_price_verified": false,
         "watch_only": true,
         "rescore_required": true,
@@ -18560,7 +18551,7 @@
         "kp_location": "Home",
         "venue_verified": true,
         "provider": "Draft Kings",
-        "snapshot_pt": "2026-11-21T13:11:56-08:00",
+        "snapshot_pt": "2026-11-21T14:26:07-08:00",
         "actual_price_verified": false,
         "watch_only": true,
         "rescore_required": true,
@@ -18577,7 +18568,7 @@
     "qualified_line_shop_totals": [],
     "disclaimer": "WATCH ONLY. Indicative better lines, not playable-to prices. A real offered line requires fresh source/price, a frozen-model rescore, and independent QC. No automatic HIGH/MEDIUM promotion.",
     "counts": {
-      "near_miss_ats": 1,
+      "near_miss_ats": 0,
       "near_miss_totals": 2,
       "qualified_line_shop_totals": 0
     }
