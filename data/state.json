@@ -1,6 +1,6 @@
 {
   "version": 4,
-  "last_updated_pt": "2026-11-22T13:14:12-08:00",
+  "last_updated_pt": "2026-11-22T14:30:58-08:00",
   "status": "OK",
   "plays": {
     "374584": {
@@ -3694,6 +3694,21 @@
       "new_candidates": 0,
       "near_miss_ats": 1,
       "near_miss_totals": 2,
+      "newly_settled": 0,
+      "new_totals_candidates": 0,
+      "newly_settled_totals": 0,
+      "new_totals_v2_shadow_candidates": 0,
+      "newly_settled_totals_v2_shadow": 0,
+      "new_totals_v3_shadow_candidates": 0,
+      "newly_settled_totals_v3_shadow": 0,
+      "new_regulation_audits": 0
+    },
+    {
+      "timestamp_pt": "2026-11-22T14:30:58-08:00",
+      "date": "2026-11-22",
+      "new_candidates": 0,
+      "near_miss_ats": 1,
+      "near_miss_totals": 1,
       "newly_settled": 0,
       "new_totals_candidates": 0,
       "newly_settled_totals": 0,
@@ -18694,7 +18709,7 @@
   "line_shopping_watchlist": {
     "scan_date": "2026-11-22",
     "status": "OK",
-    "scanner_timestamp_pt": "2026-11-22T13:14:12-08:00",
+    "scanner_timestamp_pt": "2026-11-22T14:30:57-08:00",
     "near_miss_ats": [
       {
         "game_id": "378085",
@@ -18706,7 +18721,7 @@
         "kp_location": "Home",
         "venue_verified": true,
         "provider": "Draft Kings",
-        "snapshot_pt": "2026-11-22T13:14:12-08:00",
+        "snapshot_pt": "2026-11-22T14:30:57-08:00",
         "actual_price_verified": false,
         "watch_only": true,
         "rescore_required": true,
@@ -18722,29 +18737,6 @@
     ],
     "near_miss_totals": [
       {
-        "game_id": "372898",
-        "game_date": "2026-11-22",
-        "start_utc": "2026-11-22T22:00:00.000Z",
-        "away_team": "NJIT",
-        "home_team": "Boston College",
-        "neutral_site": false,
-        "kp_location": "Home",
-        "venue_verified": true,
-        "provider": "Draft Kings",
-        "snapshot_pt": "2026-11-22T13:14:12-08:00",
-        "actual_price_verified": false,
-        "watch_only": true,
-        "rescore_required": true,
-        "model": "Totals v1",
-        "side": "Over",
-        "scanner_line": 137.5,
-        "frozen_edge": 1.873,
-        "half_point_better_example": 137.0,
-        "one_point_better_example": 136.5,
-        "qc_status": "OK_TOTAL",
-        "edge_gap_pts": 0.127
-      },
-      {
         "game_id": "375223",
         "game_date": "2026-11-22",
         "start_utc": "2026-11-23T00:00:00.000Z",
@@ -18754,7 +18746,7 @@
         "kp_location": "Home",
         "venue_verified": true,
         "provider": "Draft Kings",
-        "snapshot_pt": "2026-11-22T13:14:12-08:00",
+        "snapshot_pt": "2026-11-22T14:30:57-08:00",
         "actual_price_verified": false,
         "watch_only": true,
         "rescore_required": true,
@@ -18772,7 +18764,7 @@
     "disclaimer": "WATCH ONLY. Indicative better lines, not playable-to prices. A real offered line requires fresh source/price, a frozen-model rescore, and independent QC. No automatic HIGH/MEDIUM promotion.",
     "counts": {
       "near_miss_ats": 1,
-      "near_miss_totals": 2,
+      "near_miss_totals": 1,
       "qualified_line_shop_totals": 0
     }
   }
