@@ -304,24 +304,24 @@
       "winner": null
     },
     {
-      "away_score": null,
+      "away_score": 116,
       "away_team": "Dallas Mavericks",
-      "away_won": null,
+      "away_won": true,
       "betting_status": "NO BET - PAPER MODEL EVALUATION",
       "first_seen_utc": "2026-11-20T06:22:58.567281Z",
       "game_date": "2026-11-22",
       "game_id": "401910033",
-      "home_score": null,
+      "home_score": 114,
       "home_team": "Utah Jazz",
       "start_utc": "2026-11-23T00:00:00Z",
-      "status": "OPEN",
+      "status": "FINAL",
       "v1_away_win_probability": 0.51045,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
       "v2_away_win_probability": 0.47782,
       "v2_eligible_at_snapshot": true,
       "v2_first_seen_utc": "2026-11-20T06:22:58.567281Z",
       "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
-      "winner": null
+      "winner": "Dallas Mavericks"
     },
     {
       "away_score": null,
@@ -344,64 +344,64 @@
       "winner": null
     },
     {
-      "away_score": null,
+      "away_score": 96,
       "away_team": "Orlando Magic",
-      "away_won": null,
+      "away_won": false,
       "betting_status": "NO BET - PAPER MODEL EVALUATION",
       "first_seen_utc": "2026-11-20T06:22:58.567281Z",
       "game_date": "2026-11-22",
       "game_id": "401910031",
-      "home_score": null,
+      "home_score": 116,
       "home_team": "Washington Wizards",
       "start_utc": "2026-11-23T00:00:00Z",
-      "status": "OPEN",
+      "status": "FINAL",
       "v1_away_win_probability": 0.67735,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
       "v2_away_win_probability": 0.70822,
       "v2_eligible_at_snapshot": true,
       "v2_first_seen_utc": "2026-11-20T06:22:58.567281Z",
       "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
-      "winner": null
+      "winner": "Washington Wizards"
     },
     {
-      "away_score": null,
+      "away_score": 113,
       "away_team": "Oklahoma City Thunder",
-      "away_won": null,
+      "away_won": false,
       "betting_status": "NO BET - PAPER MODEL EVALUATION",
       "first_seen_utc": "2026-11-20T06:22:58.567281Z",
       "game_date": "2026-11-22",
       "game_id": "401910030",
-      "home_score": null,
+      "home_score": 123,
       "home_team": "Miami Heat",
       "start_utc": "2026-11-22T23:00:00Z",
-      "status": "OPEN",
+      "status": "FINAL",
       "v1_away_win_probability": 0.58657,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
       "v2_away_win_probability": 0.58841,
       "v2_eligible_at_snapshot": true,
       "v2_first_seen_utc": "2026-11-20T06:22:58.567281Z",
       "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
-      "winner": null
+      "winner": "Miami Heat"
     },
     {
-      "away_score": null,
+      "away_score": 97,
       "away_team": "Detroit Pistons",
-      "away_won": null,
+      "away_won": false,
       "betting_status": "NO BET - PAPER MODEL EVALUATION",
       "first_seen_utc": "2026-11-20T06:22:58.567281Z",
       "game_date": "2026-11-22",
       "game_id": "401910029",
-      "home_score": null,
+      "home_score": 107,
       "home_team": "Atlanta Hawks",
       "start_utc": "2026-11-22T20:30:00Z",
-      "status": "OPEN",
+      "status": "FINAL",
       "v1_away_win_probability": 0.54871,
       "v1_model_id": "nba-elo-logistic-v1-2026-10-25",
       "v2_away_win_probability": 0.58832,
       "v2_eligible_at_snapshot": true,
       "v2_first_seen_utc": "2026-11-20T06:22:58.567281Z",
       "v2_model_id": "nba-log-rolling-four-factors-v2-2026-10-26",
-      "winner": null
+      "winner": "Atlanta Hawks"
     },
     {
       "away_score": 96,
@@ -4335,44 +4335,44 @@
   "status": "ACTIVE",
   "summary": {
     "betting_plays": 0,
-    "games_final": 198,
-    "games_open": 20,
+    "games_final": 202,
+    "games_open": 16,
     "games_recorded": 218,
-    "last_run_graded": 0,
+    "last_run_graded": 4,
     "last_run_new": 0,
     "last_run_new_v2_on_existing": 0,
     "odds_status": "SKIPPED_NO_READY_SETUP",
     "paired": {
-      "same_games": 163,
+      "same_games": 167,
       "v1": {
-        "accuracy_pct": 68.1,
-        "brier": 0.21023,
-        "graded": 163,
-        "log_loss": 0.60976,
-        "predictions": 163
+        "accuracy_pct": 67.07,
+        "brier": 0.21324,
+        "graded": 167,
+        "log_loss": 0.61601,
+        "predictions": 167
       },
       "v2": {
-        "accuracy_pct": 67.48,
-        "brier": 0.20542,
-        "graded": 163,
-        "log_loss": 0.59967,
-        "predictions": 163
+        "accuracy_pct": 65.87,
+        "brier": 0.20928,
+        "graded": 167,
+        "log_loss": 0.60773,
+        "predictions": 167
       }
     },
     "v1": {
-      "accuracy_pct": 67.68,
-      "brier": 0.21106,
-      "graded": 198,
-      "log_loss": 0.61106,
+      "accuracy_pct": 66.83,
+      "brier": 0.21353,
+      "graded": 202,
+      "log_loss": 0.6162,
       "predictions": 218
     },
     "v2": {
-      "accuracy_pct": 67.48,
-      "brier": 0.20542,
-      "graded": 163,
-      "log_loss": 0.59967,
+      "accuracy_pct": 65.87,
+      "brier": 0.20928,
+      "graded": 167,
+      "log_loss": 0.60773,
       "predictions": 183
     }
   },
-  "updated_at": "2026-11-22T22:01:23.630431Z"
+  "updated_at": "2026-11-23T02:26:40.997763Z"
 }
