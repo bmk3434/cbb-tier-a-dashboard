@@ -182,7 +182,6 @@
     },
     {
       "away_b2b": false,
-      "away_moneyline": -336,
       "away_previous_date": null,
       "away_previous_result": null,
       "away_score": 0,
@@ -210,8 +209,6 @@
       "model_v2_min_prior_games": 10,
       "model_v2_source": "Free BoxScore Lab game logs; estimated possession/ratings proxies",
       "model_v2_status": "EARLY PROSPECTIVE SHADOW - UNVALIDATED VS ODDS",
-      "moneyline_bookmaker": "draftkings",
-      "moneyline_last_update": "2026-11-23T18:13:36Z",
       "research_confidence": 24,
       "research_confidence_label": "LOW / IN-SAMPLE",
       "setup_qualified": true,
@@ -1097,7 +1094,7 @@
       "last_run_graded": 0,
       "last_run_new": 0,
       "last_run_new_v2_on_existing": 0,
-      "odds_status": "CONNECTED",
+      "odds_status": "SKIPPED_NO_READY_SETUP",
       "paired": {
         "same_games": 170,
         "v1": {
@@ -1159,7 +1156,7 @@
     "provider_used": 21
   },
   "odds_source": "The Odds API v4 (optional)",
-  "odds_status": "CONNECTED",
+  "odds_status": "SKIPPED_NO_READY_SETUP",
   "plays": [
     {
       "away_team": "Cleveland Cavaliers",
@@ -1376,10 +1373,10 @@
     "roi": 0.333,
     "scheduled_games": 22,
     "settled_plays": 6,
-    "setups_with_moneyline": 1,
+    "setups_with_moneyline": 0,
     "tracked_plays": 7,
     "units": 0.02,
     "wins": 5
   },
-  "updated_at": "2026-11-23T18:14:30.150361Z"
+  "updated_at": "2026-11-23T22:11:49.867937Z"
 }
