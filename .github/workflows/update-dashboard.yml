@@ -50,6 +50,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          # A rerun must use current main, not the SHA from the original failed attempt.
+          ref: main
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -137,29 +140,49 @@ jobs:
 
       - name: Commit persistent dashboard state
         if: steps.scanner.outputs.skipped != 'true'
+        env:
+          CBBD_API_KEY: ${{ secrets.CBBD_API_KEY }}
+          CBB_TARGET_DATE: ${{ steps.date.outputs.today }}
+        shell: bash
         run: |
+          set -euo pipefail
           git config user.name "cbb-dashboard-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/state.json site/data/state.json neutral_overrides.csv
-          if ! git diff --cached --quiet; then
-            git commit -m "Update CBB Tier A dashboard state"
-            # The independent NBA feed may update the repository after checkout.
-            # Safely integrate its newer commit before publishing CBB state.
-            pushed=0
-            for attempt in 1 2 3; do
-              git fetch origin main
-              git rebase origin/main
-              if git push origin HEAD:main; then
-                pushed=1
-                break
-              fi
-              echo "Remote moved during attempt ${attempt}; retrying safely."
-              sleep 2
-            done
-            if [ "$pushed" -ne 1 ]; then
-              echo "Unable to publish CBB state without a conflict." >&2
-              exit 1
+          # Concurrent CBB/NBA commits and retries can advance main mid-scan.
+          # Never rebase two independently generated JSON ledgers: overlapping
+          # snapshots conflict, and blindly resolving them could lose entries.
+          # Instead regenerate from the latest committed state using the
+          # SAME frozen scanner output (no extra KenPom/lines scan).
+          pushed=0
+          for attempt in 1 2 3 4; do
+            git fetch origin main
+            if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
+              echo "Remote advanced; replaying this scan onto the latest committed dashboard state (attempt ${attempt})."
+              # Files in output/ are generated untracked scanner artifacts.
+              test -f "output/all_scored_${CBB_TARGET_DATE}.csv" || {
+                echo "Scanner output missing; refusing to rebuild ledger." >&2
+                exit 1
+              }
+              git reset --hard origin/main
+              python dashboard_sync.py "$CBB_TARGET_DATE"
             fi
+            git add data/state.json site/data/state.json neutral_overrides.csv
+            if git diff --cached --quiet; then
+              echo "Dashboard state already current; nothing to commit."
+              pushed=1
+              break
+            fi
+            git commit -m "Update CBB Tier A dashboard state"
+            if git push origin HEAD:main; then
+              pushed=1
+              break
+            fi
+            echo "Remote moved during push; next attempt will safely rebuild from main."
+            sleep 2
+          done
+          if [ "$pushed" -ne 1 ]; then
+            echo "Unable to publish state after four safe attempts; refusing to overwrite remote data." >&2
+            exit 1
           fi
 
       - name: Configure GitHub Pages
