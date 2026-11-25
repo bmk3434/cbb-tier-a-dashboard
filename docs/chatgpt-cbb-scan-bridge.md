@@ -1,12 +1,12 @@
 # Completion-triggered ChatGPT CBB report — setup
 
-The CBB scanner workflow includes a final step that posts a completion comment
+The CBB scanner job includes a final step that posts a completion comment
 to draft PR [#4](https://github.com/bmk3434/cbb-tier-a-dashboard/pull/4).
 Keep this PR OPEN and unmerged: it is the stable event feed.
 
 The step uses GitHub's own `GITHUB_TOKEN` with `issues: write`; no external
 webhooks, API keys, paid integrations, or model source changes are needed.
-It runs even after an earlier scanner/deployment step fails (`always()`);
+It runs even after an earlier scanner/save step fails (`always()`);
 failure of the notification step does not fail the scanner.
 
 ## One-time ChatGPT Work connection (must be completed in the ChatGPT UI)
@@ -49,3 +49,20 @@ The GitHub workflow always sends only an event signal: it does NOT invoke a
 private ChatGPT chat directly. The Work event-triggered task must be configured
 and approved separately. Bot-generated comments may need additional verification
 with the available GitHub event settings.
+
+## Independent publishing and retries
+
+The scan job sends `CBB_SCAN_COMPLETED` after scanning and saving, before the
+separate Pages publishing job. `Result` describes the scan/save outcome;
+`Data check` still requires independently verified fresh, OK committed state.
+`Dashboard publishing: PENDING_SEPARATE_JOB` does not mean the live website is
+updated yet. Consumers should inspect the named scan job, not use the overall
+workflow conclusion as a substitute for scan status.
+
+The publishing job checks that the exact uploaded artifact is visible, then
+allows up to three deployment attempts. Each workflow attempt uses a distinct
+artifact name. A deployment-only rerun checks out current main and never calls
+KenPom or the odds provider. In GitHub Actions, use **Re-run failed jobs** to
+retry publishing without repeating the successful scan. Publishing reports a
+separate `CBB_DASHBOARD_PUBLISH_COMPLETED` comment; that marker must not trigger
+another betting report. A skipped KenPom scan does not publish old results.

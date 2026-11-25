@@ -13,6 +13,9 @@ on:
       - 'cbb_totals_model_v3_challenger.json'
       - 'site/**'
       - '.github/workflows/update-dashboard.yml'
+      - '.github/scripts/cbb-scan-signal.cjs'
+      - '.github/scripts/wait-pages-artifact.cjs'
+      - '.github/scripts/test-cbb-publishing.cjs'
   schedule:
     - cron: '15 7 * * *'
       timezone: 'America/Los_Angeles'
@@ -42,10 +45,10 @@ permissions:
 
 jobs:
   update-and-deploy:
+    name: Scan and save CBB results
     runs-on: ubuntu-24.04
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      skipped: ${{ steps.scanner.outputs.skipped }}
 
     steps:
       - name: Checkout repository
@@ -53,6 +56,9 @@ jobs:
         with:
           # A rerun must use current main, not the SHA from the original failed attempt.
           ref: main
+
+      - name: Verify publishing and scan-status handling
+        run: node --test .github/scripts/test-cbb-publishing.cjs
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -133,12 +139,14 @@ jobs:
           fi
 
       - name: Sync persistent dashboard state and settle games
+        id: sync
         if: steps.scanner.outputs.skipped != 'true'
         env:
           CBBD_API_KEY: ${{ secrets.CBBD_API_KEY }}
         run: python dashboard_sync.py "${{ steps.date.outputs.today }}"
 
       - name: Commit persistent dashboard state
+        id: commit
         if: steps.scanner.outputs.skipped != 'true'
         env:
           CBBD_API_KEY: ${{ secrets.CBBD_API_KEY }}
@@ -185,19 +193,7 @@ jobs:
             exit 1
           fi
 
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v6
-
-      - name: Upload dashboard site
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: site
-
-      - name: Deploy dashboard
-        id: deployment
-        uses: actions/deploy-pages@v5
-
-      # Runs even after a scanner/deploy failure; never changes model or output.
+      # Signal scan status before publishing; publishing cannot invalidate saved results.
       - name: Publish scan-completion signal for ChatGPT Work
         if: ${{ always() }}
         continue-on-error: true
@@ -205,71 +201,99 @@ jobs:
         env:
           CBB_JOB_STATUS: ${{ job.status }}
           CBB_SCANNER_OUTCOME: ${{ steps.scanner.outcome }}
+          CBB_SYNC_OUTCOME: ${{ steps.sync.outcome }}
+          CBB_COMMIT_OUTCOME: ${{ steps.commit.outcome }}
           CBB_SKIPPED: ${{ steps.scanner.outputs.skipped }}
           CBB_TARGET_DATE: ${{ steps.date.outputs.today }}
         with:
           script: |
-            const { owner, repo } = context.repo;
-            const issue_number = 4; // Dedicated draft PR: automation event feed
-            const scanStatus = process.env.CBB_JOB_STATUS || 'unknown';
-            const skipped = process.env.CBB_SKIPPED === 'true';
-            const result = skipped ? 'SKIPPED_KENPOM_ARCHIVE' :
-              scanStatus === 'success' ? 'SUCCESS' :
-              scanStatus === 'failure' ? 'FAILURE' : scanStatus.toUpperCase();
-            let state = null;
-            let readError = '';
-            try {
-              const response = await github.rest.repos.getContent({
-                owner, repo, path: 'site/data/state.json', ref: 'main'
-              });
-              if (!response.data.content) throw new Error('state.json has no content');
-              state = JSON.parse(Buffer.from(response.data.content, 'base64').toString('utf8'));
-            } catch (e) { readError = String(e.message || e).slice(0, 180); }
-            let sourceRun = {};
-            try {
-              sourceRun = (await github.rest.actions.getWorkflowRun({
-                owner, repo, run_id: context.runId
-              })).data;
-            } catch (e) { core.warning('Run timing unavailable: ' + String(e.message || e)); }
-            const updated = state?.last_updated_pt || 'unavailable';
-            const dataMs = Date.parse(updated);
-            const startedMs = Date.parse(sourceRun.run_started_at || sourceRun.created_at || '');
-            const fresh = result === 'SUCCESS' && state?.status === 'OK' &&
-              Number.isFinite(dataMs) && Number.isFinite(startedMs) &&
-              dataMs >= startedMs - 3 * 60000 && dataMs <= Date.now() + 60000 &&
-              updated.slice(0, 10) === process.env.CBB_TARGET_DATE;
-            const dataCheck = fresh ? 'FRESH_COMMITTED_STATE' : 'STALE_OR_UNVERIFIED';
-            const runUrl = `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`;
-            const lines = [
-              '## CBB_SCAN_COMPLETED',
-              `**Result:** ${result}`,
-              `**Data check:** ${dataCheck}`,
-              `**Scanner outcome:** ${process.env.CBB_SCANNER_OUTCOME || 'unknown'}`,
-              `**Target date:** ${process.env.CBB_TARGET_DATE || 'unknown'}`,
-              `**Workflow URL:** ${runUrl}`,
-              `**Workflow run number:** ${context.runNumber}`,
-              `**Source trigger:** ${context.eventName}`,
-              `**Committed state updated (PT):** ${updated}`,
-              `**State status:** ${state?.status || 'unavailable'}`,
-              `**Last committed scan date:** ${state?.runs?.at(-1)?.date || 'unavailable'}`,
-              readError ? `**Data read error:** ${readError}` : '',
-              '',
-              '**For ChatGPT Work:** This comment is an event signal, NOT a betting recommendation.',
-              'Independently fetch the latest committed state and verify ATS v4 and Totals v1.',
-              'Honor KenPom location/venue QC, neutral spreads, current line freshness, tip time,',
-              'and frozen qualification thresholds. Exclude stale or already-started plays.',
-              'If failed/skipped, report the failure or PASS; never invent prices or bets.',
-              '',
-              `<!-- cbb-bridge-run-${context.runId} -->`
-            ].filter(Boolean);
-            try {
-              await github.rest.issues.createComment({
-                owner, repo, issue_number, body: lines.join('\n')
-              });
-              core.info(`CBB scan ${result}; data ${dataCheck}; notified PR #${issue_number}`);
-            } catch (err) {
-              const accepted = err.response?.headers?.['x-accepted-github-permissions'] || 'not provided';
-              core.error(`CBB_BRIDGE_POST_FAILED: HTTP ${err.status || 'unknown'}; ${err.message}; accepted permissions: ${accepted}`);
-              core.error('Inspect Set up job > GITHUB_TOKEN Permissions and Settings > Actions > General > Workflow permissions.');
-              throw err;
-            }
+            const signal = require('./.github/scripts/cbb-scan-signal.cjs');
+            await signal({ github, context, core });
+
+  deploy:
+    name: Publish saved dashboard (safe to retry alone)
+    needs: update-and-deploy
+    if: needs.update-and-deploy.outputs.skipped != 'true'
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy_first.outputs.page_url || steps.deploy_second.outputs.page_url || steps.deploy_final.outputs.page_url }}
+    steps:
+      # A deployment-only rerun publishes current committed data, never rescans
+      # or rolls the live site back to the original run's older snapshot.
+      - name: Checkout current saved dashboard
+        uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload dashboard site
+        id: upload
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+          # Reruns cannot leave two identically named artifacts in one run.
+          name: github-pages-${{ github.run_attempt }}
+
+      - name: Wait for uploaded artifact to be visible
+        uses: actions/github-script@v7
+        env:
+          PAGES_ARTIFACT_ID: ${{ steps.upload.outputs.artifact_id }}
+          PAGES_ARTIFACT_NAME: github-pages-${{ github.run_attempt }}
+        with:
+          script: |
+            const wait = require('./.github/scripts/wait-pages-artifact.cjs');
+            await wait({ github, context, core });
+
+      - name: Deploy dashboard
+        id: deploy_first
+        continue-on-error: true
+        uses: actions/deploy-pages@v5
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
+
+      - name: Wait before second publishing attempt
+        if: steps.deploy_first.outcome == 'failure'
+        run: sleep 15
+
+      - name: Retry dashboard publishing
+        id: deploy_second
+        if: steps.deploy_first.outcome == 'failure'
+        continue-on-error: true
+        uses: actions/deploy-pages@v5
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
+
+      - name: Wait before final publishing attempt
+        if: steps.deploy_second.outcome == 'failure'
+        run: sleep 30
+
+      - name: Final dashboard publishing attempt
+        id: deploy_final
+        if: steps.deploy_second.outcome == 'failure'
+        uses: actions/deploy-pages@v5
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
+
+      - name: Report publishing status separately
+        if: ${{ always() }}
+        continue-on-error: true
+        uses: actions/github-script@v7
+        env:
+          PUBLISH_STATUS: ${{ job.status }}
+        with:
+          script: |
+            const status = (process.env.PUBLISH_STATUS || 'unknown').toUpperCase();
+            const url = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = [
+              '## CBB_DASHBOARD_PUBLISH_COMPLETED',
+              `**Publishing:** ${status}`,
+              `**Workflow URL:** ${url}`,
+              `**Run attempt:** ${process.env.GITHUB_RUN_ATTEMPT}`,
+              'Scan results were saved in the separate scan job. This is a publishing status, not a new scan.',
+              status === 'FAILURE' ? 'Retry only the failed publishing job; no new KenPom or odds scan is needed.' : ''
+            ].filter(Boolean).join('\n');
+            await core.summary.addRaw(body).write();
+            await github.rest.issues.createComment({ ...context.repo, issue_number: 4, body });
