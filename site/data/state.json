@@ -1,6 +1,6 @@
 {
   "version": 4,
-  "last_updated_pt": "2026-11-26T09:24:40-08:00",
+  "last_updated_pt": "2026-11-26T15:51:47-08:00",
   "status": "OK",
   "plays": {
     "374584": {
@@ -4054,6 +4054,21 @@
       "new_totals_v2_shadow_candidates": 0,
       "newly_settled_totals_v2_shadow": 0,
       "new_totals_v3_shadow_candidates": 1,
+      "newly_settled_totals_v3_shadow": 0,
+      "new_regulation_audits": 0
+    },
+    {
+      "timestamp_pt": "2026-11-26T15:51:47-08:00",
+      "date": "2026-11-26",
+      "new_candidates": 0,
+      "near_miss_ats": 0,
+      "near_miss_totals": 0,
+      "newly_settled": 0,
+      "new_totals_candidates": 0,
+      "newly_settled_totals": 0,
+      "new_totals_v2_shadow_candidates": 0,
+      "newly_settled_totals_v2_shadow": 0,
+      "new_totals_v3_shadow_candidates": 0,
       "newly_settled_totals_v3_shadow": 0,
       "new_regulation_audits": 0
     }
@@ -19779,13 +19794,24 @@
           "qualified_now": true,
           "trackable_now": false,
           "qc_status_now": "NEUTRAL_REVIEW_REQUIRED"
+        },
+        {
+          "timestamp_pt": "2026-11-26T15:51:47-08:00",
+          "market_total": 137.5,
+          "provider": "Draft Kings",
+          "model_bet_now": "Over",
+          "model_total_now": 139.52046031227619,
+          "edge_now": 2.0204603122761955,
+          "qualified_now": true,
+          "trackable_now": false,
+          "qc_status_now": "NEUTRAL_REVIEW_REQUIRED"
         }
       ],
-      "latest_total": 136.5,
-      "latest_model_total": 138.52375322052788,
-      "latest_edge": 2.0237532205278694,
+      "latest_total": 137.5,
+      "latest_model_total": 139.52046031227619,
+      "latest_edge": 2.0204603122761955,
       "latest_provider": "Draft Kings",
-      "latest_snapshot_pt": "2026-11-26T09:24:40-08:00"
+      "latest_snapshot_pt": "2026-11-26T15:51:47-08:00"
     }
   },
   "totals_v3_summary": {
@@ -19814,7 +19840,7 @@
   "line_shopping_watchlist": {
     "scan_date": "2026-11-26",
     "status": "OK",
-    "scanner_timestamp_pt": "2026-11-26T09:24:40-08:00",
+    "scanner_timestamp_pt": "2026-11-26T15:51:47-08:00",
     "near_miss_ats": [],
     "near_miss_totals": [],
     "qualified_line_shop_totals": [],
