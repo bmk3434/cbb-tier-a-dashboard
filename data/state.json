@@ -1,6 +1,6 @@
 {
   "version": 4,
-  "last_updated_pt": "2026-11-26T15:51:47-08:00",
+  "last_updated_pt": "2026-11-26T17:51:45-08:00",
   "status": "OK",
   "plays": {
     "374584": {
@@ -4059,6 +4059,21 @@
     },
     {
       "timestamp_pt": "2026-11-26T15:51:47-08:00",
+      "date": "2026-11-26",
+      "new_candidates": 0,
+      "near_miss_ats": 0,
+      "near_miss_totals": 0,
+      "newly_settled": 0,
+      "new_totals_candidates": 0,
+      "newly_settled_totals": 0,
+      "new_totals_v2_shadow_candidates": 0,
+      "newly_settled_totals_v2_shadow": 0,
+      "new_totals_v3_shadow_candidates": 0,
+      "newly_settled_totals_v3_shadow": 0,
+      "new_regulation_audits": 0
+    },
+    {
+      "timestamp_pt": "2026-11-26T17:51:45-08:00",
       "date": "2026-11-26",
       "new_candidates": 0,
       "near_miss_ats": 0,
@@ -19840,7 +19855,7 @@
   "line_shopping_watchlist": {
     "scan_date": "2026-11-26",
     "status": "OK",
-    "scanner_timestamp_pt": "2026-11-26T15:51:47-08:00",
+    "scanner_timestamp_pt": "2026-11-26T17:51:45-08:00",
     "near_miss_ats": [],
     "near_miss_totals": [],
     "qualified_line_shop_totals": [],
