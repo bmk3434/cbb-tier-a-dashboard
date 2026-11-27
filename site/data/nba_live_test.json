@@ -4512,7 +4512,7 @@
   ],
   "schema_version": 1,
   "start_game_date": "2026-10-26",
-  "status": "ACTIVE",
+  "status": "COMPLETED_WINDOW",
   "summary": {
     "betting_plays": 0,
     "games_final": 227,
@@ -4554,5 +4554,5 @@
       "predictions": 192
     }
   },
-  "updated_at": "2026-11-26T22:25:40.338646Z"
+  "updated_at": "2026-11-27T09:44:32.025128Z"
 }
