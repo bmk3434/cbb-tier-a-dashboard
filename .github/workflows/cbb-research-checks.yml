@@ -4,6 +4,8 @@ on:
     branches: [main]
     paths:
       - 'cbb_research.py'
+      - 'cbb_private_export.py'
+      - 'test_cbb_private_export.py'
       - 'cbb_research_cache.py'
       - 'cbb_tierA_scanner.py'
       - 'test_cbb_research.py'
@@ -20,7 +22,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m py_compile cbb_research.py cbb_research_cache.py cbb_tierA_scanner.py test_cbb_research.py
-      - run: python -m unittest -v test_cbb_research
+      - run: python -m unittest -v test_cbb_research test_cbb_private_export
       - run: pip install -r requirements.txt
       - run: python -m unittest -v test_cbb_research_parity
       - run: python -m unittest -v test_cbb_venue_qc test_dashboard_venue_qc test_cbb_line_shopping_watchlist
