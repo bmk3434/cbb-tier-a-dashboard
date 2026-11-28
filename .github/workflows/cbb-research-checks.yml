@@ -7,6 +7,7 @@ on:
       - 'cbb_research_cache.py'
       - 'cbb_tierA_scanner.py'
       - 'test_cbb_research.py'
+      - 'test_cbb_research_parity.py'
       - '.github/workflows/cbb-research-checks.yml'
 permissions:
   contents: read
@@ -21,4 +22,5 @@ jobs:
       - run: python -m py_compile cbb_research.py cbb_research_cache.py cbb_tierA_scanner.py test_cbb_research.py
       - run: python -m unittest -v test_cbb_research
       - run: pip install -r requirements.txt
+      - run: python -m unittest -v test_cbb_research_parity
       - run: python -m unittest -v test_cbb_venue_qc test_dashboard_venue_qc test_cbb_line_shopping_watchlist
