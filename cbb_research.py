@@ -4,7 +4,8 @@ import csv
 import json
 import math
 import sqlite3
-from datetime import datetime
+from contextlib import closing
+from datetime import datetime, timezone
 from pathlib import Path
 
 MODEL_EDGES = ("Totals_Predicted_Edge", "Totals_V2_Predicted_Edge", "Totals_V3_Predicted_Edge")
@@ -38,7 +39,7 @@ def timestamp(value):
     parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
     if parsed.tzinfo is None:
         raise ValueError("Timestamp must include timezone")
-    return parsed
+    return parsed.astimezone(timezone.utc)
 
 
 def open_db(path):
@@ -65,7 +66,7 @@ def open_db(path):
 def ingest(path, rows):
     """Persist every scored pre-tip row, including passes and QC holds."""
     inserted, rejected = 0, 0
-    with open_db(path) as db:
+    with closing(open_db(path)) as db, db:
         for row in rows:
             try:
                 date, gid = str(row["Game_Date"]), str(row["Game_ID"])
@@ -89,7 +90,7 @@ def ingest(path, rows):
 def import_results(path, rows):
     """Import independently verified final scores, never pregame projections."""
     count = 0
-    with open_db(path) as db:
+    with closing(open_db(path)) as db, db:
         for row in rows:
             if str(row.get("status", "")).lower() != "final":
                 continue
@@ -108,7 +109,7 @@ def import_results(path, rows):
 def summarize(path):
     """First pre-tip snapshot per game only; no duplicate-game weighting."""
     groups = {}
-    with open_db(path) as db:
+    with closing(open_db(path)) as db, db:
         rows = db.execute("""
           SELECT s.payload,s.agreement,r.home_score,r.away_score
           FROM snapshots s
