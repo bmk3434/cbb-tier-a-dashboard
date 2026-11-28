@@ -767,6 +767,8 @@ def main() -> int:
     parser.add_argument("--date", help="Game date YYYY-MM-DD. Defaults to today's date in America/Los_Angeles.")
     parser.add_argument("--refresh-history", action="store_true", help="Re-download prior 10-day CBBD team-stat chunks.")
     parser.add_argument("--no-snapshots", action="store_true", help="Do not append this run to output/line_snapshots.csv.")
+    parser.add_argument("--research-db", help="Opt-in local SQLite path (not public GitHub storage).")
+    parser.add_argument("--pregame-archive-cache", help="Opt-in local cache directory for exact-date KenPom archives; odds and FanMatch always fetched live.")
     args = parser.parse_args()
 
     target_date = datetime.now(LOCAL_TZ).date() if not args.date else date.fromisoformat(args.date)
@@ -845,7 +847,16 @@ def main() -> int:
     ratings_date = target_date - timedelta(days=1)
     print(f"KENPOM_RATINGS_DATE={ratings_date.isoformat()}")
     try:
-        archive = kenpom_get("archive", {"d": ratings_date.isoformat()}, kenpom_key)
+        if args.pregame_archive_cache:
+            from cbb_research_cache import read_or_fetch_archive
+            archive, hit = read_or_fetch_archive(
+                args.pregame_archive_cache, ratings_date,
+                lambda: kenpom_get("archive", {"d": ratings_date.isoformat()}, kenpom_key),
+                refresh=args.refresh_history,
+            )
+            print(f"KENPOM_ARCHIVE_CACHE={'HIT' if hit else 'MISS'}")
+        else:
+            archive = kenpom_get("archive", {"d": ratings_date.isoformat()}, kenpom_key)
     except RuntimeError as exc:
         msg = str(exc)
         if "HTTP 404" in msg and "Data not found" in msg and "kenpom.com" in msg:
@@ -1139,6 +1150,9 @@ def main() -> int:
     totals_v3_path = OUTPUT_DIR / f"totals_v3_shadow_candidates_{target_date.isoformat()}.csv"
     audit_path = OUTPUT_DIR / f"audit_{target_date.isoformat()}.txt"
     write_csv(all_path, scored, fields)
+    if args.research_db:
+        from cbb_research import ingest
+        print(f"RESEARCH_LEDGER={ingest(args.research_db, scored)}")
     write_csv(cand_path, candidates, fields)
     write_csv(totals_path, totals_candidates, fields)
     write_csv(totals_v2_path, totals_v2_candidates, fields)

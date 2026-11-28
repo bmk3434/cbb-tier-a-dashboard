@@ -4,3 +4,10 @@ __pycache__/
 output/
 # The GitHub Actions cache stores cache/ between cloud runs; don't commit it.
 cache/
+
+# Private research data: never commit local SQLite databases or archive caches.
+research_private/
+*.sqlite
+*.sqlite3
+*.sqlite-*
+*.sqlite3-*

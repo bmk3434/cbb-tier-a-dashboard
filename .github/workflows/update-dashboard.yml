@@ -210,6 +210,14 @@ jobs:
             const signal = require('./.github/scripts/cbb-scan-signal.cjs');
             await signal({ github, context, core });
 
+      - name: Save derived pre-tip research to private repository
+        if: github.ref == 'refs/heads/main' && steps.scanner.outcome == 'success' && steps.scanner.outputs.skipped != 'true' && steps.commit.outcome == 'success'
+        continue-on-error: true
+        env:
+          CBB_RESEARCH_TOKEN: ${{ secrets.CBB_RESEARCH_TOKEN }}
+          CBB_TARGET_DATE: ${{ steps.date.outputs.today }}
+        run: python cbb_private_export.py
+
   deploy:
     name: Publish saved dashboard (safe to retry alone)
     needs: update-and-deploy
