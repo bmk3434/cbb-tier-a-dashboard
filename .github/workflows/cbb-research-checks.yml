@@ -1,0 +1,24 @@
+name: CBB research offline checks
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'cbb_research.py'
+      - 'cbb_research_cache.py'
+      - 'cbb_tierA_scanner.py'
+      - 'test_cbb_research.py'
+      - '.github/workflows/cbb-research-checks.yml'
+permissions:
+  contents: read
+jobs:
+  offline:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: python -m py_compile cbb_research.py cbb_research_cache.py cbb_tierA_scanner.py test_cbb_research.py
+      - run: python -m unittest -v test_cbb_research
+      - run: pip install -r requirements.txt
+      - run: python -m unittest -v test_cbb_venue_qc test_dashboard_venue_qc test_cbb_line_shopping_watchlist
