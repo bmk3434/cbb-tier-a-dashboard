@@ -22,7 +22,7 @@ def finite(value):
 
 def agreement(row):
     edges = [finite(row.get(k)) for k in MODEL_EDGES]
-    votes = ["Over" if x > 0 else "Under" if x < 0 else "Pass" if x == 0 else "Missing" for x in edges]
+    votes = ["Missing" if x is None else "Over" if x > 0 else "Under" if x < 0 else "Pass" for x in edges]
     over, under = votes.count("Over"), votes.count("Under")
     qualified = [str(row.get(k, "")).lower() in ("true", "1") for k in MODEL_FLAGS]
     return {
